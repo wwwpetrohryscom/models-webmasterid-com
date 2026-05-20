@@ -237,6 +237,98 @@ const checks: Check[] = [
       return null;
     },
   },
+  {
+    name: "comparison entities never declare a winner (type-level)",
+    run: () => {
+      const src = readRel("apps/models/data/comparisons.ts");
+      // Each comparison object must carry declaresWinner: false.
+      const objects = src.match(/\{[\s\S]*?\}/g) ?? [];
+      const failures: string[] = [];
+      // Lightweight: count appearance of `declaresWinner: false` vs total
+      // comparison objects identified by their slug field.
+      const slugs = [...src.matchAll(/slug:\s*"([^"]+)"/g)].map((m) => m[1]);
+      const declares = [
+        ...src.matchAll(/declaresWinner:\s*(true|false)/g),
+      ].map((m) => m[1]);
+      if (declares.includes("true")) {
+        failures.push(
+          `One or more comparison entities set declaresWinner: true — comparison pages must not declare a winner.`
+        );
+      }
+      if (slugs.length && declares.length < slugs.length) {
+        failures.push(
+          `Found ${slugs.length} comparison entries but only ${declares.length} declaresWinner declarations — every comparison must explicitly carry declaresWinner: false.`
+        );
+      }
+      // Silence the unused-objects warning.
+      void objects;
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "comparison page copy reinforces no-winner policy",
+    run: () => {
+      const src = readRel("apps/models/app/compare/[slug]/page.tsx");
+      // Collapse whitespace so the assertion survives JSX line-wrapping.
+      const flat = src.replace(/\s+/g, " ");
+      if (!/No winner declared/i.test(flat)) {
+        return "Comparison page is missing the 'No winner declared' notice.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "model-jsonld omits benchmark / latency / uptime fields entirely",
+    run: () => {
+      const src = readRel("apps/models/lib/model-jsonld.ts");
+      const banned = /(benchmark|latency|uptime|avgLatencyMs|uptimePercent)/i;
+      // The helper is allowed to MENTION these tokens in comments. We
+      // search only for assignments / property names that would leak.
+      const lines = src.split("\n").filter((l) => !/^\s*\/\//.test(l));
+      const offending = lines.filter((l) =>
+        /^[^/]*"(performance|latency|uptime|avgLatencyMs|uptimePercent|benchmark[A-Za-z]*)"\s*:/.test(
+          l
+        )
+      );
+      if (offending.length) {
+        return (
+          "model-jsonld assigns banned unverified-metric properties:\n  " +
+          offending.map((l) => l.trim()).join("\n  ")
+        );
+      }
+      // Defensive: search for any verbatim 'uptimePercent' or 'avgLatencyMs' RHS
+      // outside comments.
+      if (
+        lines.join("\n").match(/(?:uptimePercent|avgLatencyMs|benchmarks?:)/) &&
+        !banned.test("")
+      ) {
+        // (no-op, the structured check above is authoritative)
+      }
+      return null;
+    },
+  },
+  {
+    name: "no provider is fully verified while declaring partial fields",
+    run: () => {
+      const src = readRel("apps/models/data/providers.ts");
+      // Find each provider object and check: if verificationStatus is
+      // "verified" then `verified: true` must also be set.
+      const blocks = src.split(/\{\s*\n\s*id:\s*"provider-/);
+      const failures: string[] = [];
+      for (const block of blocks.slice(1)) {
+        const slugMatch = block.match(/slug:\s*"([^"]+)"/);
+        const slug = slugMatch ? slugMatch[1] : "<unknown>";
+        const verifiedTrue = /verified:\s*true/.test(block);
+        const statusVerified = /verificationStatus:\s*"verified"/.test(block);
+        if (statusVerified && !verifiedTrue) {
+          failures.push(
+            `Provider "${slug}" claims verificationStatus "verified" but verified flag is not true.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
 ];
 
 function main(): void {

@@ -44,7 +44,7 @@ export const providers: ProviderEntity[] = [
     website: "https://openai.com",
     docsUrl: "https://platform.openai.com/docs",
     apiDocsUrl: "https://platform.openai.com/docs/api-reference",
-    pricingUrl: "https://openai.com/api/pricing",
+    pricingUrl: "https://platform.openai.com/docs/pricing",
     modelCatalogueUrl: "https://platform.openai.com/docs/models",
     statusPageUrl: "https://status.openai.com",
     deprecationsUrl: "https://platform.openai.com/docs/deprecations",
@@ -54,7 +54,7 @@ export const providers: ProviderEntity[] = [
     lastCheckedAt: null,
     updatedDate: "2026-05-20",
     notes:
-      "URLs are the public documentation entry points. Their content has not yet been retrieved as primary-source citations by this platform.",
+      "URLs are the public documentation entry points. As of 2026-05-20 the platform.openai.com docs site returned HTTP 403 to automated retrieval; primary-source verification requires a manual browser review. No GPT-5 metrics have been published on this platform until that review completes.",
   },
   {
     id: "provider-google",
@@ -70,12 +70,12 @@ export const providers: ProviderEntity[] = [
     modelCatalogueUrl: "https://ai.google.dev/gemini-api/docs/models",
     statusPageUrl: "https://status.cloud.google.com",
     headquarters: "Mountain View, USA",
-    verified: false,
-    verificationStatus: "partial",
-    lastCheckedAt: null,
+    verified: true,
+    verificationStatus: "verified",
+    lastCheckedAt: "2026-05-20T00:00:00.000Z",
     updatedDate: "2026-05-20",
     notes:
-      "URLs are the public documentation entry points. Their content has not yet been retrieved as primary-source citations by this platform.",
+      "Per-model documentation, pricing reference, and API quickstart actively traversed on 2026-05-20 (see Gemini 2.5 Pro model record citations).",
   },
   {
     id: "provider-meta",

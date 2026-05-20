@@ -9,11 +9,13 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { DataFreshness } from "@/components/DataFreshness";
 import { InternalLinkGrid } from "@/components/InternalLinkGrid";
 import { JsonLd } from "@/components/JsonLd";
+import { SourceCitationList } from "@/components/SourceCitation";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { robotsMetadata, shouldIndexComparison } from "@/lib/should-index";
 import { comparisons, getComparisonBySlug } from "@/data/comparisons";
 import { getModelBySlug } from "@/data/models";
 import { getProviderBySlug } from "@/data/providers";
+import { mergeCitations, isVerified } from "@/lib/verified";
 
 interface RouteParams {
   slug: string;
@@ -159,6 +161,74 @@ export default async function ComparisonPage({
         </ul>
       </section>
 
+      <section aria-label="API usage differences" className="space-y-3">
+        <SectionHeader
+          eyebrow="API surface"
+          title="API usage differences"
+          description="Endpoint shape, model parameter position, and request body conventions for each provider. Shown for reference, not as a recommendation."
+          as="h2"
+        />
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[modelA, modelB].map((m) => {
+            const p = m === modelA ? providerA : providerB;
+            const canonical = isVerified(m.apiIdentifiers)
+              ? m.apiIdentifiers.value.canonical
+              : null;
+            const endpoint =
+              m.providerSlug === "anthropic"
+                ? "POST https://api.anthropic.com/v1/messages"
+                : m.providerSlug === "google"
+                  ? `POST https://generativelanguage.googleapis.com/v1beta/models/${canonical ?? "<model>"}:generateContent`
+                  : null;
+            const modelParamPosition =
+              m.providerSlug === "anthropic"
+                ? "JSON body `model` field"
+                : m.providerSlug === "google"
+                  ? "URL path segment"
+                  : "—";
+            return (
+              <article
+                key={m.slug}
+                className="card-surface p-4 text-sm"
+              >
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {m.name}
+                </p>
+                <p className="mt-1 text-base font-semibold text-foreground">
+                  {p?.name ?? "Unknown provider"}
+                </p>
+                <dl className="mt-3 space-y-1.5 text-xs">
+                  <div className="flex items-start justify-between gap-3">
+                    <dt className="text-muted-foreground">Endpoint</dt>
+                    <dd className="break-all text-right font-mono text-foreground">
+                      {endpoint ?? "—"}
+                    </dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <dt className="text-muted-foreground">
+                      Model parameter
+                    </dt>
+                    <dd className="text-right text-foreground">
+                      {modelParamPosition}
+                    </dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <dt className="text-muted-foreground">Canonical ID</dt>
+                    <dd className="text-right font-mono text-foreground">
+                      {canonical ?? "—"}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="mt-3 text-[11px] text-muted-foreground">
+                  See the model page for a full documentation-style
+                  example request and the citation it derives from.
+                </p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
       <section aria-label="Limitations" className="space-y-3">
         <SectionHeader
           eyebrow="Caveats"
@@ -176,6 +246,11 @@ export default async function ComparisonPage({
           ))}
         </ul>
       </section>
+
+      <SourceCitationList
+        citations={mergeCitations(modelA.citations, modelB.citations)}
+        title="Source trail"
+      />
 
       <section aria-label="Related" className="space-y-3">
         <SectionHeader eyebrow="Continue" title="Related" as="h2" />

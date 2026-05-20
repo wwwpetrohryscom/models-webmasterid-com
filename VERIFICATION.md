@@ -211,10 +211,8 @@ should be re-verified or downgraded to `null`.
 
 ## Status of the seed catalogue (2026-05-20)
 
-Verified end-to-end against Anthropic's official Models overview
-([source](https://platform.claude.com/docs/en/docs/about-claude/models/overview))
-and Pricing reference
-([source](https://platform.claude.com/docs/en/about-claude/pricing)):
+Verified Anthropic models (against Anthropic's Models overview and
+Pricing reference):
 
 - **Claude Opus 4.7** (`claude-opus-4-7`) — current Anthropic flagship.
 - **Claude Sonnet 4.6** (`claude-sonnet-4-6`) — current Sonnet tier.
@@ -223,11 +221,94 @@ and Pricing reference
   example. **Deprecated**, retires 2026-06-15. Retained for historical
   record and to anchor the verification workflow.
 
-Unverified catalogue entries (`gpt-5`, `gemini-2-5-pro`, `deepseek-r1`,
-`llama-4-scout`, `mistral-large-2`): structural entries only. Every
-metric is `null` and renders the canonical unverified-data label until
-a primary-source review completes per provider.
+Verified Google models (against Google AI's per-model docs and Pricing
+reference):
+
+- **Gemini 2.5 Pro** (`gemini-2.5-pro`) — flagship Gemini 2.5 model.
+  Pricing values use the standard ≤200k-token tier; the >200k surcharge
+  is recorded in each pricing row's notes. Cache pricing semantics on
+  Gemini differ from Anthropic (per-hour cache storage, not per-token
+  TTL caching) and are not yet mapped into the schema.
+
+Unverified catalogue entries (`gpt-5`, `deepseek-r1`, `llama-4-scout`,
+`mistral-large-2`): structural entries only. Every metric is `null` and
+renders the canonical unverified-data label until a primary-source
+review completes per provider.
 
 OpenAI's docs (platform.openai.com) currently block automated retrieval
-(HTTP 403). Verifying GPT-5 against the OpenAI documentation page is
-deferred until a manual review pass.
+(HTTP 403). Verifying GPT-5 against the OpenAI documentation page
+requires the **Manual vendor verification workflow** below.
+
+---
+
+## Manual vendor verification workflow
+
+For vendors whose documentation cannot be retrieved by the automated
+`WebFetch` pipeline (the script the verification helpers ship with), use
+this manual browser-based pass.
+
+### When to use it
+
+- Vendor docs return HTTP 401/403/429 to non-interactive clients
+  (currently: OpenAI's `platform.openai.com`).
+- Vendor docs require JavaScript / hydration to expose factual content.
+- The page is heavily SPA-rendered and HTML scraping misses values.
+
+### Step-by-step
+
+1. **Open the source in a real browser.** Sign in to the vendor's
+   developer console if the page is gated. Treat the URL bar as the
+   citation source — do not trust mirrors, cached copies, or
+   third-party listings.
+2. **Capture URLs and the retrieval timestamp.** Record each URL you
+   used (model docs, pricing, API reference, deprecations, status page).
+   Record the ISO-8601 datetime as `retrievedAt` — this is the moment
+   you visually confirmed the value, not the moment you committed code.
+3. **(Optional) screenshots.** If a vendor page is likely to disappear
+   or change, keep a screenshot locally — but do **not** commit it to
+   the repository unless absolutely necessary; primary sources should
+   be cited by URL, not by mirrored image.
+4. **Field-by-field checklist.** For the target model, work through:
+   canonical API ID, aliases, lifecycle (active/preview/deprecated/
+   retired), context window (input), max output, supported modalities
+   (input + output), knowledge cutoff, pricing (base input/output,
+   cache write/read, batch input/output), supported features
+   (extended/adaptive thinking, priority tier, vision, tool use,
+   structured output, function calling, code execution, grounding),
+   platform availability (first-party API + Bedrock/Vertex if listed).
+   For each non-null field, capture: value, citation URL, citation
+   page name, source type.
+5. **Citation rule.** Each captured fact must trace to **one specific
+   URL** on the vendor's own domain. No secondary summaries, blogs,
+   social posts, leaderboard sites, or AI-generated summaries (including
+   `WebSearch`-tool result summaries).
+6. **Encode in source.**
+   - Add a citation to `apps/models/data/citations.ts` with `url`,
+     `name`, `type` (one of the allow-listed `SourceType` values),
+     `retrievedAt`, and `notes`.
+   - Wrap each value with `verified(value, citation, { notes })` in
+     `apps/models/data/models.ts`.
+   - Leave every field that the docs do not explicitly state as
+     `null`. Do not infer.
+7. **Run `npm run validate`.** The build refuses to ship if any
+   `verified()` call has a malformed citation. The integrity guard
+   refuses to ship if a hardcoded unverified-data label appears outside
+   the allow-list.
+8. **Re-verification cadence.** The same cadence rules apply to
+   manually verified rows: pricing every 30 days, lifecycle every 30
+   days, context/output/modality every 90 days, benchmarks only when a
+   new primary-source publication lands.
+
+### What is not a primary source
+
+- AI assistant search results / AI-generated summaries (including
+  `WebSearch` result summary text).
+- Mirror sites, leaderboard aggregators, model directories.
+- Blog posts and announcement / news pages (including vendor blog posts
+  — they are vendor announcements, not vendor specifications).
+- Tweets / X / Reddit / LinkedIn / Discord.
+- Wikipedia.
+- Cached / archived copies that the vendor has since updated.
+
+If the only place a value appears is one of the above, the value stays
+`null` and the field renders the canonical unverified-data label.

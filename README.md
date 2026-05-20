@@ -137,12 +137,22 @@ Citation registry: [`apps/models/data/citations.ts`](apps/models/data/citations.
 Verified-rendering helpers: [`apps/models/lib/verified.ts`](apps/models/lib/verified.ts).
 Brand-asset policy: [`BRAND_ASSETS.md`](BRAND_ASSETS.md).
 
-**Verified models** (against Anthropic's official Models overview and
-Pricing reference): Claude Opus 4.7, Claude Sonnet 4.6, Claude Haiku 4.5,
-and Claude Opus 4 (deprecated; retires 2026-06-15). All other catalogue
-entries are unverified and render the canonical unverified-data label
-for every metric. Gold-standard worked example:
-[Claude Opus 4](apps/models/data/models.ts).
+**Verified models:**
+
+- Anthropic — Claude Opus 4.7, Claude Sonnet 4.6, Claude Haiku 4.5,
+  Claude Opus 4 (deprecated; retires 2026-06-15). Verified from
+  Anthropic's Models overview and Pricing reference.
+- Google — Gemini 2.5 Pro. Verified from Google AI's per-model docs
+  and Pricing reference.
+
+**First fully two-sided verified comparison:**
+[Gemini 2.5 Pro vs Claude Opus 4.7](https://models.webmasterid.com/compare/gemini-2-5-pro-vs-claude-opus-4-7).
+
+All other catalogue entries are unverified and render the canonical
+unverified-data label for every metric. OpenAI verification is **queued
+for a manual browser pass** because `platform.openai.com` returns
+HTTP 403 to automated retrieval. The full workflow is documented in
+[VERIFICATION.md → Manual vendor verification workflow](VERIFICATION.md).
 
 ## Components
 

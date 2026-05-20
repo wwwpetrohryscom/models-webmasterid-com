@@ -1,6 +1,12 @@
 import type { ModelEntity } from "@/lib/types";
 import { verified, mergeCitations } from "@/lib/verified";
-import { anthropicModelsOverview, anthropicPricing } from "./citations";
+import {
+  anthropicModelsOverview,
+  anthropicPricing,
+  googleGeminiModelDocs,
+  googleGeminiPricing,
+  googleGeminiQuickstart,
+} from "./citations";
 
 // ---------------------------------------------------------------------------
 // Claude Opus 4 — verified end-to-end against official Anthropic documentation
@@ -545,6 +551,143 @@ const claudeHaiku4_5: ModelEntity = {
 };
 
 // ---------------------------------------------------------------------------
+// Gemini 2.5 Pro — verified against Google AI's per-model docs and pricing
+// reference. Pricing rows use the ≤200k-token tier as the canonical value;
+// the >200k-token surcharge is recorded in each tier's `notes` field.
+// ---------------------------------------------------------------------------
+
+const gemini2_5Pro: ModelEntity = {
+  id: "model-gemini-2-5-pro",
+  slug: "gemini-2-5-pro",
+  name: "Gemini 2.5 Pro",
+  description:
+    "Google DeepMind's flagship Gemini 2.5 model. Documented by Google as its most advanced model for complex tasks, featuring deep reasoning and coding capabilities.",
+  providerSlug: "google",
+  sourceUrl: googleGeminiModelDocs.url,
+  sourceName: googleGeminiModelDocs.name,
+  sourceType: googleGeminiModelDocs.type,
+  verified: true,
+  verificationStatus: "verified",
+  confidenceLevel: "high",
+  lastCheckedAt: "2026-05-20T00:00:00.000Z",
+  updatedDate: "2026-05-20",
+  notes:
+    "Google publishes a two-tier prompt-size price: pricing values below are the ≤200k-token tier; the >200k-token surcharge is recorded in each pricing row's notes. Cache pricing semantics on the Gemini API differ from Anthropic's (per-hour cache storage rather than per-token TTL caching) and are not yet mapped into the schema — see model record notes.",
+
+  apiIdentifiers: verified(
+    {
+      canonical: "gemini-2.5-pro",
+    },
+    googleGeminiModelDocs,
+    {
+      notes:
+        "Model code as listed on the Gemini 2.5 Pro per-model documentation page.",
+    }
+  ),
+
+  releaseDate: null,
+  snapshotDate: null,
+
+  knowledgeCutoff: verified(
+    { reliable: "2025-01" },
+    googleGeminiModelDocs,
+    {
+      notes:
+        "Knowledge cutoff listed as 'January 2025' on the Gemini 2.5 Pro per-model documentation page.",
+    }
+  ),
+
+  contextWindow: verified(1_048_576, googleGeminiModelDocs, {
+    notes:
+      "Input token limit listed as '1,048,576' on the Gemini 2.5 Pro per-model documentation page.",
+  }),
+
+  maxOutputTokens: verified(65_536, googleGeminiModelDocs, {
+    notes:
+      "Output token limit listed as '65,536' on the Gemini 2.5 Pro per-model documentation page.",
+  }),
+
+  modality: verified(
+    ["text-in", "image-in", "audio-in", "video-in", "text-out"],
+    googleGeminiModelDocs,
+    {
+      confidence: "high",
+      notes:
+        "Supported inputs listed as 'Audio, images, video, text, and PDF' on the Gemini 2.5 Pro per-model documentation page; output listed as 'Text'. PDF input is not represented in the ModalityChannel union (closest to a document modality); recorded as image-in is incorrect — left out. text-in covers PDF text content as a working approximation; see notes.",
+    }
+  ),
+
+  pricing: [
+    {
+      unit: "1M input tokens",
+      amount: verified(1.25, googleGeminiPricing, {
+        notes:
+          "Standard tier, prompts ≤200k tokens. For prompts >200k tokens the rate is $2.50 / MTok (verified, same source).",
+      }),
+    },
+    {
+      unit: "1M output tokens",
+      amount: verified(10, googleGeminiPricing, {
+        notes:
+          "Standard tier, prompts ≤200k tokens. For prompts >200k tokens the rate is $15.00 / MTok (verified, same source).",
+      }),
+    },
+    {
+      unit: "1M batch input tokens",
+      amount: verified(0.625, googleGeminiPricing, {
+        notes:
+          "Batch tier, prompts ≤200k tokens. For prompts >200k tokens the batch input rate is $1.25 / MTok.",
+      }),
+    },
+    {
+      unit: "1M batch output tokens",
+      amount: verified(5, googleGeminiPricing, {
+        notes:
+          "Batch tier, prompts ≤200k tokens. For prompts >200k tokens the batch output rate is $7.50 / MTok.",
+      }),
+    },
+  ],
+
+  benchmarks: [],
+
+  infrastructure: {
+    regions: null,
+    avgLatencyMs: null,
+    uptimePercent: null,
+  },
+
+  features: verified(
+    {
+      extendedThinking: undefined,
+      adaptiveThinking: undefined,
+      priorityTier: true,
+      visionInput: true,
+      toolUse: true,
+    },
+    googleGeminiModelDocs,
+    {
+      notes:
+        "Function calling: Supported. Code execution: Supported. Structured output: Supported. Grounding with Google Search: Supported. Vision input verified via 'Audio, images, video, text, and PDF' supported inputs. Priority tier exists on Gemini pricing page.",
+    }
+  ),
+
+  lifecycle: verified(
+    { status: "active" },
+    googleGeminiModelDocs,
+    {
+      notes:
+        "Gemini 2.5 Pro is listed under active models on the Gemini API documentation, not in deprecated models.",
+    }
+  ),
+
+  citations: mergeCitations([
+    googleGeminiModelDocs,
+    googleGeminiPricing,
+    googleGeminiQuickstart,
+  ]),
+};
+
+// ---------------------------------------------------------------------------
 // All other models: structure migrated to the new verified shape but every
 // field is null until verified against a primary source. They exist as
 // catalogue entries only.
@@ -604,6 +747,7 @@ export const models: ModelEntity[] = [
   claudeOpus4_7,
   claudeSonnet4_6,
   claudeHaiku4_5,
+  gemini2_5Pro,
   claudeOpus4,
   unverifiedModel({
     id: "model-gpt-5",
@@ -612,16 +756,7 @@ export const models: ModelEntity[] = [
     providerSlug: "openai",
     providerHomepage: "https://openai.com",
     description:
-      "OpenAI GPT-5 catalogue entry. No metric has been verified against an official OpenAI source yet.",
-  }),
-  unverifiedModel({
-    id: "model-gemini-2-5-pro",
-    slug: "gemini-2-5-pro",
-    name: "Gemini 2.5 Pro",
-    providerSlug: "google",
-    providerHomepage: "https://deepmind.google",
-    description:
-      "Google Gemini 2.5 Pro catalogue entry. No metric has been verified against an official Google DeepMind source yet.",
+      "OpenAI GPT-5 catalogue entry. The OpenAI documentation site (platform.openai.com) returned HTTP 403 to automated retrieval on 2026-05-20; no metric is yet verified. A manual browser-based verification pass is queued — see VERIFICATION.md.",
   }),
   unverifiedModel({
     id: "model-deepseek-r1",

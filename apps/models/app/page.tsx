@@ -260,6 +260,81 @@ export default function HomePage() {
         })()}
       </section>
 
+      {/* Recently verified */}
+      <section
+        aria-label="Recently verified"
+        className="container-page mt-12"
+      >
+        <SectionHeader
+          eyebrow="Verification queue"
+          title="Recently verified"
+          description="Latest models with primary-source citations on record. Each entry links to its full record where every metric is anchored to the documentation page it came from."
+          cta={{ label: "All models", href: "/models" }}
+        />
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {(["claude-opus-4-7", "gemini-2-5-pro", "claude-opus-4"] as const)
+            .map((slug) => getModelBySlug(slug))
+            .filter(
+              (m): m is NonNullable<ReturnType<typeof getModelBySlug>> =>
+                Boolean(m)
+            )
+            .map((m) => {
+              const p = getProviderBySlug(m.providerSlug);
+              const verifiedFieldCount =
+                (isVerified(m.apiIdentifiers) ? 1 : 0) +
+                (isVerified(m.contextWindow) ? 1 : 0) +
+                (isVerified(m.maxOutputTokens) ? 1 : 0) +
+                (isVerified(m.modality) ? 1 : 0) +
+                (isVerified(m.knowledgeCutoff) ? 1 : 0) +
+                (isVerified(m.features) ? 1 : 0) +
+                (isVerified(m.lifecycle) ? 1 : 0) +
+                m.pricing.filter((t) => isVerified(t.amount)).length;
+              return (
+                <li key={m.slug}>
+                  <Link
+                    href={`/models/${m.slug}`}
+                    className="card-surface block p-5 transition hover:border-primary/30 hover:shadow-elevated"
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {p?.name ?? "Unknown"}
+                    </p>
+                    <p className="mt-1 text-base font-semibold text-foreground">
+                      {m.name}
+                    </p>
+                    <dl className="mt-3 space-y-1 text-xs">
+                      <div className="flex items-center justify-between gap-3">
+                        <dt className="text-muted-foreground">
+                          Verified fields
+                        </dt>
+                        <dd className="font-medium tabular-nums text-foreground">
+                          {verifiedFieldCount}
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <dt className="text-muted-foreground">Sources</dt>
+                        <dd className="font-medium tabular-nums text-foreground">
+                          {m.citations.length}
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <dt className="text-muted-foreground">Last checked</dt>
+                        <dd className="font-medium text-foreground">
+                          {m.lastCheckedAt
+                            ? m.lastCheckedAt.slice(0, 10)
+                            : "—"}
+                        </dd>
+                      </div>
+                    </dl>
+                    <p className="mt-3 text-xs font-medium text-primary">
+                      View record →
+                    </p>
+                  </Link>
+                </li>
+              );
+            })}
+        </ul>
+      </section>
+
       {/* Dashboard cards */}
       <section
         aria-label="Latest intelligence"
