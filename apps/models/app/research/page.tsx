@@ -2,13 +2,17 @@ import type { Metadata } from "next";
 import { PageShell } from "@/components/PageShell";
 import { JsonLd } from "@/components/JsonLd";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
+import { robotsMetadata } from "@/lib/should-index";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Research",
-  description:
-    "Structured research and analysis grounded in the WebmasterID Models entity graph.",
-  path: "/research",
-});
+export const metadata: Metadata = {
+  ...buildMetadata({
+    title: "Research",
+    description:
+      "Structured research and analysis grounded in the WebmasterID Models entity graph.",
+    path: "/research",
+  }),
+  robots: robotsMetadata(false),
+};
 
 export default function ResearchPage() {
   return (

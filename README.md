@@ -6,8 +6,9 @@ A structured intelligence platform focused on AI models, providers, benchmarks,
 API pricing, and inference infrastructure. Not an AI news site. Not an AI tools
 directory. The output is data, not opinion.
 
-- **Domain:** [models.webmasterid.com](https://models.webmasterid.com)
-- **Deploy target:** Vercel (CNAME `models` → `cname.vercel-dns.com`)
+- **Production:** [models.webmasterid.com](https://models.webmasterid.com)
+- **Status:** Deployed on Vercel · `main` is the production branch
+- **Deploy target:** Vercel (CNAME `models` → `cname.vercel-dns.com`) — see [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ## Local development
 
@@ -17,14 +18,17 @@ npm run dev               # apps/models on http://localhost:3000
 npm run lint
 npm run typecheck
 npm run check:integrity   # repository guard for the unverified-data label
+npm run check:production  # preflight QA (routes, endpoints, config)
 npm run build
-npm run validate          # all four, in order
+npm run validate          # all five, in order
 ```
 
 All scripts are workspace-aware and proxy into `apps/models`.
-`check:integrity` runs the script at
-[`scripts/check-data-not-verified-usage.ts`](scripts/check-data-not-verified-usage.ts);
-see [VERIFICATION.md](VERIFICATION.md) for the policy it enforces.
+The two `check:*` scripts are zero-network preflight QA — they verify
+that the routes, endpoints, and configuration the deployment depends on
+actually exist in the source tree. See [VERIFICATION.md](VERIFICATION.md)
+for the data-integrity policy and [DEPLOYMENT.md](DEPLOYMENT.md) for
+deployment specifics.
 
 ## Architecture
 
@@ -63,18 +67,41 @@ Server components by default. Zero client components in the initial scaffold.
 | `/research` | Long-form analysis hub |
 | `/docs` | Documentation: entity model, verification, sources |
 
-## SEO files
+## SEO and crawler files
 
 | Path | Generator |
 | --- | --- |
-| `/sitemap.xml` | `apps/models/app/sitemap.ts` (static + per-model + per-comparison) |
-| `/robots.txt` | `apps/models/app/robots.ts` |
-| `/llms.txt` | `apps/models/app/llms.txt/route.ts` |
-| `/rss.xml` | `apps/models/app/rss.xml/route.ts` |
+| `/sitemap.xml` | [`apps/models/app/sitemap.ts`](apps/models/app/sitemap.ts) — filters via `shouldIndexRoute` so thin pages are excluded |
+| `/robots.txt` | [`apps/models/app/robots.ts`](apps/models/app/robots.ts) — explicit allow-list of major search and AI crawlers |
+| `/llms.txt` | [`apps/models/app/llms.txt/route.ts`](apps/models/app/llms.txt/route.ts) — canonical, allowed use, data integrity policy, indexable routes |
+| `/rss.xml` | [`apps/models/app/rss.xml/route.ts`](apps/models/app/rss.xml/route.ts) |
+| `/opengraph-image` | [`apps/models/app/opengraph-image.tsx`](apps/models/app/opengraph-image.tsx) — auto-generated 1200×630 PNG via Next's file convention |
 
-JSON-LD helpers in `lib/seo.ts` ship `WebSite`, `Organization`,
-`SoftwareApplication`, `Dataset`, and `BreadcrumbList` schemas. Every page
-sets canonical URL, OpenGraph, and Twitter metadata via `buildMetadata`.
+JSON-LD helpers in [`lib/seo.ts`](apps/models/lib/seo.ts) ship `WebSite`,
+`Organization`, `SoftwareApplication`, `Dataset`, and `BreadcrumbList`
+schemas. Per-model `SoftwareApplication` JSON-LD only emits verified
+fields (see [`lib/model-jsonld.ts`](apps/models/lib/model-jsonld.ts)).
+Every page sets canonical URL, OpenGraph, and Twitter metadata via
+`buildMetadata`.
+
+## Operational endpoints
+
+| Endpoint | Purpose |
+| --- | --- |
+| `/api/health` | Liveness check — version, environment, build timestamp. No secrets, no provider uptime claims. |
+| `/api/site` | Public site metadata — name, routes, crawler endpoints, verification policy. |
+
+Both endpoints are excluded from `robots.txt` and intentionally not
+indexed in search.
+
+## Indexing policy
+
+[`apps/models/lib/should-index.ts`](apps/models/lib/should-index.ts) is
+the single source of truth. Hub pages, the catalogue, providers,
+pricing, infrastructure, and docs index. Per-comparison pages index
+only when at least one side is verified. Empty placeholders (`/news`,
+`/research`, `/status`) carry `noindex, follow`. The sitemap, `llms.txt`,
+and per-page `<meta name="robots">` all derive from this policy.
 
 ## Data integrity rules
 

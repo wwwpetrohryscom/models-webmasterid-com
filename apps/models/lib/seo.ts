@@ -30,21 +30,22 @@ export function buildMetadata({
     metadataBase: new URL(siteConfig.url),
     alternates: { canonical: url },
     openGraph: {
+      // images intentionally omitted so Next's file convention
+      // (app/opengraph-image.tsx) provides the auto-generated PNG.
       type: "website",
       locale: siteConfig.locale,
       url,
       title: fullTitle,
       description: desc,
       siteName: siteConfig.name,
-      images: [{ url: siteConfig.ogImage, width: 1200, height: 630, alt: siteConfig.name }],
     },
     twitter: {
+      // images falls back to og:image via Next's metadata pipeline.
       card: "summary_large_image",
       title: fullTitle,
       description: desc,
       site: siteConfig.twitter.site,
       creator: siteConfig.twitter.handle,
-      images: [siteConfig.ogImage],
     },
     robots: { index: true, follow: true },
   };

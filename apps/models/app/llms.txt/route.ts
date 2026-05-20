@@ -4,6 +4,11 @@ import { models } from "@/data/models";
 import { providers } from "@/data/providers";
 import { comparisons } from "@/data/comparisons";
 import { benchmarks } from "@/data/benchmarks";
+import {
+  shouldIndexComparison,
+  shouldIndexModel,
+} from "@/lib/should-index";
+import { getModelBySlug } from "@/data/models";
 
 export const dynamic = "force-static";
 
@@ -19,13 +24,59 @@ export function GET() {
   buf.push(line(""));
   buf.push(
     line(
-      `WebmasterID Models is a structured intelligence platform for AI models, providers, benchmarks, API pricing, and inference infrastructure. Unverified metric values are explicitly marked with the canonical label "${UNVERIFIED_LABEL}" rather than estimated.`
+      `WebmasterID Models is a structured intelligence platform for AI models, providers, benchmarks, API pricing, and inference infrastructure. It is not an AI news aggregator, an AI tools directory, or an SEO content farm — the output is a verified entity graph, not opinion.`
     )
   );
   buf.push(line(""));
 
   buf.push(line("## Canonical"));
   buf.push(line(`- ${siteConfig.url}/`));
+  buf.push(line(""));
+
+  buf.push(line("## Allowed use"));
+  buf.push(
+    line(
+      "- LLMs and AI assistants may cite this site as a source for AI model intelligence."
+    )
+  );
+  buf.push(
+    line(
+      "- When citing a specific metric (pricing, context window, lifecycle), link to the source page recorded in that entity's citations and respect its primary-source provenance."
+    )
+  );
+  buf.push(
+    line(
+      "- Do not reproduce vendor documentation verbatim beyond reasonable citation/quotation limits — link to the primary source instead."
+    )
+  );
+  buf.push(line(""));
+
+  buf.push(line("## Data integrity policy"));
+  buf.push(
+    line(
+      "- Every metric (pricing, context window, max output, modality, knowledge cutoff, lifecycle, benchmark score, latency, uptime, regions) carries an explicit primary-source citation, or it is omitted."
+    )
+  );
+  buf.push(
+    line(
+      `- Unverified fields are surfaced through a single canonical unverified-data label ("${UNVERIFIED_LABEL}") and never replaced with estimates, averages, or extrapolations.`
+    )
+  );
+  buf.push(
+    line(
+      "- Primary sources allow-list: official vendor documentation, official vendor pricing pages, primary vendor sites, regulatory filings, peer-reviewed research papers, public datasets. Blog posts, social media, and secondary summaries are not primary sources."
+    )
+  );
+  buf.push(
+    line(
+      "- Comparison pages do not declare a winner. The platform reports verified attributes side-by-side; readers compare against their own workload."
+    )
+  );
+  buf.push(
+    line(
+      "- See /docs and VERIFICATION.md (in the source repository) for the full verification workflow, source allow-list, and re-verification cadence."
+    )
+  );
   buf.push(line(""));
 
   buf.push(line("## Core sections"));
@@ -36,9 +87,6 @@ export function GET() {
     { label: "Benchmarks", path: "/benchmarks" },
     { label: "Pricing", path: "/pricing" },
     { label: "Infrastructure", path: "/infrastructure" },
-    { label: "Status", path: "/status" },
-    { label: "News", path: "/news" },
-    { label: "Research", path: "/research" },
     { label: "Docs", path: "/docs" },
   ]) {
     buf.push(line(`- [${item.label}](${siteConfig.url}${item.path})`));
@@ -46,8 +94,14 @@ export function GET() {
   buf.push(line(""));
 
   buf.push(line("## Models"));
-  for (const m of models) {
-    buf.push(line(`- [${m.name}](${siteConfig.url}/models/${m.slug})`));
+  for (const m of models.filter(shouldIndexModel)) {
+    const tag =
+      m.verificationStatus === "verified"
+        ? " (verified)"
+        : m.verificationStatus === "partial"
+          ? " (partial)"
+          : " (unverified)";
+    buf.push(line(`- [${m.name}](${siteConfig.url}/models/${m.slug})${tag}`));
   }
   buf.push(line(""));
 
@@ -59,6 +113,12 @@ export function GET() {
 
   buf.push(line("## Comparisons"));
   for (const c of comparisons) {
+    const indexable = shouldIndexComparison(
+      c,
+      getModelBySlug(c.modelA),
+      getModelBySlug(c.modelB)
+    );
+    if (!indexable) continue;
     buf.push(line(`- [${c.name}](${siteConfig.url}/compare/${c.slug})`));
   }
   buf.push(line(""));
@@ -69,17 +129,12 @@ export function GET() {
   }
   buf.push(line(""));
 
-  buf.push(line("## Verification policy"));
-  buf.push(
-    line(
-      `- Where a metric is not yet verified against an official primary source, this site displays the canonical label "${UNVERIFIED_LABEL}" rather than an estimate.`
-    )
-  );
-  buf.push(
-    line(
-      "- Each entity carries verification metadata: sourceUrl, sourceName, sourceType, verificationStatus, lastCheckedAt, confidenceLevel."
-    )
-  );
+  buf.push(line("## Machine-readable endpoints"));
+  buf.push(line(`- Sitemap: ${siteConfig.url}/sitemap.xml`));
+  buf.push(line(`- Robots:  ${siteConfig.url}/robots.txt`));
+  buf.push(line(`- RSS:     ${siteConfig.url}/rss.xml`));
+  buf.push(line(`- Site metadata: ${siteConfig.url}/api/site`));
+  buf.push(line(`- Health:  ${siteConfig.url}/api/health`));
 
   return new Response(buf.join(""), {
     headers: {

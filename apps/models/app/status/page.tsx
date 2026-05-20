@@ -4,16 +4,20 @@ import { ProviderLogoBadge } from "@/components/ProviderLogoBadge";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { JsonLd } from "@/components/JsonLd";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
+import { robotsMetadata } from "@/lib/should-index";
 import { status } from "@/data/status";
 import { getProviderBySlug } from "@/data/providers";
 import { unknownLabel } from "@/lib/utils";
 
-export const metadata: Metadata = buildMetadata({
-  title: "AI Provider Status",
-  description:
-    "Operational status across tracked AI providers. WebmasterID Models only publishes a status when independently verified.",
-  path: "/status",
-});
+export const metadata: Metadata = {
+  ...buildMetadata({
+    title: "AI Provider Status",
+    description:
+      "Operational status across tracked AI providers. WebmasterID Models only publishes a status when independently verified.",
+    path: "/status",
+  }),
+  robots: robotsMetadata(false),
+};
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
   operational: {

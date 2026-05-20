@@ -14,6 +14,7 @@
     "lint": "npm run lint --workspace=apps/models",
     "typecheck": "npm run typecheck --workspace=apps/models",
     "check:integrity": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/check-data-not-verified-usage.ts",
-    "validate": "npm run lint && npm run typecheck && npm run check:integrity && npm run build"
+    "check:production": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/check-production-readiness.ts",
+    "validate": "npm run lint && npm run typecheck && npm run check:integrity && npm run check:production && npm run build"
   }
 }

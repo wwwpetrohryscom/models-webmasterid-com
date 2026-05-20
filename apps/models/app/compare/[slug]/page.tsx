@@ -10,6 +10,7 @@ import { DataFreshness } from "@/components/DataFreshness";
 import { InternalLinkGrid } from "@/components/InternalLinkGrid";
 import { JsonLd } from "@/components/JsonLd";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
+import { robotsMetadata, shouldIndexComparison } from "@/lib/should-index";
 import { comparisons, getComparisonBySlug } from "@/data/comparisons";
 import { getModelBySlug } from "@/data/models";
 import { getProviderBySlug } from "@/data/providers";
@@ -29,11 +30,21 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const c = getComparisonBySlug(slug);
-  return buildMetadata({
-    title: c?.name ?? "Comparison",
-    description: c?.description,
-    path: `/compare/${slug}`,
-  });
+  const indexable = c
+    ? shouldIndexComparison(
+        c,
+        getModelBySlug(c.modelA),
+        getModelBySlug(c.modelB)
+      )
+    : false;
+  return {
+    ...buildMetadata({
+      title: c?.name ?? "Comparison",
+      description: c?.description,
+      path: `/compare/${slug}`,
+    }),
+    robots: robotsMetadata(indexable),
+  };
 }
 
 export default async function ComparisonPage({

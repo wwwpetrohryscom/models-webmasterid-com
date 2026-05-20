@@ -3,13 +3,17 @@ import Link from "next/link";
 import { PageShell } from "@/components/PageShell";
 import { JsonLd } from "@/components/JsonLd";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
+import { robotsMetadata } from "@/lib/should-index";
 
-export const metadata: Metadata = buildMetadata({
-  title: "News",
-  description:
-    "Verified changes across tracked AI models, providers, and infrastructure. Not a news aggregator.",
-  path: "/news",
-});
+export const metadata: Metadata = {
+  ...buildMetadata({
+    title: "News",
+    description:
+      "Verified changes across tracked AI models, providers, and infrastructure. Not a news aggregator.",
+    path: "/news",
+  }),
+  robots: robotsMetadata(false),
+};
 
 export default function NewsPage() {
   return (
