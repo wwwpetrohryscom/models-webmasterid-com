@@ -1,0 +1,247 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { PageShell } from "@/components/PageShell";
+import { ProviderLogo } from "@/components/ProviderLogo";
+import { VerificationBadge } from "@/components/VerificationBadge";
+import { DataNotVerified } from "@/components/DataNotVerified";
+import { JsonLd } from "@/components/JsonLd";
+import { SectionHeader } from "@/components/SectionHeader";
+import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
+import { providers, getProviderBySlug } from "@/data/providers";
+import { models } from "@/data/models";
+import { verificationAttempts } from "@/data/verification-attempts";
+import { isVerified } from "@/lib/verified";
+import { formatDateISO } from "@/lib/utils";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Coverage",
+  description:
+    "Verification coverage by provider: what has been verified, what has been attempted but blocked, and what is still pending a primary-source review.",
+  path: "/coverage",
+});
+
+const ATTEMPT_TONE: Record<string, string> = {
+  verified: "border-success/30 bg-success/10 text-success",
+  reviewable: "border-primary/30 bg-primary/10 text-primary",
+  "blocked-403":
+    "border-warning/30 bg-warning/10 text-warning",
+  "blocked-401":
+    "border-warning/30 bg-warning/10 text-warning",
+  "blocked-429":
+    "border-warning/30 bg-warning/10 text-warning",
+  "not-found-404":
+    "border-muted-foreground/30 bg-muted text-muted-foreground",
+  "redirect-loop":
+    "border-muted-foreground/30 bg-muted text-muted-foreground",
+  "requires-manual-browser":
+    "border-muted-foreground/30 bg-muted text-muted-foreground",
+};
+
+const ATTEMPT_LABEL: Record<string, string> = {
+  verified: "Verified",
+  reviewable: "Reviewed",
+  "blocked-403": "Blocked (403)",
+  "blocked-401": "Blocked (401)",
+  "blocked-429": "Blocked (429)",
+  "not-found-404": "404",
+  "redirect-loop": "Redirect loop",
+  "requires-manual-browser": "Manual browser only",
+};
+
+export default function CoveragePage() {
+  return (
+    <PageShell
+      eyebrow="Transparency"
+      title="Coverage"
+      intro="Verification state across the entity graph. This page reports exactly what has been verified against primary sources, what has been attempted but blocked, and what is still pending. There is no fabricated coverage here — if a field is unverified, this page says so."
+    >
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", href: "/" },
+          { name: "Coverage", href: "/coverage" },
+        ])}
+      />
+
+      <section aria-label="Per-provider coverage" className="space-y-3">
+        <SectionHeader
+          eyebrow="By provider"
+          title="Per-provider verification"
+          as="h2"
+        />
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {providers.map((p) => {
+            const providerModels = models.filter(
+              (m) => m.providerSlug === p.slug
+            );
+            const verifiedModels = providerModels.filter(
+              (m) => m.verificationStatus === "verified"
+            );
+            const verifiedPricingRows = providerModels.flatMap((m) =>
+              m.pricing.filter((t) => isVerified(t.amount))
+            );
+            return (
+              <li
+                key={p.slug}
+                className="card-surface flex flex-col gap-3 p-5"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <ProviderLogo slug={p.slug} name={p.name} />
+                    <div>
+                      <Link
+                        href={`/providers/${p.slug}`}
+                        className="text-sm font-semibold text-foreground hover:underline"
+                      >
+                        {p.name}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">
+                        Last checked:{" "}
+                        {p.lastCheckedAt
+                          ? formatDateISO(p.lastCheckedAt)
+                          : "not yet"}
+                      </p>
+                    </div>
+                  </div>
+                  <VerificationBadge status={p.verificationStatus} />
+                </div>
+                <dl className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-lg border border-border bg-background/40 p-3">
+                    <dt className="text-xs uppercase tracking-wider text-muted-foreground">
+                      Models verified
+                    </dt>
+                    <dd className="mt-1 font-semibold tabular-nums text-foreground">
+                      {verifiedModels.length}
+                      <span className="text-xs font-normal text-muted-foreground">
+                        {" / "}
+                        {providerModels.length} tracked
+                      </span>
+                    </dd>
+                  </div>
+                  <div className="rounded-lg border border-border bg-background/40 p-3">
+                    <dt className="text-xs uppercase tracking-wider text-muted-foreground">
+                      Verified pricing rows
+                    </dt>
+                    <dd className="mt-1 font-semibold tabular-nums text-foreground">
+                      {verifiedPricingRows.length}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="text-xs text-muted-foreground">
+                  {p.notes ?? "No coverage notes recorded for this provider yet."}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section aria-label="Retrieval attempts" className="space-y-3">
+        <SectionHeader
+          eyebrow="Audit log"
+          title="Primary-source retrieval attempts"
+          description="Every URL targeted during a verification pass, the outcome, and a free-text note. This is what makes the platform auditable."
+          as="h2"
+        />
+        <div className="overflow-hidden rounded-2xl border border-border">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-xs uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th scope="col" className="px-4 py-2 text-left">
+                  Provider
+                </th>
+                <th scope="col" className="px-4 py-2 text-left">
+                  Target
+                </th>
+                <th scope="col" className="px-4 py-2 text-left">
+                  URL
+                </th>
+                <th scope="col" className="px-4 py-2 text-left">
+                  Attempted
+                </th>
+                <th scope="col" className="px-4 py-2 text-left">
+                  Result
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-card">
+              {verificationAttempts.map((a) => {
+                const p = getProviderBySlug(a.providerSlug);
+                const tone =
+                  ATTEMPT_TONE[a.result] ??
+                  "border-muted-foreground/30 bg-muted text-muted-foreground";
+                const label = ATTEMPT_LABEL[a.result] ?? a.result;
+                return (
+                  <tr key={`${a.url}-${a.attemptedAt}`} className="border-t border-border">
+                    <th
+                      scope="row"
+                      className="px-4 py-2 text-left font-medium text-foreground"
+                    >
+                      {p ? (
+                        <Link
+                          href={`/providers/${p.slug}`}
+                          className="hover:underline"
+                        >
+                          {p.name}
+                        </Link>
+                      ) : (
+                        a.providerSlug
+                      )}
+                    </th>
+                    <td className="px-4 py-2 text-muted-foreground">
+                      {a.target}
+                    </td>
+                    <td className="px-4 py-2">
+                      <Link
+                        href={a.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="break-all text-xs text-primary hover:underline"
+                      >
+                        {a.url.replace(/^https?:\/\//, "")}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-2 text-xs text-muted-foreground">
+                      {formatDateISO(a.attemptedAt)}
+                    </td>
+                    <td className="px-4 py-2">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${tone}`}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="h-1.5 w-1.5 rounded-full bg-current"
+                        />
+                        {label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section aria-label="What you will not find" className="card-surface p-5 text-sm text-muted-foreground">
+        <h2 className="text-base font-semibold text-foreground">
+          What you will not find on this site
+        </h2>
+        <ul className="mt-3 list-disc space-y-1 pl-5">
+          <li>
+            Benchmark leaderboards with scores. Scores are not republished
+            without an independent primary-source reference.
+          </li>
+          <li>
+            Estimated latency or uptime numbers. <DataNotVerified />{" "}
+            renders in their place until an independent monitor is wired.
+          </li>
+          <li>
+            Vendor-provided pricing where the vendor's documentation page
+            could not be retrieved. The blocked entries above record
+            exactly which pages.
+          </li>
+        </ul>
+      </section>
+    </PageShell>
+  );
+}

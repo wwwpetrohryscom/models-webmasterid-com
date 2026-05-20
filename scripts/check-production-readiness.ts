@@ -329,6 +329,124 @@ const checks: Check[] = [
       return failures.length ? failures.join("\n") : null;
     },
   },
+  {
+    name: "official brand assets carry sourceUrl + licenseNote + retrievedAt",
+    run: () => {
+      const src = readRel("apps/models/data/brand-assets.ts");
+      // Find every brandAsset object literal that sets type: "official".
+      const officials = [
+        ...src.matchAll(/\{[\s\S]*?type:\s*["']official["'][\s\S]*?\}/g),
+      ];
+      const failures: string[] = [];
+      for (const m of officials) {
+        const obj = m[0];
+        const slugMatch = obj.match(/slug:\s*["']([^"']+)["']/);
+        const slug = slugMatch ? slugMatch[1] : "<unknown>";
+
+        const sourceUrl = obj.match(/sourceUrl:\s*([^,\n}]+)/);
+        if (
+          !sourceUrl ||
+          /^\s*(null|undefined|""|'')\s*$/.test(sourceUrl[1])
+        ) {
+          failures.push(
+            `Official brand asset (${slug}) is missing sourceUrl.`
+          );
+        }
+
+        const licenseNote = obj.match(/licenseNote:\s*([^,\n}]+)/);
+        if (
+          !licenseNote ||
+          /^\s*(null|undefined|""|'')\s*$/.test(licenseNote[1])
+        ) {
+          failures.push(
+            `Official brand asset (${slug}) is missing licenseNote.`
+          );
+        }
+
+        const retrievedAt = obj.match(/retrievedAt:\s*([^,\n}]+)/);
+        if (
+          !retrievedAt ||
+          /^\s*(null|undefined|""|'')\s*$/.test(retrievedAt[1])
+        ) {
+          failures.push(
+            `Official brand asset (${slug}) is missing retrievedAt.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "every official brand asset is documented in BRAND_ASSETS.md",
+    run: () => {
+      const src = readRel("apps/models/data/brand-assets.ts");
+      const md = readRel("BRAND_ASSETS.md");
+      const officials = [
+        ...src.matchAll(/(\w[\w-]*?):\s*\{[\s\S]*?type:\s*["']official["']/g),
+      ];
+      const failures: string[] = [];
+      for (const m of officials) {
+        const slug = m[1];
+        // Look for the slug in BRAND_ASSETS.md to ensure the upgrade has a
+        // documented review entry.
+        const slugPattern = new RegExp(
+          `\\b${slug.replace(/[-\\^$*+?.()|[\]{}]/g, "\\$&")}\\b`
+        );
+        if (!slugPattern.test(md)) {
+          failures.push(
+            `Provider slug "${slug}" has an official brand asset but no documented entry in BRAND_ASSETS.md.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "OpenAI catalogue stays unverified until manual browser pass",
+    run: () => {
+      const src = readRel("apps/models/data/models.ts");
+      // Find the GPT-5 entry block and confirm it is structurally an
+      // unverifiedModel() call. If a future patch introduces a verified
+      // OpenAI model, the entry must also add an explicit citation
+      // ("openaiModelDocs" or similar) — this check catches the
+      // common accident of marking something verified without wiring
+      // its citation.
+      const gpt5Block =
+        src.match(/unverifiedModel\(\{[^}]*?slug:\s*"gpt-5"[\s\S]*?\}\)/) ||
+        src.match(/slug:\s*"gpt-5"[\s\S]*?\}/);
+      if (!gpt5Block) {
+        return "Could not locate the GPT-5 entry in models.ts to verify it stays unverified pending manual review.";
+      }
+      // If GPT-5 is no longer wrapped in unverifiedModel(), require that
+      // an explicit OpenAI citation is registered in citations.ts.
+      const wrappedAsUnverified = /unverifiedModel\([^)]*slug:\s*"gpt-5"/.test(
+        src
+      );
+      if (!wrappedAsUnverified) {
+        const citations = readRel("apps/models/data/citations.ts");
+        if (!/openai/i.test(citations)) {
+          return "GPT-5 entry is no longer wrapped in unverifiedModel() but no OpenAI citation has been added to citations.ts.";
+        }
+      }
+      return null;
+    },
+  },
+  {
+    name: "every blocked retrieval attempt for OpenAI is recorded in /coverage",
+    run: () => {
+      const attempts = readRel("apps/models/data/verification-attempts.ts");
+      // Require at least one OpenAI entry with a blocked-* result so the
+      // /coverage page can surface the gap honestly.
+      const openaiBlocked =
+        /providerSlug:\s*["']openai["'][\s\S]*?result:\s*["']blocked-/.test(
+          attempts
+        );
+      if (!openaiBlocked) {
+        return "verification-attempts.ts does not record any blocked OpenAI retrieval attempt — if OpenAI is now verifiable, also add a 'verified' attempt entry; if not, keep at least one blocked entry so the gap is visible on /coverage.";
+      }
+      return null;
+    },
+  },
 ];
 
 function main(): void {

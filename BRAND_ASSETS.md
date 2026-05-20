@@ -107,6 +107,32 @@ UI will fall back to the programmatic lettermark.
 
 ---
 
+## Sprint 7 brand-asset review log (2026-05-20)
+
+**Outcome: no asset upgraded.** All eight providers remain at tier
+`lettermark`. The review attempts and findings below explain why.
+
+| Provider | URL targeted | Outcome | Finding |
+| --- | --- | --- | --- |
+| Anthropic | `https://www.anthropic.com/brand` | 404 | Canonical `/brand` path is not currently published. General public knowledge of Anthropic's brand policy suggests commercial use of the wordmark requires explicit permission; identification/editorial use is generally permitted but **not yet confirmed against an Anthropic-hosted page from this environment**. Asset stays `lettermark` until the canonical brand resource page is identified and its terms read in a browser. |
+| Google | _not attempted_ | — | Google's brand guidelines historically require permission for most non-Google uses. Skipped this sprint pending a manual review pass. |
+| OpenAI | _not attempted_ | — | OpenAI's docs site already returns 403 to automated retrieval (see VERIFICATION.md). Brand-asset review deferred to the same manual browser pass. |
+
+**Why no asset was upgraded:** under the project's "only if legally
+safe" rule, an upgrade requires both (a) the actual brand resource
+page reviewed in a browser, and (b) confirmation that identification
+use by a commercial intelligence platform is explicitly permitted. The
+current environment cannot satisfy (a) for any of the eight providers
+without a human browser pass.
+
+This conservative outcome is **intentional**: the lettermarks are
+visually neutral and clearly labelled as not-official in both the
+`<ProviderLogo>` `alt` text and the `data-brand-asset-type` attribute.
+A future sprint can replace one or more assets after a human review
+following the checklist above.
+
+---
+
 ## Fallback strategy
 
 `<ProviderLogo>` first looks up the registered asset. If `path` is set,

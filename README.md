@@ -76,6 +76,7 @@ Server components by default. Zero client components in the initial scaffold.
 | `/llms.txt` | [`apps/models/app/llms.txt/route.ts`](apps/models/app/llms.txt/route.ts) — canonical, allowed use, data integrity policy, indexable routes |
 | `/rss.xml` | [`apps/models/app/rss.xml/route.ts`](apps/models/app/rss.xml/route.ts) |
 | `/opengraph-image` | [`apps/models/app/opengraph-image.tsx`](apps/models/app/opengraph-image.tsx) — auto-generated 1200×630 PNG via Next's file convention |
+| `/coverage` | [`apps/models/app/coverage/page.tsx`](apps/models/app/coverage/page.tsx) — verification heatmap by provider + structured retrieval-attempts audit log |
 
 JSON-LD helpers in [`lib/seo.ts`](apps/models/lib/seo.ts) ship `WebSite`,
 `Organization`, `SoftwareApplication`, `Dataset`, and `BreadcrumbList`

@@ -12,6 +12,7 @@ import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { providers, getProviderBySlug } from "@/data/providers";
 import { models } from "@/data/models";
 import { getBrandAsset } from "@/data/brand-assets";
+import { attemptsByProvider } from "@/data/verification-attempts";
 import { formatDateISO } from "@/lib/utils";
 
 interface RouteParams {
@@ -259,6 +260,58 @@ export default async function ProviderPage({
           </p>
         </aside>
       ) : null}
+
+      {(() => {
+        const attempts = attemptsByProvider(provider.slug);
+        if (!attempts.length) return null;
+        return (
+          <section
+            aria-label="Verification attempts"
+            className="space-y-3"
+          >
+            <SectionHeader
+              eyebrow="Audit log"
+              title="Verification attempts"
+              description="Every primary-source URL targeted for this provider and what came back. Blocked attempts are recorded honestly rather than substituted with second-hand data."
+              cta={{ label: "All coverage", href: "/coverage" }}
+              as="h2"
+            />
+            <ul className="space-y-2">
+              {attempts.map((a) => (
+                <li
+                  key={`${a.url}-${a.attemptedAt}`}
+                  className="card-surface flex flex-col gap-2 p-4 text-sm sm:flex-row sm:items-start sm:justify-between"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-foreground">
+                      {a.target}
+                    </p>
+                    <Link
+                      href={a.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block break-all text-xs text-primary hover:underline"
+                    >
+                      {a.url.replace(/^https?:\/\//, "")}
+                    </Link>
+                    {a.notes ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {a.notes}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="text-right text-xs text-muted-foreground">
+                    <p>{formatDateISO(a.attemptedAt)}</p>
+                    <p className="mt-0.5 font-medium uppercase tracking-wider">
+                      {a.result.replace(/-/g, " ")}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })()}
     </PageShell>
   );
 }

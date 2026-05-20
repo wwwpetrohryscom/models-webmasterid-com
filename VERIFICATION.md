@@ -312,3 +312,43 @@ this manual browser-based pass.
 
 If the only place a value appears is one of the above, the value stays
 `null` and the field renders the canonical unverified-data label.
+
+---
+
+## Verification attempts log
+
+The structured machine-readable record lives in
+[`apps/models/data/verification-attempts.ts`](apps/models/data/verification-attempts.ts)
+and is surfaced on [`/coverage`](https://models.webmasterid.com/coverage).
+The same entries are echoed on each provider page so a reader can see
+exactly what was attempted, when, and what came back.
+
+### Sprint 5 / 6 / 7 OpenAI status
+
+OpenAI verification has been attempted at every sprint since Sprint 5
+and the same outcome recurs:
+
+| URL targeted | Sprint | Result |
+| --- | --- | --- |
+| `https://platform.openai.com/docs/models/gpt-5` | 5, 7 | HTTP 403 |
+| `https://platform.openai.com/docs/pricing` | 5, 7 | HTTP 403 |
+| `https://platform.openai.com/docs/models` | 5, 7 | HTTP 403 |
+| `https://openai.com/api/pricing` | 5, 7 | HTTP 403 |
+
+No automated-retrieval path is currently available. Resolving the gap
+requires the **Manual vendor verification workflow** above — a human
+opens the docs in a real browser, captures the values verbatim, and
+records each value with a citation using `verified()`. Until that pass
+happens, the OpenAI catalogue entry stays unverified and the
+`/compare/gpt-5-vs-claude-opus-4` page remains one-sided.
+
+### Sprint 7 brand-asset review
+
+A parallel question was studied this sprint: can any provider's logo
+be safely upgraded from the internally authored lettermark to the
+vendor's official mark? See
+[`BRAND_ASSETS.md → Sprint 7 brand-asset review log`](BRAND_ASSETS.md)
+for the per-provider findings. The current sprint's conservative
+outcome was to upgrade none of them and to record the reasoning rather
+than to ship an asset whose license terms had not been independently
+read in a browser.
