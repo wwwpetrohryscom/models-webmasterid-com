@@ -95,6 +95,33 @@ Every page sets canonical URL, OpenGraph, and Twitter metadata via
 Both endpoints are excluded from `robots.txt` and intentionally not
 indexed in search.
 
+## Analytics
+
+The site loads the WebmasterID first-party tracker on every page via
+`next/script` from
+[`apps/models/app/layout.tsx`](apps/models/app/layout.tsx). Configuration
+lives in [`apps/models/lib/analytics.ts`](apps/models/lib/analytics.ts):
+
+| Field | Value |
+| --- | --- |
+| Provider | WebmasterID |
+| Script source | `https://webmasterid.com/tracker.iife.min.js` |
+| Site ID (public) | `wm_64pnpqrfcgfwttwi` |
+| Ingest endpoint | `https://webmasterid-ingest-api.vercel.app/api/events` |
+| Strategy | `afterInteractive` (loaded after hydration) |
+| DOM id | `webmasterid-tracker` |
+
+The site ID is a **public** identifier — no secret is embedded in the
+repository. The script tag integration was chosen over the
+`@webmasterid/sdk-next` package to keep the runtime dependency surface
+small.
+
+`check:production` enforces:
+
+- exactly one `<Script>` tag wires the tracker
+- `siteId`, `endpoint`, and `scriptSrc` match the expected values
+- `layout.tsx` imports `next/script` and references the analytics config
+
 ## Indexing policy
 
 [`apps/models/lib/should-index.ts`](apps/models/lib/should-index.ts) is

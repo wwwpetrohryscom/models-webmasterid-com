@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { siteConfig } from "@/lib/site-config";
 import { buildMetadata } from "@/lib/seo";
+import { webmasterIdAnalytics } from "@/lib/analytics";
 
 export const metadata: Metadata = {
   ...buildMetadata({
@@ -53,6 +55,13 @@ export default function RootLayout({
         <SiteHeader />
         <main id="main">{children}</main>
         <SiteFooter />
+        <Script
+          id={webmasterIdAnalytics.scriptId}
+          src={webmasterIdAnalytics.scriptSrc}
+          strategy="afterInteractive"
+          data-wmid={webmasterIdAnalytics.siteId}
+          data-endpoint={webmasterIdAnalytics.endpoint}
+        />
       </body>
     </html>
   );

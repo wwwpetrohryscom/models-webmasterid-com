@@ -1,5 +1,28 @@
 # Brand assets policy
 
+## WebmasterID Models logo (first-party)
+
+Status: internally authored. Not a third-party provider mark.
+
+- **Component:** [`apps/models/components/Logo.tsx`](apps/models/components/Logo.tsx) — variants `full`, `mark`, `compact`, `mono`.
+- **Static files:** [`apps/models/public/logo.svg`](apps/models/public/logo.svg) (full lockup), [`apps/models/public/logo-mark.svg`](apps/models/public/logo-mark.svg) (icon only), [`apps/models/public/logo-mono.svg`](apps/models/public/logo-mono.svg) (single-colour, uses `currentColor`).
+- **Favicon:** [`apps/models/app/icon.svg`](apps/models/app/icon.svg) — Next.js file-convention icon, picked up automatically.
+
+Visual direction (approved Concept 1):
+
+- W/M monogram drawn as a single stroked path so it reads as W upright and as M when flipped vertically.
+- Blue → violet linear gradient: `#2563EB → #7C3AED`. Five filled nodes sit at the joints; one smaller accent node above the central peak hints at the network/intelligence layer.
+- Wordmark: "WebmasterID Models" with "Models" tinted by the gradient. Optional descriptor "AI Model Infrastructure Intelligence" available on the `full` variant when height permits.
+- No glow, no drop shadow, no neon. Clean light-enterprise feel.
+
+This is a **first-party brand asset**. It is authored in this repository and is safe to redistribute alongside the codebase. It does not require trademark clearance because no third-party brand is referenced. The footer trademark / non-affiliation disclaimer still applies to every provider logo / lettermark in `public/brands/`.
+
+`check:production` enforces that the four logo files and the `<Logo>` component exist and that both `SiteHeader` and `SiteFooter` render the component.
+
+---
+
+
+
 Rules governing every provider logo, badge, and brand mark used on
 WebmasterID Models.
 
@@ -16,23 +39,30 @@ Every asset in [`apps/models/public/brands/`](apps/models/public/brands/)
 is one of:
 
 1. **`lettermark`** — authored in-repo by the WebmasterID Models team
-   as a placeholder until each provider's official brand resources have
-   been reviewed. Lettermarks reuse the same gradient palette as the
-   `<ProviderLogoBadge>` fallback. They are **not** vendor brand marks
-   and never claim to be.
-2. **`open_source`** — sourced from an open-licensed icon package (e.g.
-   simple-icons) where the license is permissive and attribution
-   requirements are honoured.
-3. **`official`** — taken from the vendor's own brand / press resource
-   page, with the source URL and the date of the manual review recorded
-   in [`apps/models/data/brand-assets.ts`](apps/models/data/brand-assets.ts).
-4. **`none`** — no file is registered; the UI falls back to the
+   as a generic placeholder (gradient square with provider initials).
+   Not a vendor brand mark; never claims to be.
+2. **`nominative`** — in-repo SVG recreation of the vendor's
+   publicly recognizable symbol, used for identification purposes
+   only under nominative fair use. NOT downloaded from any vendor
+   page, NOT trademark-cleared, and NOT represented as official. The
+   site-wide footer disclaimer applies. Removable on vendor request.
+3. **`open_source`** — sourced from an open-licensed icon package
+   (e.g. simple-icons) where the license is permissive and
+   attribution requirements are honoured.
+4. **`official`** — taken from the vendor's own brand / press
+   resource page, with the source URL and the date of the manual
+   review recorded in [`apps/models/data/brand-assets.ts`](apps/models/data/brand-assets.ts).
+5. **`none`** — no file is registered; the UI falls back to the
    programmatic gradient lettermark via `<ProviderLogoBadge>`.
 
-The current sprint introduces files under tier (1) for every tracked
-provider. Tier (3) upgrades are tracked per-provider in the metadata
-and will replace the lettermark **only** after a manual review of the
-vendor's brand page.
+The current tier for every tracked provider is **`nominative`**. The
+in-repo SVGs are visually accurate recreations sized for the existing
+`<ProviderLogo>` slot. The `alt` text says "(identification mark)" so
+screen readers know the visual is not a downloaded official asset.
+
+Upgrading any single provider to tier `official` requires a manual
+browser pass against that vendor's brand resource page (see the
+checklist below).
 
 ---
 
@@ -40,14 +70,19 @@ vendor's brand page.
 
 | Slug | Tier | License note |
 | --- | --- | --- |
-| `openai` | lettermark | Internally authored. Not an official OpenAI mark. |
-| `anthropic` | lettermark | Internally authored. Not an official Anthropic mark. |
-| `google` | lettermark | Internally authored. Not an official Google mark. |
-| `meta` | lettermark | Internally authored. Not an official Meta mark. |
-| `mistral` | lettermark | Internally authored. Not an official Mistral mark. |
-| `deepseek` | lettermark | Internally authored. Not an official DeepSeek mark. |
-| `groq` | lettermark | Internally authored. Not an official Groq mark. |
-| `together-ai` | lettermark | Internally authored. Not an official Together AI mark. |
+| `openai` | nominative | In-repo SVG recreation; identification use only. Not an official OpenAI mark. |
+| `anthropic` | nominative | In-repo SVG recreation; identification use only. Not an official Anthropic mark. |
+| `google` | nominative | In-repo SVG recreation; identification use only. Not an official Google mark. |
+| `meta` | nominative | In-repo SVG recreation; identification use only. Not an official Meta mark. |
+| `mistral` | nominative | In-repo SVG recreation; identification use only. Not an official Mistral mark. |
+| `deepseek` | nominative | In-repo SVG recreation; identification use only. Not an official DeepSeek mark. |
+| `groq` | nominative | In-repo SVG recreation; identification use only. Not an official Groq mark. |
+| `together-ai` | nominative | In-repo SVG recreation; identification use only. Not an official Together AI mark. |
+
+If a vendor requests removal of their nominative mark, switch that
+provider's `brandAsset.type` to `lettermark` (re-render the gradient
+placeholder) and remove the SVG. The `<ProviderLogo>` fallback handles
+either tier without UI changes.
 
 ---
 

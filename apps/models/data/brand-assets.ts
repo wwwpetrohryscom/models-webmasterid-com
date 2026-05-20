@@ -6,8 +6,11 @@
  *     pointing at the vendor's own brand/press page.
  *   - We do not hotlink third-party hosts and we do not scrape restricted
  *     assets. Files in /public/brands/ live in this repository and are
- *     either authored by us (lettermarks) or imported from an
- *     open-licensed source with attribution recorded below.
+ *     either authored by us (lettermarks), or visually accurate
+ *     in-repo recreations of each vendor's public mark used for
+ *     identification purposes only (nominative), or downloaded from a
+ *     legally permissive source with provenance recorded (open_source /
+ *     official).
  *   - Rendering a brand mark NEVER implies partnership or endorsement.
  *     The site-wide footer carries the trademark disclaimer.
  */
@@ -15,6 +18,7 @@
 export type BrandAssetType =
   | "official"
   | "open_source"
+  | "nominative"
   | "lettermark"
   | "none";
 
@@ -34,34 +38,34 @@ export interface BrandAsset {
 }
 
 /**
- * Lettermarks authored in-repo. The same gradient palette as the
- * <ProviderLogoBadge> fallback, but committed as static SVG so the
- * <ProviderLogo> component can render an actual image element with
- * proper alt text and so the asset survives runtime gradient changes.
- *
- * These are NOT vendor brand marks. They are placeholders so the UI is
- * not blank until each vendor's official brand resource page is
- * reviewed and a licensed file is added.
+ * Nominative-use brand mark: a visually accurate, in-repo SVG recreation
+ * of the vendor's recognizable symbol, used here only to identify the
+ * vendor being documented. Not downloaded from any vendor page, not
+ * trademark-cleared for commercial reuse, and not represented as
+ * official. The site-wide footer carries the non-affiliation disclaimer
+ * that applies to every nominative mark on this site.
  */
-const lettermark = (path: string): BrandAsset => ({
-  type: "lettermark",
+const nominative = (
+  path: string,
+  vendorName: string
+): BrandAsset => ({
+  type: "nominative",
   path,
   sourceUrl: null,
-  licenseNote:
-    "Internally authored lettermark. Not an official vendor brand mark.",
+  licenseNote: `Nominative-use identification mark for ${vendorName}. In-repo SVG recreation based on the vendor's publicly recognizable symbol. Not an official asset; ${vendorName} retains all trademark rights to its actual mark. Used for identification of the entity being documented, not endorsement.`,
   attributionRequired: false,
   retrievedAt: "2026-05-20T00:00:00.000Z",
 });
 
 export const brandAssets: Record<string, BrandAsset> = {
-  openai: lettermark("/brands/openai.svg"),
-  anthropic: lettermark("/brands/anthropic.svg"),
-  google: lettermark("/brands/google.svg"),
-  meta: lettermark("/brands/meta.svg"),
-  mistral: lettermark("/brands/mistral.svg"),
-  deepseek: lettermark("/brands/deepseek.svg"),
-  groq: lettermark("/brands/groq.svg"),
-  "together-ai": lettermark("/brands/together-ai.svg"),
+  openai: nominative("/brands/openai.svg", "OpenAI"),
+  anthropic: nominative("/brands/anthropic.svg", "Anthropic"),
+  google: nominative("/brands/google.svg", "Google"),
+  meta: nominative("/brands/meta.svg", "Meta"),
+  mistral: nominative("/brands/mistral.svg", "Mistral"),
+  deepseek: nominative("/brands/deepseek.svg", "DeepSeek"),
+  groq: nominative("/brands/groq.svg", "Groq"),
+  "together-ai": nominative("/brands/together-ai.svg", "Together AI"),
 };
 
 export function getBrandAsset(providerSlug: string): BrandAsset {

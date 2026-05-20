@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { siteConfig } from "@/lib/site-config";
 
 const sections: { label: string; links: { label: string; href: string }[] }[] =
@@ -43,16 +44,7 @@ export function SiteFooter() {
     <footer className="mt-24 border-t border-border bg-card/40">
       <div className="container-page grid gap-10 py-12 md:grid-cols-5">
         <div className="md:col-span-1">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <span
-              aria-hidden="true"
-              className="grid h-7 w-7 place-items-center rounded-lg bg-accent-gradient text-[11px] font-bold text-white"
-            >
-              W
-            </span>
-            <span>{siteConfig.ecosystem}</span>
-            <span className="pill-accent">{siteConfig.shortName}</span>
-          </div>
+          <Logo variant="full" size={28} showDescriptor />
           <p className="mt-3 max-w-xs text-sm text-muted-foreground">
             {siteConfig.positioning}. Structured intelligence for the AI model
             ecosystem.

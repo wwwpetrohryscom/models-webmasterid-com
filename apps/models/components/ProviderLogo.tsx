@@ -40,7 +40,9 @@ export function ProviderLogo({
   const altText =
     asset.type === "lettermark"
       ? `${name} (lettermark)`
-      : `${name} logo`;
+      : asset.type === "nominative"
+        ? `${name} (identification mark)`
+        : `${name} logo`;
 
   return (
     <Image

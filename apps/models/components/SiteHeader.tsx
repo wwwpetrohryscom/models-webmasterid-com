@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { siteConfig } from "@/lib/site-config";
 
 export function SiteHeader() {
@@ -7,17 +8,10 @@ export function SiteHeader() {
       <div className="container-page flex h-16 items-center gap-6">
         <Link
           href="/"
-          className="flex items-center gap-2 text-sm font-semibold tracking-tight"
-          aria-label={`${siteConfig.ecosystem} home`}
+          className="flex items-center gap-2 leading-none focus:outline-none focus:ring-2 focus:ring-primary/30 rounded-md"
+          aria-label={`${siteConfig.name} home`}
         >
-          <span
-            aria-hidden="true"
-            className="grid h-7 w-7 place-items-center rounded-lg bg-accent-gradient text-[11px] font-bold text-white shadow-elevated"
-          >
-            W
-          </span>
-          <span className="text-foreground">{siteConfig.ecosystem}</span>
-          <span className="pill-accent ml-1">{siteConfig.shortName}</span>
+          <Logo variant="compact" size={26} />
         </Link>
 
         <nav aria-label="Primary" className="hidden flex-1 md:block">

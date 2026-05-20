@@ -147,10 +147,10 @@ const checks: Check[] = [
       const failures: string[] = [];
 
       // (a) every brandAssets entry that registers a path must have a
-      //     file on disk under apps/models/public.
-      // Match objects of the form: <slug>: { ... path: "/brands/...", ... }
+      //     file on disk under apps/models/public. Accepts the
+      //     lettermark() and nominative() helper signatures.
       const entryRe =
-        /["'`]?([a-z0-9-]+)["'`]?\s*:\s*lettermark\(\s*["']([^"']+)["']\s*\)/g;
+        /["'`]?([a-z0-9-]+)["'`]?\s*:\s*(?:lettermark|nominative)\(\s*["']([^"']+)["'](?:\s*,\s*["'][^"']*["'])?\s*\)/g;
       let m: RegExpExecArray | null;
       while ((m = entryRe.exec(src)) !== null) {
         const path = m[2];
@@ -330,6 +330,31 @@ const checks: Check[] = [
     },
   },
   {
+    name: "every nominative brand asset carries a licenseNote + retrievedAt",
+    run: () => {
+      const src = readRel("apps/models/data/brand-assets.ts");
+      // The nominative() helper is the only sanctioned constructor; if
+      // it exists, ensure it stamps both licenseNote and retrievedAt.
+      const helper = src.match(/const\s+nominative\s*=[\s\S]*?\}\);/);
+      if (!helper) {
+        return "nominative() helper is missing from brand-assets.ts.";
+      }
+      const body = helper[0];
+      const failures: string[] = [];
+      if (!/licenseNote:/.test(body)) {
+        failures.push("nominative() does not set licenseNote.");
+      }
+      if (!/retrievedAt:/.test(body)) {
+        failures.push("nominative() does not set retrievedAt.");
+      }
+      // nominative() must not pretend to be official: type === "nominative" only.
+      if (!/type:\s*["']nominative["']/.test(body)) {
+        failures.push("nominative() must set type: \"nominative\".");
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
     name: "official brand assets carry sourceUrl + licenseNote + retrievedAt",
     run: () => {
       const src = readRel("apps/models/data/brand-assets.ts");
@@ -504,6 +529,110 @@ const checks: Check[] = [
           "Pricing tier(s) reference unit string(s) not in the PricingUnit union:\n  " +
           missing.map((s) => `"${s}"`).join("\n  ")
         );
+      }
+      return null;
+    },
+  },
+  {
+    name: "Logo component + static SVGs are present",
+    run: () => {
+      const failures: string[] = [];
+      const required: { rel: string; label: string }[] = [
+        { rel: "apps/models/components/Logo.tsx", label: "<Logo /> component" },
+        { rel: "apps/models/public/logo.svg", label: "/logo.svg" },
+        { rel: "apps/models/public/logo-mark.svg", label: "/logo-mark.svg" },
+        { rel: "apps/models/public/logo-mono.svg", label: "/logo-mono.svg" },
+        { rel: "apps/models/app/icon.svg", label: "favicon icon.svg" },
+      ];
+      for (const r of required) {
+        if (!fileExists(r.rel)) failures.push(`Missing ${r.label} (${r.rel}).`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "SiteHeader + SiteFooter render the brand <Logo>",
+    run: () => {
+      const header = readRel("apps/models/components/SiteHeader.tsx");
+      const footer = readRel("apps/models/components/SiteFooter.tsx");
+      const failures: string[] = [];
+      if (!/<Logo\b/.test(header)) {
+        failures.push(
+          "SiteHeader does not render <Logo /> — header still using a placeholder mark?"
+        );
+      }
+      if (!/<Logo\b/.test(footer)) {
+        failures.push("SiteFooter does not render <Logo />.");
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "WebmasterID analytics is wired in app/layout.tsx",
+    run: () => {
+      const layout = readRel("apps/models/app/layout.tsx");
+      const config = readRel("apps/models/lib/analytics.ts");
+      const failures: string[] = [];
+
+      // Layout must import next/script and webmasterIdAnalytics, and
+      // render a <Script> that references the analytics config.
+      if (!/from\s+"next\/script"/.test(layout)) {
+        failures.push("layout.tsx does not import next/script.");
+      }
+      if (!/webmasterIdAnalytics/.test(layout)) {
+        failures.push("layout.tsx does not reference webmasterIdAnalytics.");
+      }
+      if (!/<Script\b[\s\S]*?webmasterIdAnalytics\.scriptId/.test(layout)) {
+        failures.push(
+          "layout.tsx does not render <Script id={webmasterIdAnalytics.scriptId} ...>."
+        );
+      }
+
+      // Config must carry the exact siteId and endpoint specified by the
+      // analytics owner.
+      if (!/siteId:\s*"wm_64pnpqrfcgfwttwi"/.test(config)) {
+        failures.push(
+          'lib/analytics.ts siteId is not the expected "wm_64pnpqrfcgfwttwi".'
+        );
+      }
+      if (
+        !/endpoint:\s*"https:\/\/webmasterid-ingest-api\.vercel\.app\/api\/events"/.test(
+          config
+        )
+      ) {
+        failures.push(
+          "lib/analytics.ts endpoint is not the expected ingest URL."
+        );
+      }
+      if (
+        !/scriptSrc:\s*"https:\/\/webmasterid\.com\/tracker\.iife\.min\.js"/.test(
+          config
+        )
+      ) {
+        failures.push(
+          "lib/analytics.ts scriptSrc is not the expected tracker URL."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "WebmasterID tracker is loaded once, not duplicated",
+    run: () => {
+      const layout = readRel("apps/models/app/layout.tsx");
+      // Count <Script> nodes that reference the tracker id, the script
+      // src, or the analytics config's scriptId / scriptSrc.
+      const trackerMentions = (
+        layout.match(/webmasterid-tracker/g) ?? []
+      ).length;
+      const scriptTags = (layout.match(/<Script\b/g) ?? []).length;
+      // The DOM id appears once in JSX. If we see 2+, a duplicate slipped in.
+      if (trackerMentions > 1) {
+        return `layout.tsx mentions "webmasterid-tracker" ${trackerMentions} times — only one <Script> should reference it.`;
+      }
+      // Sanity check: should not have more than one <Script>.
+      if (scriptTags > 1) {
+        return `layout.tsx renders ${scriptTags} <Script> tags — the analytics tracker should be wired exactly once.`;
       }
       return null;
     },
