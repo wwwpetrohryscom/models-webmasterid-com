@@ -90,11 +90,22 @@ export interface ProviderEntity extends BaseEntity {
 export type PricingUnit =
   | "1M input tokens"
   | "1M output tokens"
+  // Anthropic-style TTL cache writes
   | "1M cache write tokens (5m)"
   | "1M cache write tokens (1h)"
   | "1M cache read tokens"
+  // Google-style per-hour cache storage (Gemini)
+  | "1M cache storage / hour"
+  // Google-style prompt-size tiered pricing (Gemini >200k prompts)
+  | "1M input tokens (>200k context)"
+  | "1M output tokens (>200k context)"
+  | "1M cache write tokens (>200k context)"
+  // Batch API discounts (same rate-card semantics across providers)
   | "1M batch input tokens"
   | "1M batch output tokens"
+  | "1M batch input tokens (>200k context)"
+  | "1M batch output tokens (>200k context)"
+  // Non-token units
   | "request"
   | "image"
   | "minute";

@@ -8,6 +8,31 @@ import type { ComparisonEntity } from "@/lib/types";
  */
 export const comparisons: ComparisonEntity[] = [
   {
+    id: "comparison-claude-opus-4-7-vs-deepseek-v4-pro",
+    slug: "claude-opus-4-7-vs-deepseek-v4-pro",
+    name: "Claude Opus 4.7 vs DeepSeek V4 Pro",
+    description:
+      "Anthropic's current Claude Opus flagship vs DeepSeek's current generation reasoning model. Both sides are verified from each vendor's own documentation and pricing pages. This page does not declare a winner.",
+    modelA: "claude-opus-4-7",
+    modelB: "deepseek-v4-pro",
+    sourceUrl: null,
+    verified: true,
+    verificationStatus: "verified",
+    lastCheckedAt: "2026-05-20T00:00:00.000Z",
+    updatedDate: "2026-05-20",
+    useCases: [
+      "Long-context reasoning (both advertise million-token-class context windows)",
+      "Agentic coding workflows",
+      "Cost-sensitive reasoning (DeepSeek v4-pro has a 75% promotional discount window — see model record)",
+    ],
+    limitations: [
+      "DeepSeek v4-pro is currently running a time-limited 75% promotional discount (until 2026/05/31 15:59 UTC). The pricing rows on this page record the regular rate as the durable canonical value; the effective discounted rate is noted per row.",
+      "DeepSeek and Anthropic publish pricing under different unit semantics; cache pricing rows compare cache-hit input pricing on both sides.",
+      "WebmasterID Models does not declare a winner; readers should compare verified facts against their own workload.",
+    ],
+    declaresWinner: false,
+  },
+  {
     id: "comparison-gemini-2-5-pro-vs-claude-opus-4-7",
     slug: "gemini-2-5-pro-vs-claude-opus-4-7",
     name: "Gemini 2.5 Pro vs Claude Opus 4.7",

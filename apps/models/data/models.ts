@@ -6,6 +6,12 @@ import {
   googleGeminiModelDocs,
   googleGeminiPricing,
   googleGeminiQuickstart,
+  deepseekModelsAndPricing,
+  deepseekApiReference,
+  deepseekDocsRoot,
+  mistralModelsOverview,
+  mistralModelsTable,
+  mistralApiReference,
 } from "./citations";
 
 // ---------------------------------------------------------------------------
@@ -621,29 +627,69 @@ const gemini2_5Pro: ModelEntity = {
     {
       unit: "1M input tokens",
       amount: verified(1.25, googleGeminiPricing, {
-        notes:
-          "Standard tier, prompts ≤200k tokens. For prompts >200k tokens the rate is $2.50 / MTok (verified, same source).",
+        notes: "Standard tier, prompts ≤200k tokens.",
+      }),
+    },
+    {
+      unit: "1M input tokens (>200k context)",
+      amount: verified(2.5, googleGeminiPricing, {
+        notes: "Standard tier surcharge for prompts >200k tokens.",
       }),
     },
     {
       unit: "1M output tokens",
       amount: verified(10, googleGeminiPricing, {
+        notes: "Standard tier, prompts ≤200k tokens.",
+      }),
+    },
+    {
+      unit: "1M output tokens (>200k context)",
+      amount: verified(15, googleGeminiPricing, {
+        notes: "Standard tier surcharge for prompts >200k tokens.",
+      }),
+    },
+    {
+      unit: "1M cache write tokens (5m)",
+      amount: verified(0.125, googleGeminiPricing, {
         notes:
-          "Standard tier, prompts ≤200k tokens. For prompts >200k tokens the rate is $15.00 / MTok (verified, same source).",
+          "Cache write rate per million tokens, prompts ≤200k. Gemini does not advertise a 5m vs 1h TTL distinction; the value is recorded under the closest existing unit and the per-hour cache storage rate is captured separately below.",
+      }),
+    },
+    {
+      unit: "1M cache write tokens (>200k context)",
+      amount: verified(0.25, googleGeminiPricing, {
+        notes: "Cache write surcharge for prompts >200k tokens.",
+      }),
+    },
+    {
+      unit: "1M cache storage / hour",
+      amount: verified(4.5, googleGeminiPricing, {
+        notes:
+          "Cache storage rate per million tokens per hour. Independent of the cache write fee above.",
       }),
     },
     {
       unit: "1M batch input tokens",
       amount: verified(0.625, googleGeminiPricing, {
-        notes:
-          "Batch tier, prompts ≤200k tokens. For prompts >200k tokens the batch input rate is $1.25 / MTok.",
+        notes: "Batch tier, prompts ≤200k tokens.",
+      }),
+    },
+    {
+      unit: "1M batch input tokens (>200k context)",
+      amount: verified(1.25, googleGeminiPricing, {
+        notes: "Batch tier surcharge for prompts >200k tokens.",
       }),
     },
     {
       unit: "1M batch output tokens",
       amount: verified(5, googleGeminiPricing, {
-        notes:
-          "Batch tier, prompts ≤200k tokens. For prompts >200k tokens the batch output rate is $7.50 / MTok.",
+        notes: "Batch tier, prompts ≤200k tokens.",
+      }),
+    },
+    {
+      unit: "1M batch output tokens (>200k context)",
+      amount: verified(7.5, googleGeminiPricing, {
+        notes: "Batch tier surcharge for prompts >200k tokens.",
       }),
     },
   ],
@@ -684,6 +730,180 @@ const gemini2_5Pro: ModelEntity = {
     googleGeminiModelDocs,
     googleGeminiPricing,
     googleGeminiQuickstart,
+  ]),
+};
+
+// ---------------------------------------------------------------------------
+// DeepSeek v4 Pro — verified against api-docs.deepseek.com pricing page
+// and API reference. Canonical (regular) prices are recorded; the 75%
+// promotional discount active until 2026-05-31 15:59 UTC is captured in
+// each pricing row's notes so the page does not encode a soon-to-expire
+// value as the durable rate.
+// ---------------------------------------------------------------------------
+
+const deepseekV4Pro: ModelEntity = {
+  id: "model-deepseek-v4-pro",
+  slug: "deepseek-v4-pro",
+  name: "DeepSeek V4 Pro",
+  description:
+    "DeepSeek's current generation reasoning model. Listed by DeepSeek alongside deepseek-v4-flash on the API Models & Pricing page; the older deepseek-chat and deepseek-reasoner models are documented as scheduled for deprecation on 2026/07/24.",
+  providerSlug: "deepseek",
+  sourceUrl: deepseekModelsAndPricing.url,
+  sourceName: deepseekModelsAndPricing.name,
+  sourceType: deepseekModelsAndPricing.type,
+  verified: true,
+  verificationStatus: "verified",
+  confidenceLevel: "high",
+  lastCheckedAt: "2026-05-20T00:00:00.000Z",
+  updatedDate: "2026-05-20",
+  notes:
+    "DeepSeek is running a 75% promotional discount on deepseek-v4-pro until 2026/05/31 15:59 UTC. Pricing rows below record the regular rate as the durable canonical value; the effective discounted rate is captured per row in `notes`.",
+
+  apiIdentifiers: verified(
+    {
+      canonical: "deepseek-v4-pro",
+    },
+    deepseekApiReference,
+    {
+      notes:
+        "Listed in `Possible values: [deepseek-v4-flash, deepseek-v4-pro]` on the chat completion API reference.",
+    }
+  ),
+
+  releaseDate: null,
+  snapshotDate: null,
+
+  knowledgeCutoff: null,
+
+  contextWindow: verified(1_000_000, deepseekModelsAndPricing, {
+    notes:
+      "Listed as '1M' on the DeepSeek Models & Pricing page for both deepseek-v4-flash and deepseek-v4-pro.",
+  }),
+
+  maxOutputTokens: null,
+
+  modality: null,
+
+  pricing: [
+    {
+      unit: "1M input tokens",
+      amount: verified(1.74, deepseekModelsAndPricing, {
+        notes:
+          "Cache-miss input regular rate. Effective rate $0.435 / MTok during the 75% discount window (until 2026/05/31 15:59 UTC).",
+      }),
+    },
+    {
+      unit: "1M cache read tokens",
+      amount: verified(0.0145, deepseekModelsAndPricing, {
+        notes:
+          "Cache-hit input regular rate. Effective rate $0.003625 / MTok during the 75% discount window. The cache pricing change (vs. previous schedule) took effect from 2026/4/26 12:15 UTC.",
+      }),
+    },
+    {
+      unit: "1M output tokens",
+      amount: verified(3.48, deepseekModelsAndPricing, {
+        notes:
+          "Output regular rate. Effective rate $0.87 / MTok during the 75% discount window.",
+      }),
+    },
+  ],
+
+  benchmarks: [],
+
+  infrastructure: {
+    regions: null,
+    avgLatencyMs: null,
+    uptimePercent: null,
+  },
+
+  features: null,
+
+  lifecycle: verified(
+    { status: "active" },
+    deepseekDocsRoot,
+    {
+      notes:
+        "Listed as a current model on the DeepSeek API docs root, not in the deprecation list (which currently contains deepseek-chat and deepseek-reasoner, scheduled for deprecation 2026/07/24).",
+    }
+  ),
+
+  citations: mergeCitations([
+    deepseekModelsAndPricing,
+    deepseekApiReference,
+    deepseekDocsRoot,
+  ]),
+};
+
+// ---------------------------------------------------------------------------
+// Mistral Large 3 — partial verification.
+// Mistral's per-model spec card pages return 404 from automated retrieval,
+// so only the API identifier and lifecycle status are verified. Context
+// window, max output, modality, and pricing remain null until a manual
+// browser pass against the individual model card.
+// ---------------------------------------------------------------------------
+
+const mistralLarge3: ModelEntity = {
+  id: "model-mistral-large-3",
+  slug: "mistral-large-3",
+  name: "Mistral Large 3",
+  description:
+    "Mistral's current Large-tier flagship. Documented on Mistral's models overview as a state-of-the-art, open-weight, general-purpose multimodal model. Per-model spec card pages (context window, max output) were not retrievable from this environment; those fields remain unverified.",
+  providerSlug: "mistral",
+  sourceUrl: mistralModelsOverview.url,
+  sourceName: mistralModelsOverview.name,
+  sourceType: mistralModelsOverview.type,
+  verified: false,
+  verificationStatus: "partial",
+  confidenceLevel: "medium",
+  lastCheckedAt: "2026-05-20T00:00:00.000Z",
+  updatedDate: "2026-05-20",
+  notes:
+    "Mistral's docs site exposes the models overview and the API reference; the per-model spec card pages returned 404 to automated retrieval. Pricing, context window, max output, and modality remain null until a manual browser pass.",
+
+  apiIdentifiers: verified(
+    {
+      canonical: "mistral-large-3",
+      alias: "mistral-large-latest",
+    },
+    mistralModelsTable,
+    {
+      notes:
+        "API string listed in the Mistral models table. The 'mistral-large-latest' alias is documented in the API reference as the version-agnostic example identifier.",
+    }
+  ),
+
+  releaseDate: null,
+  snapshotDate: null,
+  knowledgeCutoff: null,
+  contextWindow: null,
+  maxOutputTokens: null,
+  modality: null,
+
+  pricing: [],
+
+  benchmarks: [],
+
+  infrastructure: {
+    regions: null,
+    avgLatencyMs: null,
+    uptimePercent: null,
+  },
+
+  features: null,
+
+  lifecycle: verified(
+    { status: "active" },
+    mistralModelsOverview,
+    {
+      notes:
+        "Listed in the 'Frontier Generalist Models' section as version v25.12, Open. Not in any legacy/deprecated section on the models overview.",
+    }
+  ),
+
+  citations: mergeCitations([
+    mistralModelsOverview,
+    mistralModelsTable,
+    mistralApiReference,
   ]),
 };
 
@@ -748,6 +968,8 @@ export const models: ModelEntity[] = [
   claudeSonnet4_6,
   claudeHaiku4_5,
   gemini2_5Pro,
+  deepseekV4Pro,
+  mistralLarge3,
   claudeOpus4,
   unverifiedModel({
     id: "model-gpt-5",
@@ -765,7 +987,7 @@ export const models: ModelEntity[] = [
     providerSlug: "deepseek",
     providerHomepage: "https://deepseek.com",
     description:
-      "DeepSeek R1-0520 catalogue entry. No metric has been verified against an official DeepSeek source yet.",
+      "Historical DeepSeek R1-0520 catalogue entry. R1-0520 is not listed on the current DeepSeek API docs root (deepseek-chat and deepseek-reasoner are documented as deprecated; the current reasoning model is deepseek-v4-pro). This row is retained for historical reference and remains structurally unverified.",
   }),
   unverifiedModel({
     id: "model-llama-4-scout",
@@ -775,15 +997,6 @@ export const models: ModelEntity[] = [
     providerHomepage: "https://ai.meta.com",
     description:
       "Meta Llama 4 Scout catalogue entry. No metric has been verified against an official Meta AI source yet.",
-  }),
-  unverifiedModel({
-    id: "model-mistral-large-2",
-    slug: "mistral-large-2",
-    name: "Mistral Large 2",
-    providerSlug: "mistral",
-    providerHomepage: "https://mistral.ai",
-    description:
-      "Mistral Large 2 catalogue entry. No metric has been verified against an official Mistral source yet.",
   }),
 ];
 

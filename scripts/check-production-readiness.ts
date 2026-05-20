@@ -447,6 +447,67 @@ const checks: Check[] = [
       return null;
     },
   },
+  {
+    name: "verified DeepSeek attempts exist (Sprint 8 audit)",
+    run: () => {
+      const attempts = readRel("apps/models/data/verification-attempts.ts");
+      const deepseekVerified =
+        /providerSlug:\s*["']deepseek["'][\s\S]*?result:\s*["']verified["']/.test(
+          attempts
+        );
+      if (!deepseekVerified) {
+        return "Expected at least one verified DeepSeek attempt in verification-attempts.ts (Sprint 8). If DeepSeek docs become unreachable, replace these with blocked entries — do not silently delete the audit row.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "DeepSeek v4 Pro model record exists and is verified",
+    run: () => {
+      const src = readRel("apps/models/data/models.ts");
+      if (!/slug:\s*"deepseek-v4-pro"/.test(src)) {
+        return "deepseek-v4-pro model entry is missing from models.ts.";
+      }
+      const block = src.split("const deepseekV4Pro").pop() ?? "";
+      if (!/verificationStatus:\s*"verified"/.test(block.slice(0, 4000))) {
+        return "deepseek-v4-pro entry exists but is not marked verificationStatus: 'verified'.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "PricingUnit covers all units used in models.ts",
+    run: () => {
+      const models = readRel("apps/models/data/models.ts");
+      const types = readRel("apps/models/lib/types.ts");
+      // Pull every unit literal that appears as a key in a pricing row.
+      const used = new Set<string>();
+      const re = /unit:\s*"([^"]+)"/g;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(models)) !== null) used.add(m[1]);
+
+      // Pull every literal declared on PricingUnit (collapse whitespace).
+      const flat = types.replace(/\s+/g, " ");
+      const unionMatch = flat.match(
+        /export type PricingUnit\s*=\s*([^;]+);/
+      );
+      if (!unionMatch) {
+        return "Could not locate PricingUnit union in lib/types.ts.";
+      }
+      const declared = new Set(
+        [...unionMatch[1].matchAll(/"([^"]+)"/g)].map((x) => x[1])
+      );
+
+      const missing = [...used].filter((u) => !declared.has(u));
+      if (missing.length) {
+        return (
+          "Pricing tier(s) reference unit string(s) not in the PricingUnit union:\n  " +
+          missing.map((s) => `"${s}"`).join("\n  ")
+        );
+      }
+      return null;
+    },
+  },
 ];
 
 function main(): void {

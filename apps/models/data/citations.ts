@@ -67,3 +67,69 @@ export const googleGeminiQuickstart: SourceCitation = citation({
   notes:
     "Quickstart with REST endpoint shape, model parameter format, request body, and Python/JS SDK examples.",
 });
+
+// ---------------------------------------------------------------------------
+// DeepSeek primary sources.
+// ---------------------------------------------------------------------------
+
+export const deepseekModelsAndPricing: SourceCitation = citation({
+  url: "https://api-docs.deepseek.com/quick_start/pricing",
+  name: "DeepSeek — Models & Pricing",
+  type: "official-vendor-pricing",
+  retrievedAt: "2026-05-20T00:00:00.000Z",
+  notes:
+    "DeepSeek API Models & Pricing page — current model IDs (deepseek-v4-flash, deepseek-v4-pro), context window, input cache-miss / cache-hit / output rates, time-boxed discount window.",
+});
+
+export const deepseekApiReference: SourceCitation = citation({
+  url: "https://api-docs.deepseek.com/api/create-chat-completion",
+  name: "DeepSeek — Chat completion API reference",
+  type: "official-vendor-docs",
+  retrievedAt: "2026-05-20T00:00:00.000Z",
+  notes:
+    "DeepSeek chat completion API reference — endpoint, model parameter values (deepseek-v4-flash, deepseek-v4-pro), minimal request body.",
+});
+
+export const deepseekDocsRoot: SourceCitation = citation({
+  url: "https://api-docs.deepseek.com",
+  name: "DeepSeek — API docs root",
+  type: "official-vendor-docs",
+  retrievedAt: "2026-05-20T00:00:00.000Z",
+  notes:
+    "DeepSeek API docs root — active vs deprecated model status (deepseek-chat and deepseek-reasoner marked for deprecation 2026/07/24).",
+});
+
+// ---------------------------------------------------------------------------
+// Mistral primary sources.
+//
+// Only the catalogue page and API reference were retrievable from this
+// environment; per-model spec cards returned 404. Mistral verification
+// is therefore partial — API string + lifecycle only.
+// ---------------------------------------------------------------------------
+
+export const mistralModelsOverview: SourceCitation = citation({
+  url: "https://docs.mistral.ai/getting-started/models/models_overview",
+  name: "Mistral — Models overview",
+  type: "official-vendor-docs",
+  retrievedAt: "2026-05-20T00:00:00.000Z",
+  notes:
+    "Mistral models overview — current active models, version stamps, open vs premier classification.",
+});
+
+export const mistralModelsTable: SourceCitation = citation({
+  url: "https://docs.mistral.ai/getting-started/models",
+  name: "Mistral — Models table (API strings)",
+  type: "official-vendor-docs",
+  retrievedAt: "2026-05-20T00:00:00.000Z",
+  notes:
+    "Mistral models table — exact API string for every current model (mistral-large-3, mistral-medium-3-5, etc.).",
+});
+
+export const mistralApiReference: SourceCitation = citation({
+  url: "https://docs.mistral.ai/api",
+  name: "Mistral — API reference",
+  type: "official-vendor-docs",
+  retrievedAt: "2026-05-20T00:00:00.000Z",
+  notes:
+    "Mistral chat completions endpoint, headers, minimal request body, and model parameter format.",
+});

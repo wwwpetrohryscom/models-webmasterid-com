@@ -145,6 +145,86 @@ export const verificationAttempts: VerificationAttempt[] = [
     notes:
       "Page returned HTTP 404. Searched for the public brand resource URL — no canonical /brand path is currently published. The current brand policy (per general public knowledge of Anthropic's guidelines) is that commercial use of the wordmark requires explicit permission; identification/editorial use is generally permitted but not yet manually confirmed against an Anthropic-hosted page from this environment. Brand asset stays lettermark.",
   },
+
+  // ---------------------------------------------------------------------
+  // DeepSeek — Sprint 8 successful verification pass.
+  // ---------------------------------------------------------------------
+  {
+    providerSlug: "deepseek",
+    url: "https://api-docs.deepseek.com",
+    target: "DeepSeek API docs root (active vs deprecated models)",
+    attemptedAt: "2026-05-20T00:00:00.000Z",
+    result: "verified",
+    notes:
+      "Docs root retrieved. Active model list: deepseek-v4-flash, deepseek-v4-pro. Deprecated: deepseek-chat and deepseek-reasoner, scheduled for deprecation 2026/07/24. deepseek-r1 / DeepSeek R1-0520 are not in the current model list.",
+  },
+  {
+    providerSlug: "deepseek",
+    url: "https://api-docs.deepseek.com/quick_start/pricing",
+    target: "DeepSeek Models & Pricing",
+    attemptedAt: "2026-05-20T00:00:00.000Z",
+    result: "verified",
+    notes:
+      "Pricing page retrieved. Verified context window (1M), regular and discounted rates for input cache-miss / cache-hit / output for both v4-pro and v4-flash. 75% promotional discount active on v4-pro until 2026/05/31 15:59 UTC.",
+  },
+  {
+    providerSlug: "deepseek",
+    url: "https://api-docs.deepseek.com/api/create-chat-completion",
+    target: "DeepSeek chat completion API reference",
+    attemptedAt: "2026-05-20T00:00:00.000Z",
+    result: "verified",
+    notes:
+      "API reference retrieved. Verified API string `deepseek-v4-pro` as a valid model parameter value; documented minimal request body; API base implied as https://api.deepseek.com per beta-feature note.",
+  },
+
+  // ---------------------------------------------------------------------
+  // Mistral — Sprint 8 partial verification pass.
+  // ---------------------------------------------------------------------
+  {
+    providerSlug: "mistral",
+    url: "https://docs.mistral.ai/getting-started/models/models_overview",
+    target: "Mistral models overview",
+    attemptedAt: "2026-05-20T00:00:00.000Z",
+    result: "verified",
+    notes:
+      "Overview page retrieved. Mistral Large 3 listed as current, v25.12, Open weights, multimodal. Used to verify lifecycle status and version.",
+  },
+  {
+    providerSlug: "mistral",
+    url: "https://docs.mistral.ai/getting-started/models",
+    target: "Mistral models table (API strings)",
+    attemptedAt: "2026-05-20T00:00:00.000Z",
+    result: "verified",
+    notes:
+      "Models table retrieved. Verified API string `mistral-large-3` for Mistral Large 3 and the broader current model catalogue (mistral-medium-3-5, mistral-small-4, etc.).",
+  },
+  {
+    providerSlug: "mistral",
+    url: "https://docs.mistral.ai/api",
+    target: "Mistral chat completions API reference",
+    attemptedAt: "2026-05-20T00:00:00.000Z",
+    result: "verified",
+    notes:
+      "API reference retrieved. Endpoint https://api.mistral.ai/v1/chat/completions, required headers, minimal request body, and the `mistral-large-latest` alias used in the example.",
+  },
+  {
+    providerSlug: "mistral",
+    url: "https://docs.mistral.ai/getting-started/models/mistral-large-3",
+    target: "Mistral Large 3 per-model spec card",
+    attemptedAt: "2026-05-20T00:00:00.000Z",
+    result: "not-found-404",
+    notes:
+      "Per-model spec card page returned 404. Without it, context window, max output, and explicit modality specs cannot be verified — those fields stay null on the mistral-large-3 record.",
+  },
+  {
+    providerSlug: "mistral",
+    url: "https://mistral.ai/pricing",
+    target: "Mistral API pricing",
+    attemptedAt: "2026-05-20T00:00:00.000Z",
+    result: "requires-manual-browser",
+    notes:
+      "Marketing-side page renders Le Chat plans rather than the per-model API pricing table; the API pricing tab is JS-driven. Pricing values for mistral-large-3 are deferred to a manual browser pass.",
+  },
 ];
 
 export function attemptsByProvider(slug: string): VerificationAttempt[] {

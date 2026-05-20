@@ -144,10 +144,23 @@ Brand-asset policy: [`BRAND_ASSETS.md`](BRAND_ASSETS.md).
   Claude Opus 4 (deprecated; retires 2026-06-15). Verified from
   Anthropic's Models overview and Pricing reference.
 - Google — Gemini 2.5 Pro. Verified from Google AI's per-model docs
-  and Pricing reference.
+  and Pricing reference; ≤200k vs >200k prompt-size pricing tiers and
+  per-hour cache storage are first-class pricing rows.
+- DeepSeek — DeepSeek V4 Pro. Verified from DeepSeek's API docs root,
+  Models & Pricing page, and chat-completion API reference. A 75%
+  promotional discount on v4-pro is active until 2026/05/31 15:59 UTC;
+  the regular rate is recorded as the canonical durable value.
 
-**First fully two-sided verified comparison:**
-[Gemini 2.5 Pro vs Claude Opus 4.7](https://models.webmasterid.com/compare/gemini-2-5-pro-vs-claude-opus-4-7).
+**Partially verified models:**
+
+- Mistral — Mistral Large 3. API string and lifecycle verified; the
+  per-model spec card page returned 404, so context window, max
+  output, modality, and pricing remain unverified.
+
+**Two-sided verified comparisons:**
+
+- [Claude Opus 4.7 vs DeepSeek V4 Pro](https://models.webmasterid.com/compare/claude-opus-4-7-vs-deepseek-v4-pro)
+- [Gemini 2.5 Pro vs Claude Opus 4.7](https://models.webmasterid.com/compare/gemini-2-5-pro-vs-claude-opus-4-7)
 
 All other catalogue entries are unverified and render the canonical
 unverified-data label for every metric. OpenAI verification is **queued

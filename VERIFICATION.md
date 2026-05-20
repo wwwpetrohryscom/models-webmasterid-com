@@ -225,15 +225,39 @@ Verified Google models (against Google AI's per-model docs and Pricing
 reference):
 
 - **Gemini 2.5 Pro** (`gemini-2.5-pro`) — flagship Gemini 2.5 model.
-  Pricing values use the standard ≤200k-token tier; the >200k surcharge
-  is recorded in each pricing row's notes. Cache pricing semantics on
-  Gemini differ from Anthropic (per-hour cache storage, not per-token
-  TTL caching) and are not yet mapped into the schema.
+  Pricing now uses dedicated `PricingUnit` variants for the ≤200k vs
+  >200k prompt-size tiers and a separate `"1M cache storage / hour"`
+  row (added in Sprint 8) so all four published prompt-size rates and
+  the per-hour cache storage fee are surfaced as first-class rows
+  instead of being hidden in notes.
 
-Unverified catalogue entries (`gpt-5`, `deepseek-r1`, `llama-4-scout`,
-`mistral-large-2`): structural entries only. Every metric is `null` and
-renders the canonical unverified-data label until a primary-source
-review completes per provider.
+Verified DeepSeek models (against DeepSeek's API docs root, Models &
+Pricing page, and chat-completion API reference):
+
+- **DeepSeek V4 Pro** (`deepseek-v4-pro`) — current generation
+  reasoning model. The pricing table records the regular rate as the
+  durable canonical value (input cache-miss $1.74, cache-hit $0.0145,
+  output $3.48 per MTok). DeepSeek is running a time-limited 75%
+  promotional discount on v4-pro until 2026/05/31 15:59 UTC; the
+  discounted effective rate is captured per pricing row's `notes`.
+  Context window verified as 1M tokens; max output, modality, and
+  knowledge cutoff remain `null` (not exposed on the pages retrievable
+  from this environment).
+
+Partially verified Mistral models (only API string + lifecycle):
+
+- **Mistral Large 3** (`mistral-large-3`, alias `mistral-large-latest`).
+  Listed in the Mistral models overview as v25.12, Open weights,
+  multimodal. The per-model spec card page returned 404 to automated
+  retrieval; context window, max output, explicit modalities, and
+  pricing remain `null` and render the canonical unverified-data
+  label. A manual browser pass against the individual model card is
+  the unblock.
+
+Unverified catalogue entries (`gpt-5`, `deepseek-r1`, `llama-4-scout`):
+structural entries only. The `deepseek-r1` row is retained for
+historical reference and is explicitly described on the row as
+no longer present in DeepSeek's current model list.
 
 OpenAI's docs (platform.openai.com) currently block automated retrieval
 (HTTP 403). Verifying GPT-5 against the OpenAI documentation page

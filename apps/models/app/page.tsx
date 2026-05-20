@@ -272,7 +272,11 @@ export default function HomePage() {
           cta={{ label: "All models", href: "/models" }}
         />
         <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {(["claude-opus-4-7", "gemini-2-5-pro", "claude-opus-4"] as const)
+          {([
+            "claude-opus-4-7",
+            "gemini-2-5-pro",
+            "deepseek-v4-pro",
+          ] as const)
             .map((slug) => getModelBySlug(slug))
             .filter(
               (m): m is NonNullable<ReturnType<typeof getModelBySlug>> =>
