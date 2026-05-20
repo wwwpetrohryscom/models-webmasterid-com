@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ModelEntity } from "@/lib/types";
-import { ProviderLogoBadge } from "./ProviderLogoBadge";
+import { ProviderLogo } from "./ProviderLogo";
 import { VerificationBadge } from "./VerificationBadge";
 
 export function ModelBadge({
@@ -14,7 +14,9 @@ export function ModelBadge({
 }) {
   const inner = (
     <div className="flex items-center gap-3">
-      <ProviderLogoBadge slug={model.providerSlug} name={providerName} />
+      <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-background/60">
+        <ProviderLogo slug={model.providerSlug} name={providerName} size="sm" />
+      </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-foreground">
           {model.name}
