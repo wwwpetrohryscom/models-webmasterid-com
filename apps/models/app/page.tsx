@@ -134,7 +134,7 @@ export default function HomePage() {
           </DashboardCard>
 
           <DashboardCard
-            title="Top Comparisons"
+            title="Featured Comparisons"
             description="Side-by-side model breakdowns"
             href="/compare"
             cta="All comparisons"

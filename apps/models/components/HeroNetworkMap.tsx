@@ -1,58 +1,40 @@
 import { ProviderLogoBadge } from "./ProviderLogoBadge";
 import { VerificationBadge } from "./VerificationBadge";
+import { models } from "@/data/models";
+import { getProviderBySlug } from "@/data/providers";
+import type { VerificationStatus } from "@/lib/types";
 
 type FloatingModel = {
   slug: string;
   name: string;
   providerSlug: string;
   providerName: string;
+  verificationStatus: VerificationStatus;
   position: { top: string; left: string };
 };
 
-const floating: FloatingModel[] = [
-  {
-    slug: "gpt-5",
-    name: "OpenAI GPT-5",
-    providerSlug: "openai",
-    providerName: "OpenAI",
-    position: { top: "8%", left: "6%" },
-  },
-  {
-    slug: "claude-opus-4",
-    name: "Claude Opus 4",
-    providerSlug: "anthropic",
-    providerName: "Anthropic",
-    position: { top: "22%", left: "70%" },
-  },
-  {
-    slug: "gemini-2-5-pro",
-    name: "Gemini 2.5 Pro",
-    providerSlug: "google",
-    providerName: "Google",
-    position: { top: "60%", left: "4%" },
-  },
-  {
-    slug: "deepseek-r1",
-    name: "DeepSeek R1-0520",
-    providerSlug: "deepseek",
-    providerName: "DeepSeek",
-    position: { top: "76%", left: "62%" },
-  },
-  {
-    slug: "llama-4-scout",
-    name: "Llama 4 Scout",
-    providerSlug: "meta",
-    providerName: "Meta",
-    position: { top: "44%", left: "78%" },
-  },
-  {
-    slug: "mistral-large-2",
-    name: "Mistral Large 2",
-    providerSlug: "mistral",
-    providerName: "Mistral",
-    position: { top: "50%", left: "30%" },
-  },
-];
+const POSITIONS = [
+  { top: "8%", left: "6%" },
+  { top: "22%", left: "70%" },
+  { top: "60%", left: "4%" },
+  { top: "76%", left: "62%" },
+  { top: "44%", left: "78%" },
+  { top: "50%", left: "30%" },
+] as const;
+
+const floating: FloatingModel[] = models.slice(0, POSITIONS.length).map(
+  (m, i) => {
+    const p = getProviderBySlug(m.providerSlug);
+    return {
+      slug: m.slug,
+      name: m.name,
+      providerSlug: m.providerSlug,
+      providerName: p?.name ?? "Unknown",
+      verificationStatus: m.verificationStatus,
+      position: POSITIONS[i],
+    };
+  }
+);
 
 export function HeroNetworkMap() {
   return (
@@ -182,7 +164,7 @@ export function HeroNetworkMap() {
           </div>
           <div className="mt-1.5 flex items-center justify-between">
             <span className="text-[10px] text-muted-foreground">Metrics</span>
-            <VerificationBadge status="partial" />
+            <VerificationBadge status={m.verificationStatus} />
           </div>
         </div>
       ))}

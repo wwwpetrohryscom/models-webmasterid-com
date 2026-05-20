@@ -1,18 +1,21 @@
-import type { PricingTier } from "@/lib/types";
-import { formatUsd, unknownLabel } from "@/lib/utils";
+import type { VerifiedPricingTier } from "@/lib/types";
+import { isVerified } from "@/lib/verified";
+import { VerifiedField } from "./VerifiedField";
+import { DataNotVerified } from "./DataNotVerified";
+import { formatUsd } from "@/lib/utils";
 
 export function PricingTable({
   tiers,
   caption,
 }: {
-  tiers: PricingTier[];
+  tiers: VerifiedPricingTier[];
   caption?: string;
 }) {
   if (!tiers.length) {
-    return (
-      <p className="text-sm text-muted-foreground">{unknownLabel()}</p>
-    );
+    return <DataNotVerified />;
   }
+  const anyVerified = tiers.some((t) => isVerified(t.amount));
+
   return (
     <div className="overflow-hidden rounded-xl border border-border">
       <table className="w-full text-sm">
@@ -36,13 +39,18 @@ export function PricingTable({
               >
                 {t.unit}
               </th>
-              <td className="px-4 py-2 text-right tabular-nums text-muted-foreground">
-                {formatUsd(t.amountUsd)}
+              <td className="px-4 py-2 text-right tabular-nums">
+                <VerifiedField field={t.amount} format={formatUsd} label={t.unit} />
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      {!anyVerified ? (
+        <p className="border-t border-border bg-muted/30 px-4 py-2 text-xs text-muted-foreground">
+          No verified rates for this model yet — see VERIFICATION.md.
+        </p>
+      ) : null}
     </div>
   );
 }

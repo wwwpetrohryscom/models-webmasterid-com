@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageShell } from "@/components/PageShell";
 import { VerificationBadge } from "@/components/VerificationBadge";
+import { VerifiedField } from "@/components/VerifiedField";
 import { JsonLd } from "@/components/JsonLd";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { models } from "@/data/models";
@@ -75,11 +76,19 @@ export default function PricingPage() {
                   <td className="px-4 py-2 text-muted-foreground">
                     {p?.name ?? unknownLabel()}
                   </td>
-                  <td className="px-4 py-2 text-right tabular-nums text-muted-foreground">
-                    {formatUsd(input?.amountUsd ?? null)}
+                  <td className="px-4 py-2 text-right tabular-nums">
+                    <VerifiedField
+                      field={input?.amount}
+                      format={formatUsd}
+                      label="input rate"
+                    />
                   </td>
-                  <td className="px-4 py-2 text-right tabular-nums text-muted-foreground">
-                    {formatUsd(output?.amountUsd ?? null)}
+                  <td className="px-4 py-2 text-right tabular-nums">
+                    <VerifiedField
+                      field={output?.amount}
+                      format={formatUsd}
+                      label="output rate"
+                    />
                   </td>
                   <td className="px-4 py-2 text-right">
                     <VerificationBadge status={m.verificationStatus} />

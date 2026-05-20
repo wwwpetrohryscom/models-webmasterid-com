@@ -73,23 +73,40 @@ sets canonical URL, OpenGraph, and Twitter metadata via `buildMetadata`.
 
 ## Data integrity rules
 
-These rules are non-negotiable:
+These rules are non-negotiable. The full workflow lives in
+[VERIFICATION.md](VERIFICATION.md); this is the executive summary.
 
-1. **Never invent metrics.** Pricing, benchmark scores, latency, uptime, and
-   release dates are `null` until verified against an official primary source.
-2. **Unknown values render as `"Data not yet verified."`** — never as an
-   estimate, average, or extrapolation.
-3. **Every entity carries verification metadata:** `sourceUrl`, `sourceName`,
-   `sourceType`, `verified`, `verificationStatus`, `confidenceLevel`,
-   `lastCheckedAt`, `updatedDate`, `notes`.
-4. **Verification states** surface in the UI via `<VerificationBadge>`:
-   `verified` · `partial` · `unverified` · `deprecated`.
-5. **Prefer primary sources.** Vendor documentation, regulatory filings,
-   public datasets. Random blogs and social posts are not primary sources.
-6. **No mass-generated pages.** Every indexable page has a clear user purpose
-   and structured value.
+1. **Every metric has a citation, or it does not exist.** Metric fields are
+   typed `MaybeVerified<T> = VerifiedField<T> | null`. The `verified()`
+   helper in [`lib/verified.ts`](apps/models/lib/verified.ts) throws at
+   module-load time if the citation is incomplete — there is no escape
+   hatch.
+2. **Unverified values render as `"Data not yet verified."`** through the
+   `<VerifiedField>` / `<DataNotVerified>` components. Never write the
+   string by hand.
+3. **Primary sources only.** Vendor documentation, vendor pricing pages,
+   regulatory filings, peer-reviewed papers, public datasets. Blogs,
+   social posts, leaderboard sites, and AI-generated summaries are not
+   primary sources. See VERIFICATION.md for the full allow-list.
+4. **JSON-LD reflects verified fields only.** `buildModelJsonLd()` uses
+   the same `isVerified()` guard as the UI, so search engines and LLMs
+   only ever see sourced claims.
+5. **Comparisons never declare a winner.** The `ComparisonEntity` type
+   carries `declaresWinner: false` as a type-level reminder, and every
+   comparison page renders an explicit "No winner declared" note.
+6. **Lifecycle is verified separately from data.** A model can be fully
+   verified *and* deprecated — see Claude Opus 4 (`claude-opus-4-20250514`)
+   as the worked example.
+7. **No mass-generated pages.** Every indexable page has a clear user
+   purpose and structured value.
 
-See `apps/models/lib/types.ts` for the canonical entity model.
+Entity model: [`apps/models/lib/types.ts`](apps/models/lib/types.ts).
+Citation registry: [`apps/models/data/citations.ts`](apps/models/data/citations.ts).
+Verified-rendering helpers: [`apps/models/lib/verified.ts`](apps/models/lib/verified.ts).
+
+**Gold-standard verified model:** Claude Opus 4
+([apps/models/data/models.ts](apps/models/data/models.ts)) — sourced
+end-to-end against Anthropic's official Models overview and Pricing pages.
 
 ## Components
 

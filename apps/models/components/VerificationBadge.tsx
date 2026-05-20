@@ -14,10 +14,6 @@ const COPY: Record<VerificationStatus, { label: string; tone: string }> = {
     label: "Unverified",
     tone: "border-muted-foreground/20 bg-muted text-muted-foreground",
   },
-  deprecated: {
-    label: "Deprecated",
-    tone: "border-muted-foreground/20 bg-muted text-muted-foreground line-through",
-  },
 };
 
 export function VerificationBadge({

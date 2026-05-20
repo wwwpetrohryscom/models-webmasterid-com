@@ -4,18 +4,24 @@ import { notFound } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { ProviderLogoBadge } from "@/components/ProviderLogoBadge";
 import { VerificationBadge } from "@/components/VerificationBadge";
+import { LifecycleBadge } from "@/components/LifecycleBadge";
 import { DataFreshness } from "@/components/DataFreshness";
 import { PricingTable } from "@/components/PricingTable";
 import { BenchmarkTable } from "@/components/BenchmarkTable";
 import { InternalLinkGrid } from "@/components/InternalLinkGrid";
 import { JsonLd } from "@/components/JsonLd";
 import { SectionHeader } from "@/components/SectionHeader";
+import { VerifiedField } from "@/components/VerifiedField";
+import { VerificationSummary } from "@/components/VerificationSummary";
+import { SourceCitationList } from "@/components/SourceCitation";
+import { DataNotVerified } from "@/components/DataNotVerified";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import { models, getModelBySlug } from "@/data/models";
 import { getProviderBySlug } from "@/data/providers";
 import { comparisons } from "@/data/comparisons";
-import { formatDateISO, unknownLabel } from "@/lib/utils";
+import { isVerified } from "@/lib/verified";
+import { buildModelJsonLd } from "@/lib/model-jsonld";
 
 interface RouteParams {
   slug: string;
@@ -36,7 +42,7 @@ export async function generateMetadata({
   const provider = getProviderBySlug(model.providerSlug);
   return buildMetadata({
     title: model.name,
-    description: `${model.name} from ${provider?.name ?? "Unknown provider"} — pricing, benchmarks, infrastructure, and comparisons.`,
+    description: `${model.name} from ${provider?.name ?? "Unknown provider"} — verified pricing, benchmarks, infrastructure, and comparisons. Unverified fields display 'Data not yet verified.'`,
     path: `/models/${model.slug}`,
   });
 }
@@ -54,20 +60,6 @@ export default async function ModelPage({
     (c) => c.modelA === model.slug || c.modelB === model.slug
   );
 
-  const modelJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: model.name,
-    applicationCategory: "AIModel",
-    operatingSystem: "API",
-    description: model.description,
-    url: `${siteConfig.url}/models/${model.slug}`,
-    dateModified: model.updatedDate,
-    creator: provider
-      ? { "@type": "Organization", name: provider.name, url: provider.website ?? undefined }
-      : undefined,
-  };
-
   return (
     <PageShell
       eyebrow="Model intelligence"
@@ -81,14 +73,11 @@ export default async function ModelPage({
             { name: "Models", href: "/models" },
             { name: model.name, href: `/models/${model.slug}` },
           ]),
-          modelJsonLd,
+          buildModelJsonLd(model, provider),
         ]}
       />
 
-      <section
-        aria-label="Model overview"
-        className="card-surface p-5"
-      >
+      <section aria-label="Model overview" className="card-surface p-5">
         <div className="flex flex-wrap items-center gap-3">
           <ProviderLogoBadge
             slug={model.providerSlug}
@@ -97,23 +86,30 @@ export default async function ModelPage({
           />
           <div className="min-w-0 flex-1">
             <p className="text-sm text-muted-foreground">Provider</p>
-            <Link
-              href={`/providers#${model.providerSlug}`}
-              className="text-base font-semibold text-foreground hover:underline"
-            >
-              {provider?.name ?? "Unknown"}
-            </Link>
+            {provider ? (
+              <Link
+                href={`/providers#${model.providerSlug}`}
+                className="text-base font-semibold text-foreground hover:underline"
+              >
+                {provider.name}
+              </Link>
+            ) : (
+              <DataNotVerified />
+            )}
           </div>
-          <VerificationBadge status={model.verificationStatus} />
+          <div className="flex items-center gap-2">
+            <VerificationBadge status={model.verificationStatus} />
+            <LifecycleBadge field={model.lifecycle} />
+          </div>
         </div>
 
         <dl className="mt-5 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
           <div>
             <dt className="text-xs uppercase tracking-wider text-muted-foreground">
-              Release date
+              Snapshot date
             </dt>
             <dd className="mt-1 font-medium text-foreground">
-              {model.releaseDate ?? unknownLabel()}
+              <VerifiedField field={model.snapshotDate} label="snapshot date" />
             </dd>
           </div>
           <div>
@@ -121,23 +117,35 @@ export default async function ModelPage({
               Context window
             </dt>
             <dd className="mt-1 font-medium text-foreground">
-              {model.contextWindow ?? unknownLabel()}
+              <VerifiedField
+                field={model.contextWindow}
+                format={(v) => `${v.toLocaleString("en-US")} tokens`}
+                label="context window"
+              />
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wider text-muted-foreground">
+              Max output
+            </dt>
+            <dd className="mt-1 font-medium text-foreground">
+              <VerifiedField
+                field={model.maxOutputTokens}
+                format={(v) => `${v.toLocaleString("en-US")} tokens`}
+                label="max output"
+              />
             </dd>
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wider text-muted-foreground">
               Modality
             </dt>
-            <dd className="mt-1 font-medium capitalize text-foreground">
-              {model.modality.join(", ")}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wider text-muted-foreground">
-              Updated
-            </dt>
             <dd className="mt-1 font-medium text-foreground">
-              {formatDateISO(model.updatedDate)}
+              <VerifiedField
+                field={model.modality}
+                format={(v) => v.join(", ")}
+                label="modality"
+              />
             </dd>
           </div>
         </dl>
@@ -150,11 +158,67 @@ export default async function ModelPage({
         </div>
       </section>
 
+      <VerificationSummary model={model} />
+
+      {isVerified(model.apiIdentifiers) ? (
+        <section
+          aria-label="API identifiers"
+          className="card-surface p-5"
+        >
+          <SectionHeader
+            eyebrow="Reference"
+            title="API identifiers"
+            as="h2"
+            description="Pinned snapshot IDs as listed by the provider."
+          />
+          <dl className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground">
+                Canonical
+              </dt>
+              <dd className="mt-1 font-mono text-foreground">
+                {model.apiIdentifiers.value.canonical}
+              </dd>
+            </div>
+            {model.apiIdentifiers.value.alias ? (
+              <div>
+                <dt className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Alias
+                </dt>
+                <dd className="mt-1 font-mono text-foreground">
+                  {model.apiIdentifiers.value.alias}
+                </dd>
+              </div>
+            ) : null}
+            {model.apiIdentifiers.value.bedrock ? (
+              <div>
+                <dt className="text-xs uppercase tracking-wider text-muted-foreground">
+                  AWS Bedrock
+                </dt>
+                <dd className="mt-1 break-all font-mono text-foreground">
+                  {model.apiIdentifiers.value.bedrock}
+                </dd>
+              </div>
+            ) : null}
+            {model.apiIdentifiers.value.vertex ? (
+              <div>
+                <dt className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Vertex AI
+                </dt>
+                <dd className="mt-1 break-all font-mono text-foreground">
+                  {model.apiIdentifiers.value.vertex}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        </section>
+      ) : null}
+
       <section aria-label="Pricing" className="space-y-3">
         <SectionHeader
           eyebrow="API pricing"
           title="Pricing"
-          description="Per-million-token rates as published by the provider. Values shown as 'Data not yet verified.' have not been confirmed by WebmasterID."
+          description="Per-unit rates pulled from official provider documentation. Each row links back to its primary source."
           as="h2"
         />
         <PricingTable
@@ -165,9 +229,9 @@ export default async function ModelPage({
 
       <section aria-label="Benchmarks" className="space-y-3">
         <SectionHeader
-          eyebrow="Benchmarks"
+          eyebrow="Capability"
           title="Benchmarks"
-          description="Independent and provider-reported benchmark scores. Unverified entries are explicitly labelled."
+          description="Benchmark scores are only published once verified against a primary source. WebmasterID Models does not republish provider-reported scores without an independent reference."
           as="h2"
         />
         <BenchmarkTable
@@ -180,7 +244,7 @@ export default async function ModelPage({
         <SectionHeader
           eyebrow="Infrastructure"
           title="Inference infrastructure"
-          description="Regions, latency, and uptime where available."
+          description="Regions, latency, and uptime where independently verified."
           as="h2"
         />
         <div className="grid gap-3 sm:grid-cols-3">
@@ -189,7 +253,11 @@ export default async function ModelPage({
               Regions
             </p>
             <p className="mt-1 text-sm font-medium text-foreground">
-              {model.infrastructure.regions?.join(", ") ?? unknownLabel()}
+              <VerifiedField
+                field={model.infrastructure.regions}
+                format={(v) => v.join(", ")}
+                label="regions"
+              />
             </p>
           </div>
           <div className="card-surface p-4">
@@ -197,7 +265,10 @@ export default async function ModelPage({
               Avg latency (ms)
             </p>
             <p className="mt-1 text-sm font-medium text-foreground">
-              {model.infrastructure.avgLatencyMs ?? unknownLabel()}
+              <VerifiedField
+                field={model.infrastructure.avgLatencyMs}
+                label="avg latency"
+              />
             </p>
           </div>
           <div className="card-surface p-4">
@@ -205,7 +276,10 @@ export default async function ModelPage({
               Uptime (%)
             </p>
             <p className="mt-1 text-sm font-medium text-foreground">
-              {model.infrastructure.uptimePercent ?? unknownLabel()}
+              <VerifiedField
+                field={model.infrastructure.uptimePercent}
+                label="uptime"
+              />
             </p>
           </div>
         </div>
@@ -228,26 +302,17 @@ export default async function ModelPage({
         </section>
       ) : null}
 
-      <section aria-label="Citations" className="card-surface p-5">
-        <h2 className="text-base font-semibold text-foreground">Citations</h2>
-        <ul className="mt-3 space-y-1 text-sm">
-          {(model.citations ?? []).map((c) => (
-            <li key={c.href}>
-              <Link
-                href={c.href}
-                target="_blank"
-                rel="noreferrer"
-                className="text-primary hover:underline"
-              >
-                {c.label}
-              </Link>
-            </li>
-          ))}
-          {!(model.citations ?? []).length ? (
-            <li className="text-muted-foreground">{unknownLabel()}</li>
-          ) : null}
-        </ul>
-      </section>
+      {model.citations.length ? (
+        <SourceCitationList citations={model.citations} />
+      ) : (
+        <section aria-label="Sources" className="card-surface p-5">
+          <h2 className="text-base font-semibold text-foreground">Sources</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            No primary-source citations have been recorded for this entity
+            yet. See VERIFICATION.md for how entries are verified.
+          </p>
+        </section>
+      )}
     </PageShell>
   );
 }

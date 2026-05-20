@@ -54,10 +54,22 @@ export default async function ComparisonPage({
 
   return (
     <PageShell
-      eyebrow="Comparison"
+      eyebrow="Side-by-side reference"
       title={comparison.name}
       intro={comparison.description}
     >
+      <aside
+        role="note"
+        aria-label="Comparison policy"
+        className="card-surface border-warning/20 bg-warning/5 p-4 text-sm text-foreground"
+      >
+        <p>
+          <strong>No winner declared.</strong> This page sets verified
+          attributes from each model side-by-side. It does not rank the
+          models, score them, or recommend one over the other. Unverified
+          fields render as "Data not yet verified."
+        </p>
+      </aside>
       <JsonLd
         data={breadcrumbJsonLd([
           { name: "Home", href: "/" },

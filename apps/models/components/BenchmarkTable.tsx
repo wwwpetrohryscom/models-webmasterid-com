@@ -1,17 +1,16 @@
-import type { BenchmarkScore } from "@/lib/types";
-import { unknownLabel } from "@/lib/utils";
+import type { VerifiedBenchmarkScore } from "@/lib/types";
+import { VerifiedField } from "./VerifiedField";
+import { DataNotVerified } from "./DataNotVerified";
 
 export function BenchmarkTable({
   scores,
   caption,
 }: {
-  scores: BenchmarkScore[];
+  scores: VerifiedBenchmarkScore[];
   caption?: string;
 }) {
   if (!scores.length) {
-    return (
-      <p className="text-sm text-muted-foreground">{unknownLabel()}</p>
-    );
+    return <DataNotVerified />;
   }
   return (
     <div className="overflow-hidden rounded-xl border border-border">
@@ -40,8 +39,12 @@ export function BenchmarkTable({
                 {s.benchmark}
               </th>
               <td className="px-4 py-2 text-muted-foreground">{s.metric}</td>
-              <td className="px-4 py-2 text-right tabular-nums text-muted-foreground">
-                {s.score === null ? unknownLabel() : s.score.toFixed(1)}
+              <td className="px-4 py-2 text-right tabular-nums">
+                <VerifiedField
+                  field={s.score}
+                  format={(v) => v.toFixed(1)}
+                  label={`${s.benchmark} score`}
+                />
               </td>
             </tr>
           ))}
