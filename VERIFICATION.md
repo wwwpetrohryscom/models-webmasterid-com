@@ -7,6 +7,35 @@ convenience, polish, SEO scale, or any pressure to populate more rows.
 
 ---
 
+## Repository guard
+
+The canonical unverified-data label (the literal string exported as
+`UNVERIFIED_LABEL` from `apps/models/lib/verified.ts`) may only appear in:
+
+- `apps/models/components/DataNotVerified.tsx` (the renderer)
+- `apps/models/lib/verified.ts` (the constant declaration)
+- `README.md`
+- `VERIFICATION.md`
+- Tests whose filename matches `DataNotVerified.{test,spec}.{ts,tsx}` or
+  `data-not-verified.{test,spec}.{ts,tsx}`
+
+Any other file — route pages, seed data, arbitrary components, llms.txt
+copy — must render the label through the `<DataNotVerified>` component
+or interpolate the `UNVERIFIED_LABEL` constant. Inline duplication is
+forbidden because it bypasses the rendering policy and drifts over time.
+
+The guard is enforced by:
+
+```bash
+npm run check:integrity
+```
+
+It is wired into `npm run validate` alongside lint, typecheck, and build,
+so any unauthorized occurrence fails the local validation flow. The
+script lives at [`scripts/check-data-not-verified-usage.ts`](scripts/check-data-not-verified-usage.ts).
+
+---
+
 ## The core rule
 
 **Every metric on this site has a citation, or it does not exist.**

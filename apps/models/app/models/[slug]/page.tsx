@@ -42,7 +42,7 @@ export async function generateMetadata({
   const provider = getProviderBySlug(model.providerSlug);
   return buildMetadata({
     title: model.name,
-    description: `${model.name} from ${provider?.name ?? "Unknown provider"} — verified pricing, benchmarks, infrastructure, and comparisons. Unverified fields display 'Data not yet verified.'`,
+    description: `${model.name} from ${provider?.name ?? "Unknown provider"} — verified pricing, benchmarks, infrastructure, and comparisons. Unverified fields are explicitly marked.`,
     path: `/models/${model.slug}`,
   });
 }

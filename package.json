@@ -2,6 +2,7 @@
   "name": "models-webmasterid-com",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -11,6 +12,8 @@
     "build": "npm run build --workspace=apps/models",
     "start": "npm run start --workspace=apps/models",
     "lint": "npm run lint --workspace=apps/models",
-    "typecheck": "npm run typecheck --workspace=apps/models"
+    "typecheck": "npm run typecheck --workspace=apps/models",
+    "check:integrity": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/check-data-not-verified-usage.ts",
+    "validate": "npm run lint && npm run typecheck && npm run check:integrity && npm run build"
   }
 }

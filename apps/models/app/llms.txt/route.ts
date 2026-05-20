@@ -1,4 +1,5 @@
 import { siteConfig } from "@/lib/site-config";
+import { UNVERIFIED_LABEL } from "@/lib/verified";
 import { models } from "@/data/models";
 import { providers } from "@/data/providers";
 import { comparisons } from "@/data/comparisons";
@@ -18,7 +19,7 @@ export function GET() {
   buf.push(line(""));
   buf.push(
     line(
-      "WebmasterID Models is a structured intelligence platform for AI models, providers, benchmarks, API pricing, and inference infrastructure. Unverified metric values are explicitly marked as 'Data not yet verified.' rather than estimated."
+      `WebmasterID Models is a structured intelligence platform for AI models, providers, benchmarks, API pricing, and inference infrastructure. Unverified metric values are explicitly marked with the canonical label "${UNVERIFIED_LABEL}" rather than estimated.`
     )
   );
   buf.push(line(""));
@@ -71,7 +72,7 @@ export function GET() {
   buf.push(line("## Verification policy"));
   buf.push(
     line(
-      "- Where a metric is not yet verified against an official primary source, this site displays 'Data not yet verified.' rather than an estimate."
+      `- Where a metric is not yet verified against an official primary source, this site displays the canonical label "${UNVERIFIED_LABEL}" rather than an estimate.`
     )
   );
   buf.push(

@@ -13,13 +13,18 @@ directory. The output is data, not opinion.
 
 ```bash
 npm install
-npm run dev        # apps/models on http://localhost:3000
+npm run dev               # apps/models on http://localhost:3000
 npm run lint
 npm run typecheck
+npm run check:integrity   # repository guard for the unverified-data label
 npm run build
+npm run validate          # all four, in order
 ```
 
 All scripts are workspace-aware and proxy into `apps/models`.
+`check:integrity` runs the script at
+[`scripts/check-data-not-verified-usage.ts`](scripts/check-data-not-verified-usage.ts);
+see [VERIFICATION.md](VERIFICATION.md) for the policy it enforces.
 
 ## Architecture
 

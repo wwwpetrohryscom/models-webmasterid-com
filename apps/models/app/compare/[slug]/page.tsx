@@ -67,7 +67,8 @@ export default async function ComparisonPage({
           <strong>No winner declared.</strong> This page sets verified
           attributes from each model side-by-side. It does not rank the
           models, score them, or recommend one over the other. Unverified
-          fields render as "Data not yet verified."
+          fields display the canonical unverified-data label rendered by
+          the DataNotVerified component.
         </p>
       </aside>
       <JsonLd

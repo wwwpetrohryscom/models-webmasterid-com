@@ -379,10 +379,10 @@ export default function HomePage() {
               timestamps, and data freshness are first-class concerns.
               Every entity records when it was last checked and when it was
               last updated; values that are unknown or not yet verified are
-              displayed as “Data not yet verified.” rather than invented.
-              That discipline is what turns a content site into a reliable
-              intelligence layer, and it is what WebmasterID Models is
-              ultimately optimising for.
+              surfaced through a single canonical unverified-data label
+              rather than invented. That discipline is what turns a content
+              site into a reliable intelligence layer, and it is what
+              WebmasterID Models is ultimately optimising for.
             </p>
           </div>
 

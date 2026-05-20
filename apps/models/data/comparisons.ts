@@ -12,7 +12,7 @@ export const comparisons: ComparisonEntity[] = [
     slug: "gpt-5-vs-claude-opus-4",
     name: "GPT-5 vs Claude Opus 4",
     description:
-      "Side-by-side reference for OpenAI GPT-5 and Anthropic Claude Opus 4. Only fields verified on each model's record are shown; everything else renders as 'Data not yet verified.' This page does not declare a winner.",
+      "Side-by-side reference for OpenAI GPT-5 and Anthropic Claude Opus 4. Only fields verified on each model's record are shown; everything else is marked unverified. This page does not declare a winner.",
     modelA: "gpt-5",
     modelB: "claude-opus-4",
     sourceUrl: null,
@@ -27,7 +27,7 @@ export const comparisons: ComparisonEntity[] = [
     ],
     limitations: [
       "Claude Opus 4 (claude-opus-4-20250514) is deprecated and retires 2026-06-15. New workloads should evaluate the active Claude Opus generation listed on Anthropic's models overview.",
-      "GPT-5 fields are not yet verified against an official OpenAI primary source, so most attributes render as 'Data not yet verified.'",
+      "GPT-5 fields are not yet verified against an official OpenAI primary source, so most attributes are marked unverified.",
       "WebmasterID Models does not declare a winner; readers should compare verified facts against their own workload.",
     ],
     declaresWinner: false,
@@ -51,7 +51,7 @@ export const comparisons: ComparisonEntity[] = [
       "Cost-sensitive reasoning workloads",
     ],
     limitations: [
-      "Neither model has been verified against a primary source on this platform yet — most attributes render as 'Data not yet verified.'",
+      "Neither model has been verified against a primary source on this platform yet — most attributes are marked unverified.",
       "WebmasterID Models does not declare a winner; readers should compare verified facts against their own workload.",
     ],
     declaresWinner: false,

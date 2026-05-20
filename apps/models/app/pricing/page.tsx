@@ -12,7 +12,7 @@ import { formatUsd, unknownLabel } from "@/lib/utils";
 export const metadata: Metadata = buildMetadata({
   title: "AI API Pricing",
   description:
-    "API pricing across tracked AI models. Where rates have not been verified, the platform displays 'Data not yet verified.' rather than estimates.",
+    "API pricing across tracked AI models. Where rates have not been verified against official provider documentation, the platform marks them unverified rather than substituting estimates.",
   path: "/pricing",
 });
 

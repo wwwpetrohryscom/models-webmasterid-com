@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageShell } from "@/components/PageShell";
 import { JsonLd } from "@/components/JsonLd";
+import { DataNotVerified } from "@/components/DataNotVerified";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
@@ -71,14 +72,15 @@ export default function DocsPage() {
 
         <section>
           <h2 className="text-base font-semibold text-foreground">
-            “Data not yet verified.”
+            The unverified-data label
           </h2>
           <p className="mt-2">
             When a metric — pricing, latency, uptime, benchmark score,
-            release date — has not been confirmed against an official source,
-            it is rendered as “Data not yet verified.” rather than an
-            estimate. The platform does not extrapolate, average, or
-            interpolate values.
+            release date — has not been confirmed against an official
+            source, the canonical unverified-data label is rendered in
+            its place rather than an estimate. It looks like this:{" "}
+            <DataNotVerified />. The platform does not extrapolate,
+            average, or interpolate values.
           </p>
         </section>
 

@@ -8,7 +8,7 @@ import { anthropicModelsOverview, anthropicPricing } from "./citations";
 // Both source pages were retrieved on 2026-05-20 and stamped in
 // `data/citations.ts`. Every value below is either:
 //   (a) wrapped with `verified()` and a citation, or
-//   (b) explicitly null and rendered as "Data not yet verified." in the UI.
+//   (b) explicitly null and rendered through the DataNotVerified component.
 //
 // Re-verify per VERIFICATION.md before changing any field.
 // ---------------------------------------------------------------------------

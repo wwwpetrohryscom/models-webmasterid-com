@@ -95,7 +95,8 @@ export function SiteFooter() {
           </p>
           <p>
             Data integrity: where verified values are unavailable, this site
-            displays “Data not yet verified.”
+            renders a single canonical unverified-data label rather than an
+            estimate.
           </p>
         </div>
       </div>

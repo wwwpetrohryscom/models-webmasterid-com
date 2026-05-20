@@ -1,18 +1,20 @@
+import { UNVERIFIED_LABEL } from "./verified";
+
 export function cn(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(" ");
 }
 
 export function formatDateISO(iso: string | null | undefined): string {
-  if (!iso) return "Data not yet verified.";
+  if (!iso) return UNVERIFIED_LABEL;
   try {
     return new Date(iso).toISOString().slice(0, 10);
   } catch {
-    return "Data not yet verified.";
+    return UNVERIFIED_LABEL;
   }
 }
 
 export function formatRelative(iso: string | null | undefined): string {
-  if (!iso) return "Data not yet verified.";
+  if (!iso) return UNVERIFIED_LABEL;
   try {
     const then = new Date(iso).getTime();
     const now = Date.now();
@@ -25,12 +27,12 @@ export function formatRelative(iso: string | null | undefined): string {
     const days = Math.round(hours / 24);
     return `${days} d ago`;
   } catch {
-    return "Data not yet verified.";
+    return UNVERIFIED_LABEL;
   }
 }
 
 export function formatUsd(value: number | null | undefined): string {
-  if (value === null || value === undefined) return "Data not yet verified.";
+  if (value === null || value === undefined) return UNVERIFIED_LABEL;
   if (value === 0) return "Free";
   if (value < 0.01) {
     return `$${value.toFixed(4)}`;
@@ -39,5 +41,5 @@ export function formatUsd(value: number | null | undefined): string {
 }
 
 export function unknownLabel(): string {
-  return "Data not yet verified.";
+  return UNVERIFIED_LABEL;
 }
