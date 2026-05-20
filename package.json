@@ -1,0 +1,16 @@
+{
+  "name": "models-webmasterid-com",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/models",
+    "build": "npm run build --workspace=apps/models",
+    "start": "npm run start --workspace=apps/models",
+    "lint": "npm run lint --workspace=apps/models",
+    "typecheck": "npm run typecheck --workspace=apps/models"
+  }
+}
