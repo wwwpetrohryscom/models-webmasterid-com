@@ -135,10 +135,14 @@ These rules are non-negotiable. The full workflow lives in
 Entity model: [`apps/models/lib/types.ts`](apps/models/lib/types.ts).
 Citation registry: [`apps/models/data/citations.ts`](apps/models/data/citations.ts).
 Verified-rendering helpers: [`apps/models/lib/verified.ts`](apps/models/lib/verified.ts).
+Brand-asset policy: [`BRAND_ASSETS.md`](BRAND_ASSETS.md).
 
-**Gold-standard verified model:** Claude Opus 4
-([apps/models/data/models.ts](apps/models/data/models.ts)) — sourced
-end-to-end against Anthropic's official Models overview and Pricing pages.
+**Verified models** (against Anthropic's official Models overview and
+Pricing reference): Claude Opus 4.7, Claude Sonnet 4.6, Claude Haiku 4.5,
+and Claude Opus 4 (deprecated; retires 2026-06-15). All other catalogue
+entries are unverified and render the canonical unverified-data label
+for every metric. Gold-standard worked example:
+[Claude Opus 4](apps/models/data/models.ts).
 
 ## Components
 

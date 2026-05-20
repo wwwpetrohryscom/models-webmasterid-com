@@ -73,6 +73,18 @@ export interface BaseEntity {
 export interface ProviderEntity extends BaseEntity {
   headquarters?: string | null;
   website?: string | null;
+  /** Top-level docs URL. */
+  docsUrl?: string | null;
+  /** API reference URL. */
+  apiDocsUrl?: string | null;
+  /** Official pricing reference page. */
+  pricingUrl?: string | null;
+  /** Public model catalogue / list page. */
+  modelCatalogueUrl?: string | null;
+  /** Vendor-published status page (not an independent monitor). */
+  statusPageUrl?: string | null;
+  /** Stable docs page that documents the deprecation lifecycle. */
+  deprecationsUrl?: string | null;
 }
 
 export type PricingUnit =

@@ -164,6 +164,387 @@ const claudeOpus4: ModelEntity = {
 };
 
 // ---------------------------------------------------------------------------
+// Claude Opus 4.7 — current flagship Anthropic Opus model. Verified from the
+// same Anthropic Models overview and Pricing pages that anchor Claude Opus 4.
+// ---------------------------------------------------------------------------
+
+const claudeOpus4_7: ModelEntity = {
+  id: "model-claude-opus-4-7",
+  slug: "claude-opus-4-7",
+  name: "Claude Opus 4.7",
+  description:
+    "Anthropic's current flagship Claude Opus model. Documented by Anthropic as its most capable generally available model for complex reasoning and agentic coding.",
+  providerSlug: "anthropic",
+  sourceUrl: anthropicModelsOverview.url,
+  sourceName: anthropicModelsOverview.name,
+  sourceType: anthropicModelsOverview.type,
+  verified: true,
+  verificationStatus: "verified",
+  confidenceLevel: "high",
+  lastCheckedAt: "2026-05-20T00:00:00.000Z",
+  updatedDate: "2026-05-20",
+  notes:
+    "Per Anthropic, Opus 4.7 uses a new tokenizer compared to previous models that may use up to 35% more tokens for the same fixed text.",
+
+  apiIdentifiers: verified(
+    {
+      canonical: "claude-opus-4-7",
+      alias: "claude-opus-4-7",
+      bedrock: "anthropic.claude-opus-4-7",
+      vertex: "claude-opus-4-7",
+    },
+    anthropicModelsOverview,
+    {
+      notes:
+        "API IDs verified from the 'Latest models comparison' table on Anthropic's Models overview page.",
+    }
+  ),
+
+  releaseDate: null,
+  snapshotDate: null,
+
+  knowledgeCutoff: verified(
+    { reliable: "2026-01", training: "2026-01" },
+    anthropicModelsOverview,
+    { notes: "Reliable knowledge cutoff and training data cutoff both Jan 2026." }
+  ),
+
+  contextWindow: verified(1_000_000, anthropicModelsOverview, {
+    notes:
+      "Listed as '1M tokens' on the Anthropic Models overview page. Tooltip: ~555k words / ~2.5M unicode characters (new tokenizer).",
+  }),
+
+  maxOutputTokens: verified(128_000, anthropicModelsOverview, {
+    notes:
+      "Listed as '128k tokens' max output on the synchronous Messages API. Up to 300k via Message Batches API beta header.",
+  }),
+
+  modality: verified(
+    ["text-in", "image-in", "text-out"],
+    anthropicModelsOverview,
+    {
+      confidence: "high",
+      notes:
+        "Overview page: 'All current Claude models support text and image input, text output, multilingual capabilities, and vision.' Opus 4.7 is a current model on that page.",
+    }
+  ),
+
+  pricing: [
+    {
+      unit: "1M input tokens",
+      amount: verified(5, anthropicPricing, {
+        notes: "Base input tokens — Anthropic pricing reference.",
+      }),
+    },
+    {
+      unit: "1M output tokens",
+      amount: verified(25, anthropicPricing, {
+        notes: "Output tokens — Anthropic pricing reference.",
+      }),
+    },
+    {
+      unit: "1M cache write tokens (5m)",
+      amount: verified(6.25, anthropicPricing, {
+        notes: "5-minute prompt-cache write — Anthropic pricing reference.",
+      }),
+    },
+    {
+      unit: "1M cache write tokens (1h)",
+      amount: verified(10, anthropicPricing, {
+        notes: "1-hour prompt-cache write — Anthropic pricing reference.",
+      }),
+    },
+    {
+      unit: "1M cache read tokens",
+      amount: verified(0.5, anthropicPricing, {
+        notes: "Cache hits / refreshes — Anthropic pricing reference.",
+      }),
+    },
+    {
+      unit: "1M batch input tokens",
+      amount: verified(2.5, anthropicPricing, {
+        notes: "Batch API input (50% discount) — Anthropic pricing reference.",
+      }),
+    },
+    {
+      unit: "1M batch output tokens",
+      amount: verified(12.5, anthropicPricing, {
+        notes: "Batch API output (50% discount) — Anthropic pricing reference.",
+      }),
+    },
+  ],
+
+  benchmarks: [],
+
+  infrastructure: {
+    regions: null,
+    avgLatencyMs: null,
+    uptimePercent: null,
+  },
+
+  features: verified(
+    {
+      extendedThinking: false,
+      adaptiveThinking: true,
+      priorityTier: true,
+      visionInput: true,
+      toolUse: true,
+    },
+    anthropicModelsOverview,
+    {
+      notes:
+        "Extended thinking: No; Adaptive thinking: Yes; Priority Tier: Yes; Tool use overhead documented on Anthropic pricing reference.",
+    }
+  ),
+
+  lifecycle: verified(
+    { status: "active" },
+    anthropicModelsOverview,
+    {
+      notes:
+        "Listed in 'Latest models comparison' (current section) on Anthropic's Models overview page.",
+    }
+  ),
+
+  citations: mergeCitations([anthropicModelsOverview, anthropicPricing]),
+};
+
+// ---------------------------------------------------------------------------
+// Claude Sonnet 4.6 — current Anthropic Sonnet model.
+// ---------------------------------------------------------------------------
+
+const claudeSonnet4_6: ModelEntity = {
+  id: "model-claude-sonnet-4-6",
+  slug: "claude-sonnet-4-6",
+  name: "Claude Sonnet 4.6",
+  description:
+    "Anthropic's current Sonnet model. Documented by Anthropic as the best combination of speed and intelligence.",
+  providerSlug: "anthropic",
+  sourceUrl: anthropicModelsOverview.url,
+  sourceName: anthropicModelsOverview.name,
+  sourceType: anthropicModelsOverview.type,
+  verified: true,
+  verificationStatus: "verified",
+  confidenceLevel: "high",
+  lastCheckedAt: "2026-05-20T00:00:00.000Z",
+  updatedDate: "2026-05-20",
+  notes: null,
+
+  apiIdentifiers: verified(
+    {
+      canonical: "claude-sonnet-4-6",
+      alias: "claude-sonnet-4-6",
+      bedrock: "anthropic.claude-sonnet-4-6",
+      vertex: "claude-sonnet-4-6",
+    },
+    anthropicModelsOverview,
+    { notes: "API IDs from Anthropic's Models overview." }
+  ),
+
+  releaseDate: null,
+  snapshotDate: null,
+
+  knowledgeCutoff: verified(
+    { reliable: "2025-08", training: "2026-01" },
+    anthropicModelsOverview,
+    { notes: "Reliable knowledge cutoff Aug 2025; training data cutoff Jan 2026." }
+  ),
+
+  contextWindow: verified(1_000_000, anthropicModelsOverview, {
+    notes:
+      "Listed as '1M tokens'. Tooltip: ~750k words / ~3.4M unicode characters.",
+  }),
+
+  maxOutputTokens: verified(64_000, anthropicModelsOverview, {
+    notes: "64k tokens max output on the synchronous Messages API.",
+  }),
+
+  modality: verified(
+    ["text-in", "image-in", "text-out"],
+    anthropicModelsOverview,
+    {
+      notes:
+        "Overview page: 'All current Claude models support text and image input, text output, multilingual capabilities, and vision.'",
+    }
+  ),
+
+  pricing: [
+    {
+      unit: "1M input tokens",
+      amount: verified(3, anthropicPricing),
+    },
+    {
+      unit: "1M output tokens",
+      amount: verified(15, anthropicPricing),
+    },
+    {
+      unit: "1M cache write tokens (5m)",
+      amount: verified(3.75, anthropicPricing),
+    },
+    {
+      unit: "1M cache write tokens (1h)",
+      amount: verified(6, anthropicPricing),
+    },
+    {
+      unit: "1M cache read tokens",
+      amount: verified(0.3, anthropicPricing),
+    },
+    {
+      unit: "1M batch input tokens",
+      amount: verified(1.5, anthropicPricing),
+    },
+    {
+      unit: "1M batch output tokens",
+      amount: verified(7.5, anthropicPricing),
+    },
+  ],
+
+  benchmarks: [],
+
+  infrastructure: {
+    regions: null,
+    avgLatencyMs: null,
+    uptimePercent: null,
+  },
+
+  features: verified(
+    {
+      extendedThinking: true,
+      adaptiveThinking: true,
+      priorityTier: true,
+      visionInput: true,
+      toolUse: true,
+    },
+    anthropicModelsOverview,
+    {
+      notes:
+        "Extended thinking: Yes; Adaptive thinking: Yes; Priority Tier: Yes; Tool use documented on Anthropic pricing reference.",
+    }
+  ),
+
+  lifecycle: verified(
+    { status: "active" },
+    anthropicModelsOverview
+  ),
+
+  citations: mergeCitations([anthropicModelsOverview, anthropicPricing]),
+};
+
+// ---------------------------------------------------------------------------
+// Claude Haiku 4.5 — current Anthropic Haiku model (fastest tier).
+// ---------------------------------------------------------------------------
+
+const claudeHaiku4_5: ModelEntity = {
+  id: "model-claude-haiku-4-5",
+  slug: "claude-haiku-4-5",
+  name: "Claude Haiku 4.5",
+  description:
+    "Anthropic's current Haiku model. Documented by Anthropic as the fastest model with near-frontier intelligence.",
+  providerSlug: "anthropic",
+  sourceUrl: anthropicModelsOverview.url,
+  sourceName: anthropicModelsOverview.name,
+  sourceType: anthropicModelsOverview.type,
+  verified: true,
+  verificationStatus: "verified",
+  confidenceLevel: "high",
+  lastCheckedAt: "2026-05-20T00:00:00.000Z",
+  updatedDate: "2026-05-20",
+  notes: null,
+
+  apiIdentifiers: verified(
+    {
+      canonical: "claude-haiku-4-5-20251001",
+      alias: "claude-haiku-4-5",
+      bedrock: "anthropic.claude-haiku-4-5-20251001-v1:0",
+      vertex: "claude-haiku-4-5@20251001",
+    },
+    anthropicModelsOverview,
+    { notes: "API IDs from Anthropic's Models overview." }
+  ),
+
+  releaseDate: null,
+  snapshotDate: verified("2025-10-01", anthropicModelsOverview, {
+    notes:
+      "Snapshot date encoded in the canonical API ID (claude-haiku-4-5-20251001).",
+  }),
+
+  knowledgeCutoff: verified(
+    { reliable: "2025-02", training: "2025-07" },
+    anthropicModelsOverview
+  ),
+
+  contextWindow: verified(200_000, anthropicModelsOverview, {
+    notes:
+      "Listed as '200k tokens'. Tooltip: ~150k words / ~680k unicode characters.",
+  }),
+
+  maxOutputTokens: verified(64_000, anthropicModelsOverview),
+
+  modality: verified(
+    ["text-in", "image-in", "text-out"],
+    anthropicModelsOverview
+  ),
+
+  pricing: [
+    {
+      unit: "1M input tokens",
+      amount: verified(1, anthropicPricing),
+    },
+    {
+      unit: "1M output tokens",
+      amount: verified(5, anthropicPricing),
+    },
+    {
+      unit: "1M cache write tokens (5m)",
+      amount: verified(1.25, anthropicPricing),
+    },
+    {
+      unit: "1M cache write tokens (1h)",
+      amount: verified(2, anthropicPricing),
+    },
+    {
+      unit: "1M cache read tokens",
+      amount: verified(0.1, anthropicPricing),
+    },
+    {
+      unit: "1M batch input tokens",
+      amount: verified(0.5, anthropicPricing),
+    },
+    {
+      unit: "1M batch output tokens",
+      amount: verified(2.5, anthropicPricing),
+    },
+  ],
+
+  benchmarks: [],
+
+  infrastructure: {
+    regions: null,
+    avgLatencyMs: null,
+    uptimePercent: null,
+  },
+
+  features: verified(
+    {
+      extendedThinking: true,
+      adaptiveThinking: false,
+      priorityTier: true,
+      visionInput: true,
+      toolUse: true,
+    },
+    anthropicModelsOverview,
+    {
+      notes:
+        "Extended thinking: Yes; Adaptive thinking: No; Priority Tier: Yes.",
+    }
+  ),
+
+  lifecycle: verified({ status: "active" }, anthropicModelsOverview),
+
+  citations: mergeCitations([anthropicModelsOverview, anthropicPricing]),
+};
+
+// ---------------------------------------------------------------------------
 // All other models: structure migrated to the new verified shape but every
 // field is null until verified against a primary source. They exist as
 // catalogue entries only.
@@ -220,6 +601,9 @@ function unverifiedModel(params: {
 }
 
 export const models: ModelEntity[] = [
+  claudeOpus4_7,
+  claudeSonnet4_6,
+  claudeHaiku4_5,
   claudeOpus4,
   unverifiedModel({
     id: "model-gpt-5",

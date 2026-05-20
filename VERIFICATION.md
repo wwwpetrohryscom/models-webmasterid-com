@@ -211,11 +211,23 @@ should be re-verified or downgraded to `null`.
 
 ## Status of the seed catalogue (2026-05-20)
 
-- **Claude Opus 4** (`claude-opus-4-20250514`): fully verified against
-  Anthropic's models overview and pricing pages. Used as the gold-standard
-  reference for the verification workflow. Note: deprecated, retires
-  2026-06-15.
-- All other model catalogue entries (`gpt-5`, `gemini-2-5-pro`,
-  `deepseek-r1`, `llama-4-scout`, `mistral-large-2`): structural entries
-  only. Every metric is `null` and renders as "Data not yet verified."
-  until a primary source review is completed for each.
+Verified end-to-end against Anthropic's official Models overview
+([source](https://platform.claude.com/docs/en/docs/about-claude/models/overview))
+and Pricing reference
+([source](https://platform.claude.com/docs/en/about-claude/pricing)):
+
+- **Claude Opus 4.7** (`claude-opus-4-7`) — current Anthropic flagship.
+- **Claude Sonnet 4.6** (`claude-sonnet-4-6`) — current Sonnet tier.
+- **Claude Haiku 4.5** (`claude-haiku-4-5-20251001`) — current Haiku tier.
+- **Claude Opus 4** (`claude-opus-4-20250514`) — gold-standard worked
+  example. **Deprecated**, retires 2026-06-15. Retained for historical
+  record and to anchor the verification workflow.
+
+Unverified catalogue entries (`gpt-5`, `gemini-2-5-pro`, `deepseek-r1`,
+`llama-4-scout`, `mistral-large-2`): structural entries only. Every
+metric is `null` and renders the canonical unverified-data label until
+a primary-source review completes per provider.
+
+OpenAI's docs (platform.openai.com) currently block automated retrieval
+(HTTP 403). Verifying GPT-5 against the OpenAI documentation page is
+deferred until a manual review pass.

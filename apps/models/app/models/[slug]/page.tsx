@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
-import { ProviderLogoBadge } from "@/components/ProviderLogoBadge";
+import { ProviderLogo } from "@/components/ProviderLogo";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { LifecycleBadge } from "@/components/LifecycleBadge";
 import { DataFreshness } from "@/components/DataFreshness";
@@ -15,13 +15,14 @@ import { VerifiedField } from "@/components/VerifiedField";
 import { VerificationSummary } from "@/components/VerificationSummary";
 import { SourceCitationList } from "@/components/SourceCitation";
 import { DataNotVerified } from "@/components/DataNotVerified";
+import { ApiExample } from "@/components/ApiExample";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
-import { siteConfig } from "@/lib/site-config";
 import { models, getModelBySlug } from "@/data/models";
 import { getProviderBySlug } from "@/data/providers";
 import { comparisons } from "@/data/comparisons";
 import { isVerified } from "@/lib/verified";
 import { buildModelJsonLd } from "@/lib/model-jsonld";
+import { anthropicModelsOverview } from "@/data/citations";
 
 interface RouteParams {
   slug: string;
@@ -79,7 +80,7 @@ export default async function ModelPage({
 
       <section aria-label="Model overview" className="card-surface p-5">
         <div className="flex flex-wrap items-center gap-3">
-          <ProviderLogoBadge
+          <ProviderLogo
             slug={model.providerSlug}
             name={provider?.name ?? "Unknown"}
             size="lg"
@@ -302,6 +303,44 @@ export default async function ModelPage({
         </section>
       ) : null}
 
+      {model.providerSlug === "anthropic" && isVerified(model.apiIdentifiers) ? (
+        <ApiExample
+          title={`Calling ${model.name} via the Anthropic Messages API`}
+          intro="Shape of a minimal Messages API request using the verified canonical model ID. See the source for the full request schema, headers, streaming, and tool-use details."
+          citation={anthropicModelsOverview}
+          blocks={[
+            {
+              label: "curl",
+              language: "bash",
+              code: `curl https://api.anthropic.com/v1/messages \\
+  -H "x-api-key: $ANTHROPIC_API_KEY" \\
+  -H "anthropic-version: 2023-06-01" \\
+  -H "content-type: application/json" \\
+  -d '{
+    "model": "${model.apiIdentifiers.value.canonical}",
+    "max_tokens": 1024,
+    "messages": [
+      { "role": "user", "content": "Hello, ${model.name}." }
+    ]
+  }'`,
+            },
+            {
+              label: "TypeScript (@anthropic-ai/sdk)",
+              language: "typescript",
+              code: `import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic();
+
+const response = await client.messages.create({
+  model: "${model.apiIdentifiers.value.canonical}",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "Hello, ${model.name}." }],
+});`,
+            },
+          ]}
+        />
+      ) : null}
+
       {model.citations.length ? (
         <SourceCitationList citations={model.citations} />
       ) : (
@@ -313,6 +352,27 @@ export default async function ModelPage({
           </p>
         </section>
       )}
+
+      <section
+        aria-label="Verification queue"
+        className="card-surface p-5"
+      >
+        <h2 className="text-base font-semibold text-foreground">
+          Verification queue
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Next review for this entity targets re-checking pricing against
+          official provider documentation and confirming lifecycle state.
+          Cadence per field type lives in{" "}
+          <Link
+            href="/docs"
+            className="text-primary hover:underline"
+          >
+            /docs
+          </Link>
+          .
+        </p>
+      </section>
     </PageShell>
   );
 }

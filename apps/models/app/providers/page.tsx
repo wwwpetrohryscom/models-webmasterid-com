@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageShell } from "@/components/PageShell";
-import { ProviderLogoBadge } from "@/components/ProviderLogoBadge";
+import { ProviderLogo } from "@/components/ProviderLogo";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { JsonLd } from "@/components/JsonLd";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
@@ -43,10 +43,15 @@ export default function ProvidersIndexPage() {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <ProviderLogoBadge slug={p.slug} name={p.name} size="lg" />
+                  <ProviderLogo slug={p.slug} name={p.name} size="lg" />
                   <div>
                     <h2 className="text-base font-semibold text-foreground">
-                      {p.name}
+                      <Link
+                        href={`/providers/${p.slug}`}
+                        className="hover:underline"
+                      >
+                        {p.name}
+                      </Link>
                     </h2>
                     <p className="text-xs text-muted-foreground">
                       {p.headquarters ?? unknownLabel()}
@@ -84,16 +89,24 @@ export default function ProvidersIndexPage() {
                 </ul>
               </div>
 
-              {p.website ? (
+              <div className="mt-4 flex items-center justify-between gap-3 text-xs font-medium">
                 <Link
-                  href={p.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 text-xs font-medium text-primary hover:underline"
+                  href={`/providers/${p.slug}`}
+                  className="text-primary hover:underline"
                 >
-                  Official site →
+                  Provider page →
                 </Link>
-              ) : null}
+                {p.website ? (
+                  <Link
+                    href={p.website}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    Official site ↗
+                  </Link>
+                ) : null}
+              </div>
             </li>
           );
         })}

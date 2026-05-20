@@ -4,10 +4,11 @@ import { Hero } from "@/components/Hero";
 import { StatCard } from "@/components/StatCard";
 import { DashboardCard } from "@/components/DashboardCard";
 import { ModelBadge } from "@/components/ModelBadge";
-import { ProviderLogoBadge } from "@/components/ProviderLogoBadge";
+import { ProviderLogo } from "@/components/ProviderLogo";
 import { SectionHeader } from "@/components/SectionHeader";
 import { JsonLd } from "@/components/JsonLd";
 import { VerificationBadge } from "@/components/VerificationBadge";
+import { VerifiedField } from "@/components/VerifiedField";
 import { siteConfig } from "@/lib/site-config";
 import {
   buildMetadata,
@@ -15,13 +16,14 @@ import {
   softwareAppJsonLd,
   websiteJsonLd,
 } from "@/lib/seo";
-import { models, featuredModels } from "@/data/models";
+import { models, featuredModels, getModelBySlug } from "@/data/models";
 import { providers, getProviderBySlug } from "@/data/providers";
 import { benchmarks } from "@/data/benchmarks";
 import { topComparisons } from "@/data/comparisons";
 import { regions } from "@/data/regions";
 import { pricing } from "@/data/pricing";
 import { unknownLabel } from "@/lib/utils";
+import { isVerified } from "@/lib/verified";
 
 export const metadata: Metadata = buildMetadata({
   title: siteConfig.name,
@@ -98,6 +100,164 @@ export default function HomePage() {
             hint="not yet measured"
           />
         </div>
+      </section>
+
+      {/* Tracked providers strip */}
+      <section
+        aria-label="Tracked providers"
+        className="container-page mt-12"
+      >
+        <SectionHeader
+          eyebrow="Tracked providers"
+          title="Providers covered"
+          description="Frontier labs and inference platforms in the catalogue. Logos are in-repo lettermarks pending review of each provider's official brand resources. WebmasterID Models is independent and not affiliated with any listed provider."
+          cta={{ label: "All providers", href: "/providers" }}
+        />
+        <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+          {providers.map((p) => (
+            <li key={p.slug}>
+              <Link
+                href={`/providers/${p.slug}`}
+                className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <ProviderLogo slug={p.slug} name={p.name} size="lg" />
+                <span className="text-xs font-medium text-foreground">
+                  {p.name}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* Source-backed intelligence + verified preview */}
+      <section
+        aria-label="How verification works"
+        className="container-page mt-16 grid gap-4 lg:grid-cols-3"
+      >
+        <article className="card-surface p-6 lg:col-span-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            Source-backed intelligence
+          </p>
+          <h2 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
+            Primary sources only. Verification before rendering.
+          </h2>
+          <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+            <li>
+              <strong className="text-foreground">Primary sources only:</strong>{" "}
+              official vendor documentation, official pricing pages,
+              regulatory filings, peer-reviewed papers, public datasets.
+              Blogs, social posts, and AI-generated summaries are not
+              primary sources.
+            </li>
+            <li>
+              <strong className="text-foreground">Timestamped citations:</strong>{" "}
+              every verified field carries a <code className="rounded bg-muted px-1 py-0.5 text-xs">sourceUrl</code>,{" "}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">sourceName</code>,{" "}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">sourceType</code>,
+              and <code className="rounded bg-muted px-1 py-0.5 text-xs">retrievedAt</code>.
+            </li>
+            <li>
+              <strong className="text-foreground">No fabricated metrics:</strong>{" "}
+              unverified pricing, benchmark scores, latency, and uptime
+              are surfaced through a single canonical unverified-data
+              label — never substituted with estimates.
+            </li>
+            <li>
+              <strong className="text-foreground">JSON-LD discipline:</strong>{" "}
+              schema.org markup only emits fields backed by a citation.
+              Search engines and AI surfaces never see unverified claims
+              from this site.
+            </li>
+            <li>
+              <strong className="text-foreground">Type-system guard:</strong>{" "}
+              metric fields are typed{" "}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">MaybeVerified&lt;T&gt;</code>{" "}
+              — the build refuses to ship if a non-null metric lacks a
+              citation.
+            </li>
+          </ul>
+          <p className="mt-4 text-xs text-muted-foreground">
+            See{" "}
+            <Link href="/docs" className="text-primary hover:underline">
+              /docs
+            </Link>{" "}
+            for the verification workflow and primary-source allow-list.
+          </p>
+        </article>
+
+        {(() => {
+          const opus4 = getModelBySlug("claude-opus-4");
+          if (!opus4) return null;
+          const verifiedFieldCount =
+            (isVerified(opus4.apiIdentifiers) ? 1 : 0) +
+            (isVerified(opus4.contextWindow) ? 1 : 0) +
+            (isVerified(opus4.maxOutputTokens) ? 1 : 0) +
+            (isVerified(opus4.modality) ? 1 : 0) +
+            (isVerified(opus4.knowledgeCutoff) ? 1 : 0) +
+            (isVerified(opus4.features) ? 1 : 0) +
+            (isVerified(opus4.lifecycle) ? 1 : 0) +
+            opus4.pricing.filter((t) => isVerified(t.amount)).length;
+          return (
+            <article className="card-surface p-6" aria-label="Verified preview: Claude Opus 4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                Verified preview
+              </p>
+              <h2 className="mt-1 text-lg font-semibold text-foreground">
+                {opus4.name}
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Gold-standard worked example for the verification workflow.
+              </p>
+              <dl className="mt-4 space-y-2 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-muted-foreground">Verified fields</dt>
+                  <dd className="font-medium tabular-nums text-foreground">
+                    {verifiedFieldCount}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-muted-foreground">Sources</dt>
+                  <dd className="font-medium tabular-nums text-foreground">
+                    {opus4.citations.length}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-muted-foreground">Context window</dt>
+                  <dd className="font-medium text-foreground">
+                    <VerifiedField
+                      field={opus4.contextWindow}
+                      format={(v) => `${v.toLocaleString("en-US")} tokens`}
+                      label="context window"
+                      inlineCitation={false}
+                    />
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-muted-foreground">Lifecycle</dt>
+                  <dd className="font-medium text-foreground">
+                    <VerifiedField
+                      field={opus4.lifecycle}
+                      format={(v) =>
+                        v.retirementDate
+                          ? `${v.status} (retires ${v.retirementDate})`
+                          : v.status
+                      }
+                      label="lifecycle"
+                      inlineCitation={false}
+                    />
+                  </dd>
+                </div>
+              </dl>
+              <Link
+                href={`/models/${opus4.slug}`}
+                className="mt-4 inline-flex text-xs font-medium text-primary hover:underline"
+              >
+                View full record →
+              </Link>
+            </article>
+          );
+        })()}
       </section>
 
       {/* Dashboard cards */}
@@ -197,14 +357,10 @@ export default function HomePage() {
               {providers.slice(0, 6).map((p) => (
                 <li key={p.slug}>
                   <Link
-                    href={`/providers#${p.slug}`}
+                    href={`/providers/${p.slug}`}
                     className="flex items-center gap-2 rounded-xl border border-border bg-card p-2.5 transition hover:border-primary/30"
                   >
-                    <ProviderLogoBadge
-                      slug={p.slug}
-                      name={p.name}
-                      size="sm"
-                    />
+                    <ProviderLogo slug={p.slug} name={p.name} size="sm" />
                     <span className="truncate text-sm font-medium text-foreground">
                       {p.name}
                     </span>

@@ -1,0 +1,120 @@
+# Brand assets policy
+
+Rules governing every provider logo, badge, and brand mark used on
+WebmasterID Models.
+
+The goal is the same as the verification policy that governs metrics:
+**no asset is shown unless its provenance is recorded and the license is
+respected.** Visual placeholders are clearly labelled as
+"lettermarks" — they are never described as official.
+
+---
+
+## Where logos come from
+
+Every asset in [`apps/models/public/brands/`](apps/models/public/brands/)
+is one of:
+
+1. **`lettermark`** — authored in-repo by the WebmasterID Models team
+   as a placeholder until each provider's official brand resources have
+   been reviewed. Lettermarks reuse the same gradient palette as the
+   `<ProviderLogoBadge>` fallback. They are **not** vendor brand marks
+   and never claim to be.
+2. **`open_source`** — sourced from an open-licensed icon package (e.g.
+   simple-icons) where the license is permissive and attribution
+   requirements are honoured.
+3. **`official`** — taken from the vendor's own brand / press resource
+   page, with the source URL and the date of the manual review recorded
+   in [`apps/models/data/brand-assets.ts`](apps/models/data/brand-assets.ts).
+4. **`none`** — no file is registered; the UI falls back to the
+   programmatic gradient lettermark via `<ProviderLogoBadge>`.
+
+The current sprint introduces files under tier (1) for every tracked
+provider. Tier (3) upgrades are tracked per-provider in the metadata
+and will replace the lettermark **only** after a manual review of the
+vendor's brand page.
+
+---
+
+## License / usage notes per provider
+
+| Slug | Tier | License note |
+| --- | --- | --- |
+| `openai` | lettermark | Internally authored. Not an official OpenAI mark. |
+| `anthropic` | lettermark | Internally authored. Not an official Anthropic mark. |
+| `google` | lettermark | Internally authored. Not an official Google mark. |
+| `meta` | lettermark | Internally authored. Not an official Meta mark. |
+| `mistral` | lettermark | Internally authored. Not an official Mistral mark. |
+| `deepseek` | lettermark | Internally authored. Not an official DeepSeek mark. |
+| `groq` | lettermark | Internally authored. Not an official Groq mark. |
+| `together-ai` | lettermark | Internally authored. Not an official Together AI mark. |
+
+---
+
+## Trademark disclaimer
+
+The following disclaimer appears in the site-wide footer:
+
+> Provider names and logos are trademarks of their respective owners.
+> WebmasterID Models is an independent intelligence platform and is not
+> affiliated with or endorsed by listed providers.
+
+The disclaimer ships on every page. It is the textual counterpart of
+the per-asset `brandAsset.type` metadata.
+
+---
+
+## Implication of partnership
+
+Rendering a brand mark on this site **never** implies:
+
+- partnership with the provider
+- endorsement by the provider
+- certification by the provider
+- official representation of the provider
+
+Even an `official` tier asset, sourced under a permissive brand
+guideline, is shown only to identify the entity being documented.
+
+If a provider requests removal of their brand from WebmasterID Models,
+that request will be honoured by switching the tier to `none` and the
+UI will fall back to the programmatic lettermark.
+
+---
+
+## Manual review checklist (for upgrading an asset to `official`)
+
+- [ ] The asset lives on the vendor's own domain under a brand /
+  press / media resource page.
+- [ ] The page explicitly permits third-party use for
+  identification / reference purposes (most major vendor brand pages
+  do; read the specific terms).
+- [ ] The asset has been downloaded into
+  `apps/models/public/brands/<slug>.svg` (no hotlinking; never embed a
+  remote URL).
+- [ ] [`apps/models/data/brand-assets.ts`](apps/models/data/brand-assets.ts)
+  is updated:
+  - `type` is set to `"official"` (or `"open_source"` if from an
+    icon package).
+  - `sourceUrl` points at the brand resource page where the asset was
+    retrieved.
+  - `licenseNote` summarises the relevant brand guideline (verbatim
+    quote of the permitted use clause is ideal).
+  - `attributionRequired` reflects what the license requires.
+  - `retrievedAt` is the ISO datetime of the manual review.
+- [ ] The footer trademark disclaimer is still present and accurate.
+- [ ] `npm run check:production` passes.
+
+---
+
+## Fallback strategy
+
+`<ProviderLogo>` first looks up the registered asset. If `path` is set,
+it renders an `<img>` with strict alt text. If `path` is `null`, it
+falls back to `<ProviderLogoBadge>`, which renders the same lettermark
+treatment as the SVG files via Tailwind gradients. Both code paths
+preserve accessibility and consistent visual weight, so a missing
+official mark is not visually treated as "absence of partnership."
+
+This is intentional: WebmasterID Models is independent of every listed
+provider, and the UI should not subtly suggest otherwise.

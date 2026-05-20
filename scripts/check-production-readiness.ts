@@ -17,7 +17,7 @@
  * Run with: npm run check:production
  */
 
-import { readFileSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { scanForLabel, formatViolations } from "./lib/scan-label.ts";
@@ -138,6 +138,103 @@ const checks: Check[] = [
       const violations = scanForLabel({ root: ROOT });
       if (!violations.length) return null;
       return formatViolations(violations);
+    },
+  },
+  {
+    name: "brand asset metadata is internally consistent",
+    run: () => {
+      const src = readRel("apps/models/data/brand-assets.ts");
+      const failures: string[] = [];
+
+      // (a) every brandAssets entry that registers a path must have a
+      //     file on disk under apps/models/public.
+      // Match objects of the form: <slug>: { ... path: "/brands/...", ... }
+      const entryRe =
+        /["'`]?([a-z0-9-]+)["'`]?\s*:\s*lettermark\(\s*["']([^"']+)["']\s*\)/g;
+      let m: RegExpExecArray | null;
+      while ((m = entryRe.exec(src)) !== null) {
+        const path = m[2];
+        if (!path.startsWith("/")) continue;
+        const onDisk = `apps/models/public${path}`;
+        if (!fileExists(onDisk)) {
+          failures.push(
+            `Brand asset registered at ${path} but file ${onDisk} is missing.`
+          );
+        }
+      }
+
+      // (b) when an entry asserts type === "official", a sourceUrl must
+      //     be present. Match { type: "official", ..., sourceUrl: null|"..." }
+      const officialBlockRe =
+        /\{\s*type:\s*["']official["'][^}]*\bsourceUrl:\s*([^,\n}]+)/g;
+      while ((m = officialBlockRe.exec(src)) !== null) {
+        const value = m[1].trim();
+        if (value === "null" || value === "undefined" || value === "''" || value === '""') {
+          failures.push(
+            `Brand asset declared type "official" but sourceUrl is missing/null.`
+          );
+        }
+      }
+
+      // (c) every file in /public/brands must be registered in brand-assets.ts
+      const brandsDir = resolve(ROOT, "apps/models/public/brands");
+      let files: string[] = [];
+      try {
+        files = readdirSync(brandsDir);
+      } catch {
+        files = [];
+      }
+      for (const f of files) {
+        if (!f.endsWith(".svg")) continue;
+        if (!src.includes(`/brands/${f}`)) {
+          failures.push(
+            `Brand file public/brands/${f} exists but is not registered in brand-assets.ts.`
+          );
+        }
+      }
+
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "model-json-ld helper guards unverified metric emission",
+    run: () => {
+      const src = readRel("apps/models/lib/model-jsonld.ts");
+      if (!src.includes("isVerified(")) {
+        return "lib/model-jsonld.ts does not appear to use isVerified() — unverified metrics could leak into schema.org markup.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "footer carries the trademark / non-affiliation disclaimer",
+    run: () => {
+      // Footer JSX may wrap the phrase across lines; collapse whitespace
+      // before matching to match the rendered string, not the source.
+      const src = readRel("apps/models/components/SiteFooter.tsx").replace(
+        /\s+/g,
+        " "
+      );
+      if (!/trademarks of their respective owners/i.test(src)) {
+        return "SiteFooter does not include the trademark / non-affiliation disclaimer.";
+      }
+      if (!/not affiliated/i.test(src)) {
+        return "SiteFooter is missing the 'not affiliated' clause.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "homepage stats do not assert a fabricated uptime number",
+    run: () => {
+      const src = readRel("apps/models/app/page.tsx");
+      const m = src.match(/label="Avg API uptime"\s*\n\s*value=\{([^}]+)\}/);
+      if (!m) return null;
+      const v = m[1].trim();
+      if (v !== "unknownLabel()" && !v.includes("UNVERIFIED_LABEL")) {
+        return `Homepage 'Avg API uptime' stat must render the unverified label (current expression: ${v}).`;
+      }
+      return null;
     },
   },
 ];

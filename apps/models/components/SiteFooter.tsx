@@ -88,15 +88,32 @@ export function SiteFooter() {
         ))}
       </div>
       <div className="border-t border-border">
-        <div className="container-page flex flex-col items-start justify-between gap-2 py-4 text-xs text-muted-foreground md:flex-row md:items-center">
-          <p>
-            © {new Date(siteConfig.buildDate).getUTCFullYear()}{" "}
-            {siteConfig.ecosystem}. {siteConfig.name}.
-          </p>
-          <p>
-            Data integrity: where verified values are unavailable, this site
-            renders a single canonical unverified-data label rather than an
-            estimate.
+        <div className="container-page flex flex-col gap-3 py-4 text-xs text-muted-foreground">
+          <div className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
+            <p>
+              © {new Date(siteConfig.buildDate).getUTCFullYear()}{" "}
+              {siteConfig.ecosystem}. {siteConfig.name}.
+            </p>
+            <p>
+              Data integrity: where verified values are unavailable, this site
+              renders a single canonical unverified-data label rather than an
+              estimate.
+            </p>
+          </div>
+          <p className="text-[11px] leading-relaxed text-muted-foreground/90">
+            Provider names and logos are trademarks of their respective
+            owners. WebmasterID Models is an independent intelligence
+            platform and is not affiliated with or endorsed by listed
+            providers. Marks shown here are either internally authored
+            lettermarks or assets used under each owner's brand guidelines;
+            see{" "}
+            <a
+              href="/BRAND_ASSETS.md"
+              className="underline-offset-2 hover:underline"
+            >
+              brand-assets policy
+            </a>
+            .
           </p>
         </div>
       </div>
