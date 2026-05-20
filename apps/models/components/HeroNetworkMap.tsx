@@ -1,118 +1,91 @@
-import { ProviderLogoBadge } from "./ProviderLogoBadge";
+import { ProviderLogo } from "./ProviderLogo";
 import { VerificationBadge } from "./VerificationBadge";
-import { models } from "@/data/models";
+import { models, getModelBySlug } from "@/data/models";
 import { getProviderBySlug } from "@/data/providers";
-import type { VerificationStatus } from "@/lib/types";
+import { isVerified } from "@/lib/verified";
 
-type FloatingModel = {
-  slug: string;
-  name: string;
-  providerSlug: string;
-  providerName: string;
-  verificationStatus: VerificationStatus;
-  position: { top: string; left: string };
-};
-
-const POSITIONS = [
-  { top: "8%", left: "6%" },
-  { top: "22%", left: "70%" },
-  { top: "60%", left: "4%" },
-  { top: "76%", left: "62%" },
-  { top: "44%", left: "78%" },
-  { top: "50%", left: "30%" },
+const HERO_SLUGS = [
+  "claude-opus-4-7",
+  "gemini-2-5-pro",
+  "deepseek-v4-pro",
+  "claude-sonnet-4-6",
 ] as const;
 
-const floating: FloatingModel[] = models.slice(0, POSITIONS.length).map(
-  (m, i) => {
-    const p = getProviderBySlug(m.providerSlug);
-    return {
-      slug: m.slug,
-      name: m.name,
-      providerSlug: m.providerSlug,
-      providerName: p?.name ?? "Unknown",
-      verificationStatus: m.verificationStatus,
-      position: POSITIONS[i],
-    };
+function formatContextTokens(value: number | null): string {
+  if (value === null) return "—";
+  if (value >= 1_000_000) {
+    const m = value / 1_000_000;
+    return `${m % 1 === 0 ? m : m.toFixed(1)}M ctx`;
   }
-);
+  if (value >= 1_000) {
+    return `${Math.round(value / 1_000)}k ctx`;
+  }
+  return `${value} ctx`;
+}
 
 export function HeroNetworkMap() {
+  const featured = HERO_SLUGS.map((slug) => getModelBySlug(slug)).filter(
+    (m): m is NonNullable<ReturnType<typeof getModelBySlug>> => Boolean(m)
+  );
+  // Fall back to whatever models exist if any slug went missing.
+  const cards = (
+    featured.length === HERO_SLUGS.length ? featured : models.slice(0, 4)
+  ).slice(0, 4);
+
   return (
     <div
-      className="relative aspect-square w-full overflow-hidden rounded-3xl border border-border bg-card shadow-card"
-      aria-label="Visualization of tracked AI model providers across global inference infrastructure"
+      className="relative w-full overflow-hidden rounded-3xl border border-border bg-card shadow-card"
+      aria-label="Snapshot of verified models tracked by WebmasterID Models"
       role="img"
     >
+      {/* Backdrop: subtle radial gradient + sparse grid. No floating overlap. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-subtle-grid data-grid opacity-50"
+        className="pointer-events-none absolute inset-0 bg-subtle-grid data-grid opacity-40"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(80% 60% at 50% 0%, hsl(222 89% 56% / 0.12), transparent 70%), radial-gradient(60% 50% at 100% 100%, hsl(262 83% 58% / 0.10), transparent 70%)",
+        }}
       />
 
+      {/* Connection web — pure SVG, drawn behind the card grid. */}
       <svg
         aria-hidden="true"
         viewBox="0 0 400 400"
         className="absolute inset-0 h-full w-full"
+        preserveAspectRatio="xMidYMid slice"
       >
         <defs>
-          <radialGradient id="globeGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="hsl(222 89% 56% / 0.18)" />
-            <stop offset="60%" stopColor="hsl(262 83% 58% / 0.06)" />
-            <stop offset="100%" stopColor="hsl(222 89% 56% / 0)" />
-          </radialGradient>
-          <linearGradient id="netLine" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="hsl(222 89% 56% / 0.45)" />
+          <linearGradient id="heroLine" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="hsl(222 89% 56% / 0.5)" />
             <stop offset="100%" stopColor="hsl(262 83% 58% / 0.35)" />
           </linearGradient>
         </defs>
-
-        <circle cx="200" cy="200" r="180" fill="url(#globeGlow)" />
-
         {/* Latitude rings */}
-        {[60, 110, 160, 200, 240, 290, 340].map((r, i) => (
+        {[110, 160, 200].map((r, i) => (
           <ellipse
             key={r}
             cx="200"
             cy="200"
-            rx="160"
-            ry={r - 60 + 30}
+            rx={r}
+            ry={r * 0.55}
             fill="none"
             stroke="hsl(220 14% 80%)"
-            strokeOpacity={0.4 - i * 0.04}
+            strokeOpacity={0.32 - i * 0.05}
             strokeWidth="1"
           />
         ))}
-        {/* Longitudes */}
-        {[40, 80, 120, 160, 200, 240, 280, 320, 360].map((cx) => (
-          <ellipse
-            key={cx}
-            cx="200"
-            cy="200"
-            rx={(cx - 200) / 1.2}
-            ry="160"
-            fill="none"
-            stroke="hsl(220 14% 82%)"
-            strokeOpacity="0.35"
-            strokeWidth="1"
-          />
-        ))}
-
-        {/* Outer ring */}
-        <circle
-          cx="200"
-          cy="200"
-          r="160"
-          fill="none"
-          stroke="hsl(222 89% 56% / 0.45)"
-          strokeWidth="1.25"
-        />
-
-        {/* Connection lines between hotspot nodes */}
+        {/* Light connection lines */}
         {[
           [80, 110, 320, 140],
-          [320, 140, 300, 280],
+          [320, 140, 280, 290],
           [80, 110, 200, 220],
-          [200, 220, 300, 280],
-          [200, 220, 90, 290],
+          [200, 220, 280, 290],
+          [200, 220, 110, 290],
         ].map(([x1, y1, x2, y2], i) => (
           <line
             key={i}
@@ -120,54 +93,87 @@ export function HeroNetworkMap() {
             y1={y1}
             x2={x2}
             y2={y2}
-            stroke="url(#netLine)"
+            stroke="url(#heroLine)"
             strokeWidth="1.25"
           />
         ))}
-
         {/* Hotspot nodes */}
         {[
           [80, 110],
           [320, 140],
           [200, 220],
-          [300, 280],
-          [90, 290],
+          [280, 290],
+          [110, 290],
         ].map(([cx, cy], i) => (
           <g key={i}>
-            <circle cx={cx} cy={cy} r="8" fill="hsl(222 89% 56% / 0.15)" />
-            <circle cx={cx} cy={cy} r="3.5" fill="hsl(222 89% 56%)" />
+            <circle
+              cx={cx}
+              cy={cy}
+              r="7"
+              fill="hsl(222 89% 56% / 0.16)"
+            />
+            <circle
+              cx={cx}
+              cy={cy}
+              r="3"
+              fill="hsl(222 89% 56%)"
+            />
           </g>
         ))}
       </svg>
 
-      {/* Floating model cards */}
-      {floating.map((m) => (
-        <div
-          key={m.slug}
-          className="absolute w-44 rounded-xl border border-border bg-card/95 p-2.5 shadow-elevated backdrop-blur"
-          style={{ top: m.position.top, left: m.position.left }}
-        >
-          <div className="flex items-center gap-2">
-            <ProviderLogoBadge
-              slug={m.providerSlug}
-              name={m.providerName}
-              size="sm"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[11px] font-semibold text-foreground">
-                {m.name}
-              </p>
-              <p className="truncate text-[10px] text-muted-foreground">
-                {m.providerName}
-              </p>
-            </div>
-          </div>
-          <div className="mt-1.5 flex items-center justify-between">
-            <span className="text-[10px] text-muted-foreground">Metrics</span>
-            <VerificationBadge status={m.verificationStatus} />
-          </div>
-        </div>
-      ))}
+      {/* Card grid foreground — structured 2x2 layout, NEVER overlaps. */}
+      <div className="relative grid grid-cols-1 gap-3 p-5 sm:grid-cols-2 sm:gap-4 sm:p-6">
+        {cards.map((m) => {
+          const p = getProviderBySlug(m.providerSlug);
+          const ctxLabel = isVerified(m.contextWindow)
+            ? formatContextTokens(m.contextWindow.value)
+            : "ctx —";
+          return (
+            <article
+              key={m.slug}
+              className="rounded-2xl border border-border bg-card/95 p-3 shadow-elevated backdrop-blur"
+            >
+              <header className="flex items-center gap-2.5">
+                <ProviderLogo
+                  slug={m.providerSlug}
+                  name={p?.name ?? "Unknown"}
+                  size="sm"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[12px] font-semibold leading-tight text-foreground">
+                    {m.name}
+                  </p>
+                  <p className="truncate text-[11px] leading-tight text-muted-foreground">
+                    {p?.name ?? "Unknown"}
+                  </p>
+                </div>
+                <VerificationBadge status={m.verificationStatus} />
+              </header>
+              <div className="mt-2.5 flex items-center justify-between border-t border-border/70 pt-2 text-[11px] tabular-nums">
+                <span className="text-muted-foreground">
+                  {ctxLabel}
+                </span>
+                <span className="font-medium text-foreground">
+                  {m.pricing.find((t) => t.unit === "1M input tokens" && isVerified(t.amount))
+                    ? `$${
+                        (() => {
+                          const t = m.pricing.find(
+                            (x) =>
+                              x.unit === "1M input tokens" && isVerified(x.amount)
+                          );
+                          return t && isVerified(t.amount)
+                            ? t.amount.value
+                            : "—";
+                        })()
+                      }/MTok in`
+                    : ""}
+                </span>
+              </div>
+            </article>
+          );
+        })}
+      </div>
     </div>
   );
 }

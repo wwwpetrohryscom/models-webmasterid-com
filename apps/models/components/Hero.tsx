@@ -45,15 +45,22 @@ export function Hero() {
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
               href="/models"
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-foreground px-5 text-sm font-medium text-background shadow-elevated hover:opacity-90"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-foreground px-5 text-sm font-semibold text-background shadow-elevated transition hover:bg-foreground/90"
             >
               Explore Models
+              <span aria-hidden="true">→</span>
             </Link>
             <Link
               href="/compare"
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-card px-5 text-sm font-medium text-foreground hover:border-primary/30"
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:bg-card hover:text-primary"
             >
               Compare Models
+            </Link>
+            <Link
+              href="/coverage"
+              className="inline-flex h-11 items-center justify-center rounded-xl px-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
+            >
+              View coverage →
             </Link>
           </div>
 

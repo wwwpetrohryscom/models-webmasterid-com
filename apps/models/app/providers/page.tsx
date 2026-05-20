@@ -39,13 +39,15 @@ export default function ProvidersIndexPage() {
             <li
               key={p.slug}
               id={p.slug}
-              className="card-surface flex flex-col p-5"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-card transition hover:border-primary/30 hover:shadow-elevated"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <ProviderLogo slug={p.slug} name={p.name} size="lg" />
+                  <div className="grid h-12 w-12 place-items-center rounded-xl border border-border bg-background/60">
+                    <ProviderLogo slug={p.slug} name={p.name} size="md" />
+                  </div>
                   <div>
-                    <h2 className="text-base font-semibold text-foreground">
+                    <h2 className="text-base font-semibold tracking-tight text-foreground">
                       <Link
                         href={`/providers/${p.slug}`}
                         className="hover:underline"
