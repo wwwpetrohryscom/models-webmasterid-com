@@ -37,15 +37,23 @@ states with `storageConfigured: false`.
 
 ### Vercel Cron
 
-[`apps/models/vercel.json`](apps/models/vercel.json) declares an hourly
-cron against `/api/cron/status` which runs every enabled status observer
-(currently: Anthropic, vendor-reported). Because the Vercel project's
-Root Directory is `apps/models`, `vercel.json` lives at
+[`apps/models/vercel.json`](apps/models/vercel.json) declares a **daily**
+cron against `/api/cron/status` (`0 0 * * *`, midnight UTC). Because the
+Vercel project's Root Directory is `apps/models`, `vercel.json` lives at
 `apps/models/vercel.json` and the cron path is the route's path under
 that root. Set `CRON_SECRET` on the Vercel project (Production +
 Preview) so the endpoint is bearer-token-guarded; if it is missing in
 production, the route returns HTTP 503 with a clear message rather than
 running unguarded.
+
+**Plan constraint.** Vercel Hobby (free) plans only allow one cron
+invocation per day. An hourly schedule (`0 * * * *`) causes the
+deployment itself to fail with the error "Hobby accounts are limited
+to daily cron jobs." If the project is upgraded to Pro the schedule
+can be tightened back to hourly — at that point bump it in
+`vercel.json` to `0 * * * *` and bump the documentation. Until then
+the sample threshold gating uptime exposure (24 observations) is
+effectively three weeks of accumulated samples at one per day.
 
 ---
 
