@@ -93,7 +93,9 @@ Every page sets canonical URL, OpenGraph, and Twitter metadata via
 | `/api/health` | Liveness check — version, environment, build timestamp. No secrets, no provider uptime claims. |
 | `/api/site` | Public site metadata — name, routes, crawler endpoints, verification policy. |
 | `/api/status/anthropic` | Single, freshly-issued vendor-reported `StatusObservation` for Anthropic. Always 200; on upstream failure the observation reports `observedStatus: "unknown"`. |
-| `/api/cron/status` | Runs every enabled status observer. Bearer-token-guarded via `CRON_SECRET` in production; refuses to run unguarded if the secret is missing on a Vercel production deployment. |
+| `/api/cron/status` | Runs every enabled status observer AND writes each observation to the durable status store when one is configured. Bearer-token-guarded via `CRON_SECRET` in production; refuses to run unguarded if the secret is missing on a Vercel production deployment. |
+| `/api/status/anthropic/latest` | Latest persisted observation for Anthropic, or a clear empty state when none exists. Always includes `storageConfigured` and `sampleCount`. |
+| `/api/status/anthropic/window` | Windowed view of persisted Anthropic observations (`?hours=24` by default, clamped to 1..720). Returns `uptimePercentage` only when storage is configured AND `sampleCount >= MINIMUM_OBSERVATIONS_FOR_UPTIME` AND the value is the share of stored observations whose vendor-reported status was `operational` — never an independent availability claim. |
 
 ## Server filters and entity graph
 
@@ -126,8 +128,46 @@ page (model, provider, comparison) and on the hub pages. The rendered
 trail and the structured-data trail use the same source of truth
 (`breadcrumbJsonLd()` in `lib/seo.ts`), so they cannot drift apart.
 
-Both endpoints are excluded from `robots.txt` and intentionally not
-indexed in search.
+## Durable status storage
+
+Observations from the status pipeline are optionally persisted via
+[`lib/status-store.ts`](apps/models/lib/status-store.ts). The module
+exposes a `StatusStore` interface and two adapters:
+
+- `noopStatusStore` — used when neither `KV_REST_API_URL` nor
+  `KV_REST_API_TOKEN` are set. Writes report `skipped_no_store`; reads
+  return empty. Local development stays ergonomic without a database.
+- KV adapter — used when both env vars are present. Talks to Vercel KV
+  / Upstash Redis over the REST API (`POST <url>/` with a single
+  command body). Stores observations as JSON in a per-provider list
+  capped at 720 entries (~30 days hourly) plus a `:latest` pointer for
+  fast reads. No extra runtime dependency.
+
+`getStatusStore()` is the factory; it reads `process.env` once and
+caches the chosen adapter. UI code uses
+`isStatusStorageConfigured()` to render storage state without ever
+touching the credentials themselves.
+
+The cron route at `/api/cron/status` runs every observer and writes
+each result via the store. Read endpoints are
+`/api/status/anthropic/latest` (single-shot most-recent observation)
+and `/api/status/anthropic/window?hours=N` (windowed view).
+
+**Uptime gating policy.** No uptime-shaped number is exposed by the
+window endpoint until:
+
+1. Durable storage is configured.
+2. The number of observations in the requested window is at least
+   `MINIMUM_OBSERVATIONS_FOR_UPTIME` (currently 24 — i.e. ~24 hours of
+   hourly observations).
+
+Even when both gates pass, `uptimePercentage` is the share of stored
+observations whose vendor-reported status was `operational`. The
+field name matches the API spec, but the accompanying `policyNote`
+makes the semantics explicit: this is a vendor-reported
+operational-sample rate, NOT an independently-measured availability
+percentage, NEVER an SLA claim. The `/status` page itself does not
+display this number.
 
 ## Analytics
 

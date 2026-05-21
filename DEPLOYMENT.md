@@ -27,8 +27,13 @@ and Bing Webmaster Tools.
 | Name | Where | Purpose |
 | --- | --- | --- |
 | `CRON_SECRET` | Vercel project env (Production + Preview) | Bearer token required by `/api/cron/status` in production. If unset, the cron endpoint refuses to run in production. Vercel Cron passes this automatically when configured as a project env. |
+| `KV_REST_API_URL` | Vercel project env (Production + Preview) | Optional. REST endpoint of a Vercel KV / Upstash Redis instance used to persist status observations. Set together with `KV_REST_API_TOKEN`; setting only one is treated as unconfigured. |
+| `KV_REST_API_TOKEN` | Vercel project env (Production + Preview) | Optional. Bearer token for the KV REST endpoint above. Never log, never echo into a build output. |
 
 No other environment variables are required for the current scaffold.
+When the KV pair is unset, the status pipeline still runs — the cron
+writes report `skipped_no_store`, and read endpoints return clear empty
+states with `storageConfigured: false`.
 
 ### Vercel Cron
 
@@ -228,6 +233,68 @@ content integrity regression.
 None of these endpoints expose secrets, vendor-internal incident
 detail, or a fabricated uptime claim. All are explicitly disallowed
 in `robots.txt`.
+
+---
+
+## Durable Status Storage
+
+Status observations are optionally persisted via Vercel KV / Upstash
+Redis. The storage layer is wired in [`apps/models/lib/status-store.ts`](apps/models/lib/status-store.ts)
+and accessed through a single `getStatusStore()` factory.
+
+| Component | Purpose |
+| --- | --- |
+| `noopStatusStore` | Default adapter when neither `KV_REST_API_URL` nor `KV_REST_API_TOKEN` is set. Writes report `skipped_no_store`; reads return empty. |
+| KV adapter (Upstash REST) | Active when both env vars are present. Talks to the REST API directly via `fetch` (no extra runtime dependency). |
+| `MINIMUM_OBSERVATIONS_FOR_UPTIME` | Constant gating uptime exposure. Currently `24`. |
+| `MAX_STORED_OBSERVATIONS_PER_PROVIDER` | Bounded retention (`720` ≈ 30 days hourly). LTRIM keeps the list capped. |
+
+### Cron flow
+
+1. Vercel Cron calls `/api/cron/status` hourly (bearer-token-guarded
+   via `CRON_SECRET` in production).
+2. The cron iterates every enabled observer in
+   [`lib/observers/index.ts`](apps/models/lib/observers/index.ts).
+3. Each observation is passed to `store.writeObservation()`. The store
+   `LPUSH`es the JSON payload onto the per-provider list, `LTRIM`s to
+   the retention cap, and `SET`s a `:latest` pointer for fast reads.
+4. The cron response reports both observations and per-write outcomes
+   (`stored` / `skipped_no_store` / `failed`).
+
+### Read endpoints
+
+| Endpoint | Behaviour |
+| --- | --- |
+| `/api/status/anthropic/latest` | Returns the most recent persisted observation, or a clear empty state. Always includes `storageConfigured` and `sampleCount`. |
+| `/api/status/anthropic/window?hours=N` | Returns a windowed view (default 24h, clamped 1..720). Includes `observations`, `sampleCount`, `uptimeEligible`, and `policyNote`. |
+
+### Uptime gating policy
+
+The window endpoint exposes a `uptimePercentage` field **only** when:
+
+1. Durable storage is configured (`storageConfigured === true`).
+2. `sampleCount >= MINIMUM_OBSERVATIONS_FOR_UPTIME` for the requested
+   window.
+
+Even then, the value is the share of stored observations whose
+**vendor-reported** status was `operational` over the window — a
+vendor-reported operational-sample rate, not an independently-measured
+availability percentage. The `policyNote` field always carries an
+explicit, human-readable explanation of the gating decision.
+
+The `/status` page itself does not display this number.
+
+### Local development
+
+Leave the KV env vars unset. The status pipeline will continue to run
+end-to-end against the no-op adapter; the cron returns its observations
+with `outcome: "skipped_no_store"`. To exercise the KV path locally,
+point the env vars at an Upstash database and run the cron manually:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" \
+  http://localhost:3000/api/cron/status
+```
 
 ---
 

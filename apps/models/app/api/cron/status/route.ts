@@ -1,9 +1,11 @@
 /**
  * /api/cron/status
  *
- * Runs every enabled status observer in `lib/observers` and returns a
- * JSON summary of the resulting `StatusObservation`s. Designed to be
- * invoked by Vercel Cron, but also safe to call manually for debugging.
+ * Runs every enabled status observer and writes each observation to the
+ * durable status store (when configured). Returns a JSON summary
+ * containing both the observations and per-observation write outcomes.
+ * Designed to be invoked by Vercel Cron, but also safe to call manually
+ * for debugging.
  *
  * Authentication policy:
  *   - If `CRON_SECRET` is set, the request must carry
@@ -17,11 +19,18 @@
  *         so local development and preview deploys remain ergonomic.
  *
  * The endpoint NEVER throws unhandled errors — each observer's failure
- * is captured inside its own `StatusObservation`.
+ * is captured inside its own `StatusObservation`, and each write's
+ * failure is captured inside its `StatusStoreWriteResult`. One observer
+ * or one write failing does not abort the others.
  */
 
 import { NextResponse } from "next/server";
 import { ENABLED_OBSERVERS } from "@/lib/observers";
+import {
+  getStatusStore,
+  type StatusStoreWriteResult,
+} from "@/lib/status-store";
+import type { StatusObservation } from "@/lib/status-observations";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -48,6 +57,11 @@ function authorize(req: Request): AuthResult {
   return { ok: false, status: 401, reason: "Invalid or missing bearer token." };
 }
 
+interface ObserverRunResult {
+  observation: StatusObservation;
+  write: StatusStoreWriteResult;
+}
+
 export async function GET(req: Request) {
   const auth = authorize(req);
   if (!auth.ok) {
@@ -61,23 +75,41 @@ export async function GET(req: Request) {
     );
   }
 
-  const observations = await Promise.all(
-    ENABLED_OBSERVERS.map(async (o) => {
+  const store = getStatusStore();
+
+  const results: ObserverRunResult[] = await Promise.all(
+    ENABLED_OBSERVERS.map(async (o): Promise<ObserverRunResult> => {
+      let observation: StatusObservation;
       try {
-        return await o.run();
+        observation = await o.run();
       } catch (err) {
         const reason =
           err instanceof Error ? err.message : "unknown observer failure";
-        return {
+        observation = {
           providerSlug: o.providerSlug,
-          source: "vendor_status_api" as const,
-          observedStatus: "unknown" as const,
+          source: "vendor_status_api",
+          observedStatus: "unknown",
           observedAt: new Date().toISOString(),
           sourceUrl: "",
           responseOk: false,
           note: `Observer threw: ${reason}`,
         };
       }
+
+      let write: StatusStoreWriteResult;
+      try {
+        write = await store.writeObservation(observation);
+      } catch (err) {
+        const reason =
+          err instanceof Error ? err.message : "unknown store failure";
+        write = {
+          outcome: "failed",
+          providerSlug: o.providerSlug,
+          reason,
+        };
+      }
+
+      return { observation, write };
     })
   );
 
@@ -85,7 +117,10 @@ export async function GET(req: Request) {
     {
       runAt: new Date().toISOString(),
       observerCount: ENABLED_OBSERVERS.length,
-      observations,
+      storageConfigured: store.isConfigured,
+      storageAdapter: store.adapterName,
+      observations: results.map((r) => r.observation),
+      writes: results.map((r) => r.write),
       disclaimer:
         "Vendor-reported observations only. Independent HTTP probes are not yet enabled. No uptime percentage, SLA, or availability claim is implied by this payload.",
     },

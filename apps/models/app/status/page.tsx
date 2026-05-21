@@ -10,6 +10,10 @@ import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { robotsMetadata } from "@/lib/should-index";
 import { providers } from "@/data/providers";
 import { ENABLED_OBSERVERS, findObserver } from "@/lib/observers";
+import {
+  isStatusStorageConfigured,
+  MINIMUM_OBSERVATIONS_FOR_UPTIME,
+} from "@/lib/status-store";
 
 export const metadata: Metadata = {
   ...buildMetadata({
@@ -47,6 +51,7 @@ function describeVendorObserver(providerSlug: string): ObserverRow {
 
 export default function StatusPage() {
   const vendorObserverCount = ENABLED_OBSERVERS.length;
+  const storageConfigured = isStatusStorageConfigured();
 
   return (
     <PageShell
@@ -219,6 +224,90 @@ export default function StatusPage() {
       </section>
 
       <section
+        aria-label="Durable observation storage"
+        className="card-surface p-5"
+      >
+        <SectionHeader
+          eyebrow="Persistence"
+          title="Durable observation storage"
+          description="Observations only become useful as a window once they are persisted. The storage layer is optional; when it is not configured, observations are fire-and-forget and no window can be computed."
+          as="h2"
+        />
+        <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+          <div className="rounded-lg border border-border bg-background/40 p-3">
+            <dt className="text-xs uppercase tracking-wider text-muted-foreground">
+              Storage state
+            </dt>
+            <dd className="mt-1 font-medium text-foreground">
+              {storageConfigured ? (
+                <span className="inline-flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className="inline-block h-2 w-2 rounded-full bg-success"
+                  />
+                  Durable storage configured
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className="inline-block h-2 w-2 rounded-full bg-warning"
+                  />
+                  No durable storage configured
+                </span>
+              )}
+            </dd>
+          </div>
+          <div className="rounded-lg border border-border bg-background/40 p-3">
+            <dt className="text-xs uppercase tracking-wider text-muted-foreground">
+              Latest stored observation (Anthropic)
+            </dt>
+            <dd className="mt-1 font-medium text-foreground">
+              <Link
+                href="/api/status/anthropic/latest"
+                prefetch={false}
+                className="text-primary hover:underline"
+              >
+                /api/status/anthropic/latest
+              </Link>
+            </dd>
+          </div>
+          <div className="rounded-lg border border-border bg-background/40 p-3">
+            <dt className="text-xs uppercase tracking-wider text-muted-foreground">
+              24h observation window (Anthropic)
+            </dt>
+            <dd className="mt-1 font-medium text-foreground">
+              <Link
+                href="/api/status/anthropic/window?hours=24"
+                prefetch={false}
+                className="text-primary hover:underline"
+              >
+                /api/status/anthropic/window?hours=24
+              </Link>
+            </dd>
+          </div>
+          <div className="rounded-lg border border-border bg-background/40 p-3">
+            <dt className="text-xs uppercase tracking-wider text-muted-foreground">
+              Uptime calculation
+            </dt>
+            <dd className="mt-1 font-medium text-foreground">
+              Not yet eligible — requires{" "}
+              {MINIMUM_OBSERVATIONS_FOR_UPTIME} stored observations in
+              the window.
+            </dd>
+          </div>
+        </dl>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Storage is configured via the <code className="rounded bg-muted px-1">KV_REST_API_URL</code> /{" "}
+          <code className="rounded bg-muted px-1">KV_REST_API_TOKEN</code>{" "}
+          env pair on the Vercel project. When unset, the cron still runs
+          but each observation reports{" "}
+          <code className="rounded bg-muted px-1">skipped_no_store</code>{" "}
+          and nothing is persisted.
+        </p>
+      </section>
+
+      <section
         aria-label="Why no uptime percentage is shown"
         className="card-surface p-5"
       >
@@ -229,18 +318,30 @@ export default function StatusPage() {
         />
         <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
           <li>
-            Uptime is a fraction of observations over time. WebmasterID is
-            not yet writing observations to durable storage, so no honest
-            denominator exists yet.
+            Uptime is a fraction of observations over time. Until the
+            cron has persisted at least{" "}
+            {MINIMUM_OBSERVATIONS_FOR_UPTIME} observations in a window,
+            no honest denominator exists.
           </li>
           <li>
             Vendor-reported indicators are useful as a colour signal, but
-            they are not an availability measurement.
+            they are not an availability measurement. Any future
+            published number computed from them will be labelled
+            &quot;vendor-reported operational-sample rate&quot;, never
+            &quot;uptime&quot; without qualification.
           </li>
           <li>
-            Once the cron writes observations and a meaningful window has
-            accumulated, an uptime row will appear with a citation back to
-            the observation log — and only then.
+            Once the threshold is met, the{" "}
+            <Link
+              href="/api/status/anthropic/window?hours=24"
+              prefetch={false}
+              className="text-primary hover:underline"
+            >
+              window endpoint
+            </Link>{" "}
+            will expose a `uptimePercentage` field with the gating
+            decision explained in its `policyNote`. The /status page
+            itself does not display this number.
           </li>
         </ul>
       </section>

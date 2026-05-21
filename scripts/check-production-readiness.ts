@@ -1026,6 +1026,216 @@ const checks: Check[] = [
     },
   },
   {
+    name: "status-store module exists (Sprint 11)",
+    run: () =>
+      requireFile("apps/models/lib/status-store.ts", "lib/status-store.ts"),
+  },
+  {
+    name: "status-store exposes both noop and kv adapters",
+    run: () => {
+      const src = readRel("apps/models/lib/status-store.ts");
+      const failures: string[] = [];
+      if (!/export const noopStatusStore/.test(src)) {
+        failures.push(
+          "lib/status-store.ts does not export `noopStatusStore` — local/no-credentials fallback is required."
+        );
+      }
+      if (!/function makeKvAdapter/.test(src) && !/kvStatusStore/.test(src)) {
+        failures.push(
+          "lib/status-store.ts does not declare a KV adapter (looked for `makeKvAdapter` or `kvStatusStore`)."
+        );
+      }
+      if (!/export function getStatusStore/.test(src)) {
+        failures.push(
+          "lib/status-store.ts does not export `getStatusStore()` — the env-aware factory is required."
+        );
+      }
+      if (!/MINIMUM_OBSERVATIONS_FOR_UPTIME/.test(src)) {
+        failures.push(
+          "lib/status-store.ts does not declare MINIMUM_OBSERVATIONS_FOR_UPTIME — uptime gating policy must be declarative."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "status-store never hardcodes secrets",
+    run: () => {
+      const src = readRel("apps/models/lib/status-store.ts");
+      const failures: string[] = [];
+      // The only sanctioned way to obtain credentials is via process.env.
+      // Forbid string literals that look like an Upstash URL or token.
+      if (/https:\/\/[a-z0-9-]+\.upstash\.io\b/i.test(src)) {
+        failures.push(
+          "lib/status-store.ts contains a hardcoded Upstash URL literal. Credentials must come from KV_REST_API_URL only."
+        );
+      }
+      // Heuristic: a real Upstash / KV bearer token is a long base64-ish
+      // string containing both letters and digits. Pure-letter identifiers
+      // and pure-dash JSDoc separators must NOT trip the guard.
+      //
+      // We scan only string literals (between single or double quotes) so
+      // identifier text and comments are excluded by construction.
+      const stringLiteralRe = /(["'])([^"'\\]{32,})\1/g;
+      let lit: RegExpExecArray | null;
+      while ((lit = stringLiteralRe.exec(src)) !== null) {
+        const body = lit[2];
+        const hasLetter = /[A-Za-z]/.test(body);
+        const hasDigit = /[0-9]/.test(body);
+        if (
+          hasLetter &&
+          hasDigit &&
+          /^[A-Za-z0-9_/+=-]+$/.test(body)
+        ) {
+          failures.push(
+            `lib/status-store.ts contains a bearer-shaped string literal of length ${body.length}. Tokens must come from KV_REST_API_TOKEN only.`
+          );
+          break;
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "cron route writes observations through the status store",
+    run: () => {
+      const src = readRel("apps/models/app/api/cron/status/route.ts");
+      const failures: string[] = [];
+      if (!/getStatusStore\(\)/.test(src)) {
+        failures.push(
+          "cron route does not call getStatusStore() — observations are not persisted."
+        );
+      }
+      if (!/writeObservation\(/.test(src)) {
+        failures.push(
+          "cron route does not call store.writeObservation() — observations are not persisted."
+        );
+      }
+      if (!/storageConfigured/.test(src)) {
+        failures.push(
+          "cron route does not surface storageConfigured in its response — callers cannot tell whether writes were attempted."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/api/status/anthropic/latest route exists (Sprint 11)",
+    run: () =>
+      requireFile(
+        "apps/models/app/api/status/anthropic/latest/route.ts",
+        "/api/status/anthropic/latest"
+      ),
+  },
+  {
+    name: "/api/status/anthropic/window route exists (Sprint 11)",
+    run: () =>
+      requireFile(
+        "apps/models/app/api/status/anthropic/window/route.ts",
+        "/api/status/anthropic/window"
+      ),
+  },
+  {
+    name: "window endpoint gates uptime behind MINIMUM_OBSERVATIONS_FOR_UPTIME",
+    run: () => {
+      // The threshold lives in lib/status-store.ts. The window endpoint
+      // proxies the store's computation. Confirm both sides reference
+      // the constant and the gating boolean.
+      const store = readRel("apps/models/lib/status-store.ts");
+      const win = readRel(
+        "apps/models/app/api/status/anthropic/window/route.ts"
+      );
+      const failures: string[] = [];
+      if (!/uptimeEligible/.test(store)) {
+        failures.push(
+          "lib/status-store.ts does not declare uptimeEligible on the window result."
+        );
+      }
+      if (!/sampleCount >= MINIMUM_OBSERVATIONS_FOR_UPTIME/.test(store)) {
+        failures.push(
+          "lib/status-store.ts does not gate uptimePercentage behind sampleCount >= MINIMUM_OBSERVATIONS_FOR_UPTIME."
+        );
+      }
+      if (!/getObservationWindow/.test(win)) {
+        failures.push(
+          "window endpoint does not call store.getObservationWindow()."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/status page does not display an uptime percentage",
+    run: () => {
+      const src = readRel("apps/models/app/status/page.tsx");
+      const offending = [
+        ...src.matchAll(/\b\d{1,3}\.\d+\s*%/g),
+        ...src.matchAll(/\b100\s*%/g),
+      ];
+      // Allow the prose word "percentage" — we forbid numeric literals.
+      if (offending.length) {
+        return (
+          "/status page contains numeric percentage literal(s):\n  " +
+          offending.map((m) => m[0]).join("\n  ")
+        );
+      }
+      return null;
+    },
+  },
+  {
+    name: "/status page surfaces durable-storage state",
+    run: () => {
+      const src = readRel("apps/models/app/status/page.tsx").replace(
+        /\s+/g,
+        " "
+      );
+      const failures: string[] = [];
+      if (!/Durable observation storage/i.test(src)) {
+        failures.push(
+          "/status page does not include the 'Durable observation storage' section."
+        );
+      }
+      if (!/isStatusStorageConfigured\b/.test(src)) {
+        failures.push(
+          "/status page does not call isStatusStorageConfigured() to report storage state."
+        );
+      }
+      if (!/MINIMUM_OBSERVATIONS_FOR_UPTIME/.test(src)) {
+        failures.push(
+          "/status page does not name MINIMUM_OBSERVATIONS_FOR_UPTIME in its window-readiness copy."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "status pipeline does not reference user / analytics data",
+    run: () => {
+      const failures: string[] = [];
+      const targets = [
+        "apps/models/lib/status-store.ts",
+        "apps/models/lib/status-observations.ts",
+        "apps/models/lib/observers/anthropic.ts",
+        "apps/models/lib/observers/index.ts",
+        "apps/models/app/api/status/anthropic/route.ts",
+        "apps/models/app/api/status/anthropic/latest/route.ts",
+        "apps/models/app/api/status/anthropic/window/route.ts",
+        "apps/models/app/api/cron/status/route.ts",
+      ];
+      const banned = /webmasterIdAnalytics|sendBeacon|userId|sessionId/;
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} references analytics / user-identifier code — status pipeline must not store user or analytics data.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
     name: "entity-graph helpers do not perform network fetches",
     run: () => {
       const src = readRel("apps/models/lib/entity-graph.ts");

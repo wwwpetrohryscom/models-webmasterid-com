@@ -17,6 +17,10 @@ import {
   getEntityCoverageSummary,
   getStatusObserverForProvider,
 } from "@/lib/entity-graph";
+import {
+  isStatusStorageConfigured,
+  MINIMUM_OBSERVATIONS_FOR_UPTIME,
+} from "@/lib/status-store";
 
 export const metadata: Metadata = buildMetadata({
   title: "Coverage",
@@ -295,6 +299,50 @@ export default function CoveragePage() {
             Vercel Cron against{" "}
             <code className="rounded bg-muted px-1">/api/cron/status</code>;
             bearer-token-guarded in production.
+          </li>
+          <li>
+            <strong className="text-foreground">Durable storage:</strong>{" "}
+            {isStatusStorageConfigured() ? (
+              <span>configured.</span>
+            ) : (
+              <span>not configured on this deployment.</span>
+            )}{" "}
+            Observations are persisted via{" "}
+            <code className="rounded bg-muted px-1">KV_REST_API_URL</code>
+            {" / "}
+            <code className="rounded bg-muted px-1">KV_REST_API_TOKEN</code>
+            ; when unset, the cron logs{" "}
+            <code className="rounded bg-muted px-1">skipped_no_store</code>{" "}
+            and nothing is written.
+          </li>
+          <li>
+            <strong className="text-foreground">Read endpoints:</strong>{" "}
+            <Link
+              href="/api/status/anthropic/latest"
+              prefetch={false}
+              className="text-primary hover:underline"
+            >
+              /api/status/anthropic/latest
+            </Link>{" "}
+            and{" "}
+            <Link
+              href="/api/status/anthropic/window?hours=24"
+              prefetch={false}
+              className="text-primary hover:underline"
+            >
+              /api/status/anthropic/window?hours=24
+            </Link>
+            .
+          </li>
+          <li>
+            <strong className="text-foreground">
+              Uptime window eligibility:
+            </strong>{" "}
+            not yet. Requires at least{" "}
+            {MINIMUM_OBSERVATIONS_FOR_UPTIME} stored observations in the
+            window before any uptime-shaped number is exposed by the
+            window endpoint. The /status page itself does not display
+            this number.
           </li>
         </ul>
       </section>

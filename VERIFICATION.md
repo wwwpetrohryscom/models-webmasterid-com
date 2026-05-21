@@ -334,8 +334,9 @@ trail uses absolute canonical URLs.
 
 ## Status monitoring policy
 
-Vendor-reported status and independent uptime are two different signals
-and WebmasterID Models keeps them strictly separate.
+Vendor-reported status, independent HTTP probes, and computed uptime
+windows are three different signals and WebmasterID Models keeps them
+strictly separate.
 
 - A **vendor-reported status observation** is a single, timestamped read
   of the provider's own public status page or feed. The provider is
@@ -345,10 +346,20 @@ and WebmasterID Models keeps them strictly separate.
   WebmasterID against the vendor's API. The result is an observation
   whose source is `independent_http_probe`. Independent probes are NOT
   YET ENABLED.
-- An **uptime percentage** is a derived metric over durable
+- A **computed uptime window** is a derived metric over durable
   observations. Until WebmasterID writes observations to durable
-  storage over a meaningful window, no uptime percentage is published.
-  A single observation cannot prove availability.
+  storage over a meaningful window AND that window contains at least
+  `MINIMUM_OBSERVATIONS_FOR_UPTIME` observations (currently 24 — see
+  [`lib/status-store.ts`](apps/models/lib/status-store.ts)), no uptime
+  percentage is exposed. A single observation cannot prove
+  availability.
+- Even when the gate passes, the exposed `uptimePercentage` is the
+  share of stored observations whose vendor-reported status was
+  `operational`. It is a **vendor-reported operational-sample rate**,
+  not an independently-measured availability percentage. The `/status`
+  page itself does not display this number; only the
+  `/api/status/<slug>/window` endpoint exposes it, always alongside an
+  explicit `policyNote`.
 - **No SLA claims.** Nothing on `/status` or in `/api/status/*` should
   be read as a service-level commitment, availability guarantee, or
   substitute for the provider's own status communication.
