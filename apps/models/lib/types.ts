@@ -87,14 +87,30 @@ export interface ProviderEntity extends BaseEntity {
   deprecationsUrl?: string | null;
 }
 
+/**
+ * Pricing-unit vocabulary. Providers publish cache pricing under several
+ * incompatible semantics — Anthropic uses per-token TTL writes/reads,
+ * Google uses a per-hour cache storage rate plus a one-shot write — and
+ * we keep each provider's semantics distinct rather than collapsing them
+ * into a single misleading row. Every literal here is the canonical
+ * display label and is also what is asserted by the integrity guard
+ * "PricingUnit covers all units used in models.ts" in
+ * scripts/check-production-readiness.ts.
+ *
+ * `"unknown"` is the placeholder for a row whose unit semantics have not
+ * yet been verified. By policy, no row with a verified `amount` may carry
+ * unit `"unknown"` (enforced by the integrity guard
+ * "pricing row with a verified amount may not declare unit 'unknown'").
+ */
 export type PricingUnit =
   | "1M input tokens"
   | "1M output tokens"
-  // Anthropic-style TTL cache writes
+  // Anthropic-style TTL cache writes / reads
   | "1M cache write tokens (5m)"
   | "1M cache write tokens (1h)"
   | "1M cache read tokens"
-  // Google-style per-hour cache storage (Gemini)
+  // Google-style per-hour cache storage (Gemini). Independent of the
+  // one-shot cache-write fee — the two are NOT interchangeable.
   | "1M cache storage / hour"
   // Google-style prompt-size tiered pricing (Gemini >200k prompts)
   | "1M input tokens (>200k context)"
@@ -108,7 +124,10 @@ export type PricingUnit =
   // Non-token units
   | "request"
   | "image"
-  | "minute";
+  | "minute"
+  // Placeholder for rows whose unit semantics are still pending review.
+  // A row with this unit MUST NOT carry a verified amount.
+  | "unknown";
 
 export interface VerifiedPricingTier {
   unit: PricingUnit;

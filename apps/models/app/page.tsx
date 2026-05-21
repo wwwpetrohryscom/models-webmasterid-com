@@ -182,7 +182,15 @@ export default function HomePage() {
             <Link href="/docs" className="text-primary hover:underline">
               /docs
             </Link>{" "}
-            for the verification workflow and primary-source allow-list.
+            for the verification workflow,{" "}
+            <Link href="/coverage" className="text-primary hover:underline">
+              /coverage
+            </Link>{" "}
+            for the per-provider audit log, and{" "}
+            <Link href="/sources" className="text-primary hover:underline">
+              /sources
+            </Link>{" "}
+            for the full citation index.
           </p>
         </article>
 

@@ -209,7 +209,22 @@ should be re-verified or downgraded to `null`.
 
 ---
 
-## Status of the seed catalogue (2026-05-20)
+## Status of the seed catalogue (2026-05-21)
+
+> Sprint 8B re-verification pass — DeepSeek &amp; Mistral were re-checked
+> on 2026-05-21. DeepSeek's pricing page, API reference, and the R1-0528
+> release note were retrieved successfully; no value changed since
+> 2026-05-20. Mistral's models overview and table were retrieved
+> successfully; Mistral Large 2 is in the Legacy/Deprecated table
+> (deprecated 2024-11-30, retired 2025-03-30), so the Sprint 8B preferred
+> target is already retired and verification continues against Mistral
+> Large 3. Per-model spec card pages on docs.mistral.ai still 404 to
+> automated retrieval; the mistral.ai/pricing API tab is still JS-driven.
+> Pricing-unit vocabulary was extended with a `"unknown"` placeholder so
+> rows whose unit semantics have not yet been verified can be recorded
+> without distorting any provider's pricing model; rows with verified
+> amounts are not allowed to carry `"unknown"` (enforced by
+> `check:production`).
 
 Verified Anthropic models (against Anthropic's Models overview and
 Pricing reference):
@@ -254,10 +269,22 @@ Partially verified Mistral models (only API string + lifecycle):
   label. A manual browser pass against the individual model card is
   the unblock.
 
-Unverified catalogue entries (`gpt-5`, `deepseek-r1`, `llama-4-scout`):
-structural entries only. The `deepseek-r1` row is retained for
-historical reference and is explicitly described on the row as
-no longer present in DeepSeek's current model list.
+Historical / partially-verified entries (`deepseek-r1`, `mistral-large-2`):
+historical catalogue entries with verified lifecycle status only.
+
+- **DeepSeek R1-0528 (historical)** (`deepseek-r1`) — anchored to the
+  R1-0528 release announcement (`api-docs.deepseek.com/news/news250528`).
+  R1 is no longer in the current chat-completions `model` parameter set
+  (which is `[deepseek-v4-flash, deepseek-v4-pro]`), so lifecycle is
+  recorded as `retired` with `deepseek-v4-pro` as the migration target.
+- **Mistral Large 2 (retired)** (`mistral-large-2`) — Mistral's models
+  overview Legacy/Deprecated table records it as deprecated 2024-11-30
+  and retired 2025-03-30. Lifecycle is recorded as `retired` with
+  `mistral-large-3` as the migration target. No pricing, context window,
+  or modality data is republished here.
+
+Other unverified catalogue entries (`gpt-5`, `llama-4-scout`):
+structural entries only.
 
 OpenAI's docs (platform.openai.com) currently block automated retrieval
 (HTTP 403). Verifying GPT-5 against the OpenAI documentation page

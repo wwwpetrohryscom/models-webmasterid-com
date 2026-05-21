@@ -99,6 +99,23 @@ export const deepseekDocsRoot: SourceCitation = citation({
     "DeepSeek API docs root — active vs deprecated model status (deepseek-chat and deepseek-reasoner marked for deprecation 2026/07/24).",
 });
 
+/**
+ * DeepSeek R1-0528 announcement. Used only to anchor the historical
+ * `deepseek-r1` catalogue entry to a primary-source release note — the
+ * announcement documents the R1-0528 snapshot (the closest documented
+ * sibling of the R1-0520 build the task originally targeted). The current
+ * DeepSeek API parameter set is `[deepseek-v4-flash, deepseek-v4-pro]`;
+ * the R1 family is not in the current API model list.
+ */
+export const deepseekR1_0528News: SourceCitation = citation({
+  url: "https://api-docs.deepseek.com/news/news250528",
+  name: "DeepSeek — R1-0528 release announcement",
+  type: "official-vendor-docs",
+  retrievedAt: "2026-05-21T00:00:00.000Z",
+  notes:
+    "Historical release note for DeepSeek-R1-0528 (May 28, 2025). Used to anchor the historical deepseek-r1 catalogue entry — R1 family is not in the current API model parameter set.",
+});
+
 // ---------------------------------------------------------------------------
 // Mistral primary sources.
 //

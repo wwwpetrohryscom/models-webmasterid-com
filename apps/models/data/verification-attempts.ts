@@ -225,6 +225,81 @@ export const verificationAttempts: VerificationAttempt[] = [
     notes:
       "Marketing-side page renders Le Chat plans rather than the per-model API pricing table; the API pricing tab is JS-driven. Pricing values for mistral-large-3 are deferred to a manual browser pass.",
   },
+
+  // ---------------------------------------------------------------------
+  // Sprint 8B — re-verification pass on 2026-05-21.
+  //
+  // The preferred targets in the sprint plan were DeepSeek R1-0520 and
+  // Mistral Large 2. The current docs show:
+  //   * DeepSeek: R1 family (including R1-0520 / R1-0528) is not in the
+  //     current API model parameter list; the documented current
+  //     reasoning model is deepseek-v4-pro. Verification therefore
+  //     continues against deepseek-v4-pro (Sprint 8 fallback target).
+  //   * Mistral: Mistral Large 2 is documented as deprecated 2024-11-30
+  //     with retirement 2025-03-30 — i.e. it is already retired as of
+  //     today (2026-05-21). The current Large-tier flagship is Mistral
+  //     Large 3 (v25.12, listed in Frontier > Generalist). Verification
+  //     therefore continues against mistral-large-3 (Sprint 8 fallback
+  //     target).
+  //
+  // Per-model spec card pages on docs.mistral.ai still 404 to automated
+  // retrieval, and the mistral.ai/pricing API pricing tab is still JS-
+  // driven. Mistral verification remains partial.
+  // ---------------------------------------------------------------------
+  {
+    providerSlug: "deepseek",
+    url: "https://api-docs.deepseek.com/quick_start/pricing",
+    target: "DeepSeek Models & Pricing (Sprint 8B re-verification)",
+    attemptedAt: "2026-05-21T00:00:00.000Z",
+    result: "verified",
+    notes:
+      "Pricing page re-retrieved on 2026-05-21. Model IDs, context window (1M), and pricing tiers for deepseek-v4-pro and deepseek-v4-flash unchanged from 2026-05-20. The 75% promotional discount on deepseek-v4-pro is still active until 2026/05/31 15:59 UTC.",
+  },
+  {
+    providerSlug: "deepseek",
+    url: "https://api-docs.deepseek.com/api/create-chat-completion",
+    target: "DeepSeek chat completion API reference (Sprint 8B re-verification)",
+    attemptedAt: "2026-05-21T00:00:00.000Z",
+    result: "verified",
+    notes:
+      "API reference re-retrieved on 2026-05-21. Endpoint POST /chat/completions on https://api.deepseek.com confirmed. Model parameter `Possible values: [deepseek-v4-flash, deepseek-v4-pro]` confirmed.",
+  },
+  {
+    providerSlug: "deepseek",
+    url: "https://api-docs.deepseek.com/news/news250528",
+    target: "DeepSeek R1-0528 release announcement (historical R1 anchor)",
+    attemptedAt: "2026-05-21T00:00:00.000Z",
+    result: "reviewable",
+    notes:
+      "Release note for DeepSeek-R1-0528 (May 28, 2025) retrieved. Used only to anchor the historical deepseek-r1 catalogue entry — R1-0528 / R1-0520 are not in the current API parameter set (which is [deepseek-v4-flash, deepseek-v4-pro]).",
+  },
+  {
+    providerSlug: "mistral",
+    url: "https://docs.mistral.ai/getting-started/models/models_overview",
+    target: "Mistral Large 2 lifecycle confirmation (Sprint 8B)",
+    attemptedAt: "2026-05-21T00:00:00.000Z",
+    result: "verified",
+    notes:
+      "Overview page re-retrieved on 2026-05-21. Mistral Large 2 is documented in the Legacy/Deprecated table as deprecated 2024-11-30, retired 2025-03-30. The preferred Sprint 8B target is therefore already retired; verification continues against the documented current flagship, Mistral Large 3 (v25.12).",
+  },
+  {
+    providerSlug: "mistral",
+    url: "https://docs.mistral.ai/getting-started/models/mistral-large-3",
+    target: "Mistral Large 3 per-model spec card (Sprint 8B retry)",
+    attemptedAt: "2026-05-21T00:00:00.000Z",
+    result: "not-found-404",
+    notes:
+      "Per-model spec card still returns HTTP 404 to automated retrieval. Context window, max output, and explicit modality remain unverified on the mistral-large-3 record.",
+  },
+  {
+    providerSlug: "mistral",
+    url: "https://mistral.ai/pricing",
+    target: "Mistral API pricing (Sprint 8B retry)",
+    attemptedAt: "2026-05-21T00:00:00.000Z",
+    result: "requires-manual-browser",
+    notes:
+      "Marketing-side page still renders Le Chat plans; API pricing tab is JS-driven. Mistral pricing rows remain empty.",
+  },
 ];
 
 export function attemptsByProvider(slug: string): VerificationAttempt[] {

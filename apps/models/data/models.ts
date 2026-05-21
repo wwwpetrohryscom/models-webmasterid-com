@@ -9,6 +9,7 @@ import {
   deepseekModelsAndPricing,
   deepseekApiReference,
   deepseekDocsRoot,
+  deepseekR1_0528News,
   mistralModelsOverview,
   mistralModelsTable,
   mistralApiReference,
@@ -754,10 +755,10 @@ const deepseekV4Pro: ModelEntity = {
   verified: true,
   verificationStatus: "verified",
   confidenceLevel: "high",
-  lastCheckedAt: "2026-05-20T00:00:00.000Z",
-  updatedDate: "2026-05-20",
+  lastCheckedAt: "2026-05-21T00:00:00.000Z",
+  updatedDate: "2026-05-21",
   notes:
-    "DeepSeek is running a 75% promotional discount on deepseek-v4-pro until 2026/05/31 15:59 UTC. Pricing rows below record the regular rate as the durable canonical value; the effective discounted rate is captured per row in `notes`.",
+    "DeepSeek is running a 75% promotional discount on deepseek-v4-pro until 2026/05/31 15:59 UTC. Pricing rows below record the regular rate as the durable canonical value; the effective discounted rate is captured per row in `notes`. Sprint 8B re-verified the API reference and pricing pages on 2026-05-21 — no value changed.",
 
   apiIdentifiers: verified(
     {
@@ -855,10 +856,10 @@ const mistralLarge3: ModelEntity = {
   verified: false,
   verificationStatus: "partial",
   confidenceLevel: "medium",
-  lastCheckedAt: "2026-05-20T00:00:00.000Z",
-  updatedDate: "2026-05-20",
+  lastCheckedAt: "2026-05-21T00:00:00.000Z",
+  updatedDate: "2026-05-21",
   notes:
-    "Mistral's docs site exposes the models overview and the API reference; the per-model spec card pages returned 404 to automated retrieval. Pricing, context window, max output, and modality remain null until a manual browser pass.",
+    "Mistral's docs site exposes the models overview and the API reference; the per-model spec card pages returned 404 to automated retrieval on both 2026-05-20 and 2026-05-21. Pricing, context window, max output, and modality remain null until a manual browser pass.",
 
   apiIdentifiers: verified(
     {
@@ -963,6 +964,126 @@ function unverifiedModel(params: {
   };
 }
 
+// ---------------------------------------------------------------------------
+// DeepSeek R1 — historical entry. R1 family is not in the current DeepSeek
+// API parameter set (which is [deepseek-v4-flash, deepseek-v4-pro]); kept
+// here as a historical record anchored to the R1-0528 release note.
+// Lifecycle is recorded as `retired` because the snapshot is no longer a
+// valid value of the `model` parameter on the current chat-completions
+// endpoint.
+// ---------------------------------------------------------------------------
+
+const deepseekR1Historical: ModelEntity = {
+  id: "model-deepseek-r1",
+  slug: "deepseek-r1",
+  name: "DeepSeek R1-0528 (historical)",
+  description:
+    "Historical DeepSeek R1 reasoning model. The R1-0528 snapshot was announced on 2025-05-28 and the related R1-0520 build referenced in Sprint 8B's preferred-target list belongs to the same family. The current DeepSeek chat-completions endpoint accepts only `deepseek-v4-flash` and `deepseek-v4-pro` as model values, so R1 is recorded here as a historical reference rather than a currently callable model.",
+  providerSlug: "deepseek",
+  sourceUrl: deepseekR1_0528News.url,
+  sourceName: deepseekR1_0528News.name,
+  sourceType: deepseekR1_0528News.type,
+  verified: false,
+  verificationStatus: "partial",
+  confidenceLevel: "medium",
+  lastCheckedAt: "2026-05-21T00:00:00.000Z",
+  updatedDate: "2026-05-21",
+  notes:
+    "Anchored to DeepSeek's R1-0528 release announcement. Specs (context window, max output, pricing) are not republished here because the announcement does not encode them as standalone numbers and the snapshot is no longer in the active API model list. New workloads should target deepseek-v4-pro.",
+
+  apiIdentifiers: null,
+  releaseDate: verified("2025-05-28", deepseekR1_0528News, {
+    notes:
+      "Release date for DeepSeek-R1-0528 as documented in the official news announcement.",
+  }),
+  snapshotDate: verified("2025-05-28", deepseekR1_0528News, {
+    notes:
+      "Snapshot date encoded in the release announcement title (news250528).",
+  }),
+  knowledgeCutoff: null,
+  contextWindow: null,
+  maxOutputTokens: null,
+  modality: null,
+
+  pricing: [],
+  benchmarks: [],
+  infrastructure: {
+    regions: null,
+    avgLatencyMs: null,
+    uptimePercent: null,
+  },
+  features: null,
+
+  lifecycle: verified(
+    { status: "retired", migrationTarget: "deepseek-v4-pro" },
+    deepseekApiReference,
+    {
+      notes:
+        "DeepSeek's chat-completions API reference lists `Possible values: [deepseek-v4-flash, deepseek-v4-pro]`. The R1 snapshot is no longer a valid value of the `model` parameter and is recorded as retired here.",
+    }
+  ),
+
+  citations: mergeCitations([deepseekR1_0528News, deepseekApiReference]),
+};
+
+// ---------------------------------------------------------------------------
+// Mistral Large 2 — historical entry. Documented by Mistral as deprecated
+// 2024-11-30 and retired 2025-03-30 (already retired as of today, 2026-05-21).
+// Recorded for historical reference only; new workloads should evaluate
+// the current Mistral Large 3.
+// ---------------------------------------------------------------------------
+
+const mistralLarge2Historical: ModelEntity = {
+  id: "model-mistral-large-2",
+  slug: "mistral-large-2",
+  name: "Mistral Large 2 (retired)",
+  description:
+    "Historical Mistral Large 2 entry. Mistral documents this snapshot in the Legacy/Deprecated section of its models overview as deprecated on 2024-11-30 and retired on 2025-03-30 — i.e. already retired as of the most recent verification (2026-05-21). New workloads should evaluate Mistral Large 3, the current Large-tier flagship.",
+  providerSlug: "mistral",
+  sourceUrl: mistralModelsOverview.url,
+  sourceName: mistralModelsOverview.name,
+  sourceType: mistralModelsOverview.type,
+  verified: false,
+  verificationStatus: "partial",
+  confidenceLevel: "medium",
+  lastCheckedAt: "2026-05-21T00:00:00.000Z",
+  updatedDate: "2026-05-21",
+  notes:
+    "Only lifecycle metadata is verified. Per-model spec card pages return 404 on docs.mistral.ai, and Mistral does not republish historical pricing for retired models. Context window, max output, and pricing remain null.",
+
+  apiIdentifiers: null,
+  releaseDate: null,
+  snapshotDate: null,
+  knowledgeCutoff: null,
+  contextWindow: null,
+  maxOutputTokens: null,
+  modality: null,
+
+  pricing: [],
+  benchmarks: [],
+  infrastructure: {
+    regions: null,
+    avgLatencyMs: null,
+    uptimePercent: null,
+  },
+  features: null,
+
+  lifecycle: verified(
+    {
+      status: "retired",
+      retirementDate: "2025-03-30",
+      migrationTarget: "mistral-large-3",
+    },
+    mistralModelsOverview,
+    {
+      notes:
+        "Mistral models overview Legacy/Deprecated table: deprecated 2024-11-30, retired 2025-03-30. Recommended migration target on the same page is the current Large-tier model (Mistral Large 3).",
+    }
+  ),
+
+  citations: mergeCitations([mistralModelsOverview]),
+};
+
 export const models: ModelEntity[] = [
   claudeOpus4_7,
   claudeSonnet4_6,
@@ -971,6 +1092,8 @@ export const models: ModelEntity[] = [
   deepseekV4Pro,
   mistralLarge3,
   claudeOpus4,
+  deepseekR1Historical,
+  mistralLarge2Historical,
   unverifiedModel({
     id: "model-gpt-5",
     slug: "gpt-5",
@@ -979,15 +1102,6 @@ export const models: ModelEntity[] = [
     providerHomepage: "https://openai.com",
     description:
       "OpenAI GPT-5 catalogue entry. The OpenAI documentation site (platform.openai.com) returned HTTP 403 to automated retrieval on 2026-05-20; no metric is yet verified. A manual browser-based verification pass is queued — see VERIFICATION.md.",
-  }),
-  unverifiedModel({
-    id: "model-deepseek-r1",
-    slug: "deepseek-r1",
-    name: "DeepSeek R1-0520",
-    providerSlug: "deepseek",
-    providerHomepage: "https://deepseek.com",
-    description:
-      "Historical DeepSeek R1-0520 catalogue entry. R1-0520 is not listed on the current DeepSeek API docs root (deepseek-chat and deepseek-reasoner are documented as deprecated; the current reasoning model is deepseek-v4-pro). This row is retained for historical reference and remains structurally unverified.",
   }),
   unverifiedModel({
     id: "model-llama-4-scout",

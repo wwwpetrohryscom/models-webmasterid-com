@@ -87,6 +87,8 @@ export function GET() {
     { label: "Benchmarks", path: "/benchmarks" },
     { label: "Pricing", path: "/pricing" },
     { label: "Infrastructure", path: "/infrastructure" },
+    { label: "Coverage", path: "/coverage" },
+    { label: "Sources", path: "/sources" },
     { label: "Docs", path: "/docs" },
   ]) {
     buf.push(line(`- [${item.label}](${siteConfig.url}${item.path})`));

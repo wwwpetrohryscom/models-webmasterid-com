@@ -22,7 +22,11 @@ import { getProviderBySlug } from "@/data/providers";
 import { comparisons } from "@/data/comparisons";
 import { isVerified } from "@/lib/verified";
 import { buildModelJsonLd } from "@/lib/model-jsonld";
-import { anthropicModelsOverview } from "@/data/citations";
+import {
+  anthropicModelsOverview,
+  deepseekApiReference,
+  mistralApiReference,
+} from "@/data/citations";
 
 interface RouteParams {
   slug: string;
@@ -336,6 +340,52 @@ const response = await client.messages.create({
   max_tokens: 1024,
   messages: [{ role: "user", content: "Hello, ${model.name}." }],
 });`,
+            },
+          ]}
+        />
+      ) : null}
+
+      {model.providerSlug === "deepseek" && isVerified(model.apiIdentifiers) ? (
+        <ApiExample
+          title={`Calling ${model.name} via the DeepSeek chat-completions API`}
+          intro="Shape of a minimal chat-completions request using the verified canonical model ID. The model parameter value, endpoint, and minimum payload are taken directly from DeepSeek's API reference."
+          citation={deepseekApiReference}
+          blocks={[
+            {
+              label: "curl",
+              language: "bash",
+              code: `curl https://api.deepseek.com/chat/completions \\
+  -H "Authorization: Bearer $DEEPSEEK_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "${model.apiIdentifiers.value.canonical}",
+    "messages": [
+      { "role": "user", "content": "Hello, ${model.name}." }
+    ]
+  }'`,
+            },
+          ]}
+        />
+      ) : null}
+
+      {model.providerSlug === "mistral" && isVerified(model.apiIdentifiers) ? (
+        <ApiExample
+          title={`Calling ${model.name} via the Mistral chat-completions API`}
+          intro="Shape of a minimal chat-completions request. The endpoint, headers, and minimum payload are taken from Mistral's API reference; the model field uses the verified API string for this entry."
+          citation={mistralApiReference}
+          blocks={[
+            {
+              label: "curl",
+              language: "bash",
+              code: `curl https://api.mistral.ai/v1/chat/completions \\
+  -H "Authorization: Bearer $MISTRAL_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "${model.apiIdentifiers.value.canonical}",
+    "messages": [
+      { "role": "user", "content": "Hello, ${model.name}." }
+    ]
+  }'`,
             },
           ]}
         />

@@ -77,6 +77,7 @@ Server components by default. Zero client components in the initial scaffold.
 | `/rss.xml` | [`apps/models/app/rss.xml/route.ts`](apps/models/app/rss.xml/route.ts) |
 | `/opengraph-image` | [`apps/models/app/opengraph-image.tsx`](apps/models/app/opengraph-image.tsx) — auto-generated 1200×630 PNG via Next's file convention |
 | `/coverage` | [`apps/models/app/coverage/page.tsx`](apps/models/app/coverage/page.tsx) — verification heatmap by provider + structured retrieval-attempts audit log |
+| `/sources` | [`apps/models/app/sources/page.tsx`](apps/models/app/sources/page.tsx) — deduplicated index of every primary-source citation referenced by a verified model field, grouped by provider |
 
 JSON-LD helpers in [`lib/seo.ts`](apps/models/lib/seo.ts) ship `WebSite`,
 `Organization`, `SoftwareApplication`, `Dataset`, and `BreadcrumbList`
@@ -181,8 +182,20 @@ Brand-asset policy: [`BRAND_ASSETS.md`](BRAND_ASSETS.md).
 **Partially verified models:**
 
 - Mistral — Mistral Large 3. API string and lifecycle verified; the
-  per-model spec card page returned 404, so context window, max
+  per-model spec card page returned 404 on both 2026-05-20 and the
+  Sprint 8B re-verification on 2026-05-21, so context window, max
   output, modality, and pricing remain unverified.
+
+**Historical / retired entries (lifecycle only):**
+
+- **DeepSeek R1-0528** (`deepseek-r1`) — anchored to DeepSeek's R1-0528
+  release announcement. The R1 family is no longer in the current
+  chat-completions `model` parameter set; recorded as retired with
+  `deepseek-v4-pro` as the migration target.
+- **Mistral Large 2** (`mistral-large-2`) — documented in Mistral's
+  Legacy/Deprecated table as deprecated 2024-11-30 and retired
+  2025-03-30. Recorded as retired with `mistral-large-3` as the
+  migration target.
 
 **Two-sided verified comparisons:**
 

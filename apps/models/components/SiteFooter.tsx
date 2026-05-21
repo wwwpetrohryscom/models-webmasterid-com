@@ -27,6 +27,7 @@ const sections: { label: string; links: { label: string; href: string }[] }[] =
         { label: "News", href: "/news" },
         { label: "Research", href: "/research" },
         { label: "Coverage", href: "/coverage" },
+        { label: "Sources", href: "/sources" },
         { label: "Docs", href: "/docs" },
       ],
     },

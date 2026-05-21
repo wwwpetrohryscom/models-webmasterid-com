@@ -534,6 +534,191 @@ const checks: Check[] = [
     },
   },
   {
+    name: "PricingUnit includes the 'unknown' placeholder (Sprint 8B)",
+    run: () => {
+      const types = readRel("apps/models/lib/types.ts").replace(/\s+/g, " ");
+      const unionMatch = types.match(
+        /export type PricingUnit\s*=\s*([^;]+);/
+      );
+      if (!unionMatch) {
+        return "Could not locate PricingUnit union in lib/types.ts.";
+      }
+      const declared = new Set(
+        [...unionMatch[1].matchAll(/"([^"]+)"/g)].map((x) => x[1])
+      );
+      if (!declared.has("unknown")) {
+        return "PricingUnit must include the 'unknown' placeholder so rows with unresolved unit semantics can be recorded without distorting a provider's pricing model. Add `| \"unknown\"` to the union.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "no pricing row uses unit 'unknown' alongside a verified amount",
+    run: () => {
+      const src = readRel("apps/models/data/models.ts");
+      // Each pricing row literal is `{ unit: "...", amount: ... }` —
+      // pull the row text and check whether unit === "unknown" while
+      // amount is wrapped in `verified(...)`. Allow `amount: null`.
+      const rowRe = /\{\s*unit:\s*"unknown"[^}]*?\}/g;
+      const failures: string[] = [];
+      let m: RegExpExecArray | null;
+      while ((m = rowRe.exec(src)) !== null) {
+        const body = m[0];
+        if (/amount:\s*verified\(/.test(body)) {
+          failures.push(
+            `Pricing row uses unit "unknown" but carries a verified amount — unit must be the actual published unit, not "unknown":\n    ${body
+              .replace(/\s+/g, " ")
+              .slice(0, 240)}`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "every pricing row with a verified amount carries a citation",
+    run: () => {
+      const src = readRel("apps/models/data/models.ts");
+      // The `verified()` helper REQUIRES a citation at runtime. A row of
+      // the form `amount: verified(N, citation, ...)` always passes that
+      // runtime guard. The static check here catches a different mistake:
+      // a literal `verified(value)` with no citation argument at all.
+      const failures: string[] = [];
+      const re = /amount:\s*verified\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(src)) !== null) {
+        const args = m[1];
+        // First argument is the value; we need at least a second
+        // (citation) argument. Look for at least one top-level comma.
+        let depth = 0;
+        let commaSeen = false;
+        for (const ch of args) {
+          if (ch === "(" || ch === "[" || ch === "{") depth++;
+          else if (ch === ")" || ch === "]" || ch === "}") depth--;
+          else if (ch === "," && depth === 0) {
+            commaSeen = true;
+            break;
+          }
+        }
+        if (!commaSeen) {
+          failures.push(
+            `Pricing row calls verified(...) without a citation argument: \`amount: verified(${args.trim()})\`. Every verified pricing value must reference a primary-source citation.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "DeepSeek V4 Pro pricing is anchored to a DeepSeek citation",
+    run: () => {
+      const src = readRel("apps/models/data/models.ts");
+      const block = src.split("const deepseekV4Pro").pop() ?? "";
+      const head = block.slice(0, 5000);
+      // Pricing rows on the v4-pro record must use one of the recorded
+      // DeepSeek citations from data/citations.ts, never the homepage.
+      const ok =
+        /deepseekModelsAndPricing|deepseekApiReference|deepseekDocsRoot/.test(
+          head
+        );
+      if (!ok) {
+        return "deepseek-v4-pro record does not appear to reference a DeepSeek citation token (deepseekModelsAndPricing / deepseekApiReference / deepseekDocsRoot). Every verified DeepSeek metric must cite a DeepSeek primary source.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "Mistral Large 2 is recorded as retired (Sprint 8B)",
+    run: () => {
+      const src = readRel("apps/models/data/models.ts");
+      if (!/slug:\s*"mistral-large-2"/.test(src)) {
+        return "Mistral Large 2 is not present in models.ts. Sprint 8B targeted Mistral Large 2 and verified it is in the Legacy/Deprecated table on Mistral's models overview; a historical catalogue entry must be kept so /coverage and /sources reflect that finding.";
+      }
+      const block = src.split('slug: "mistral-large-2"').pop() ?? "";
+      const head = block.slice(0, 4000);
+      if (!/status:\s*"retired"/.test(head)) {
+        return "mistral-large-2 entry exists but does not record lifecycle status \"retired\". Mistral's models overview documents it as retired 2025-03-30.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/sources route exists and is registered as indexable",
+    run: () => {
+      const failures: string[] = [];
+      if (!fileExists("apps/models/app/sources/page.tsx")) {
+        failures.push("Missing /sources route file (apps/models/app/sources/page.tsx).");
+      }
+      const indexer = readRel("apps/models/lib/should-index.ts");
+      if (!/"\/sources"/.test(indexer)) {
+        failures.push("/sources is not registered in STATIC_INDEXABLE in lib/should-index.ts.");
+      }
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      if (!/"\/sources"/.test(sitemap)) {
+        failures.push("/sources is not listed in STATIC_ROUTES in app/sitemap.ts.");
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Sprint 8B re-verification attempts are recorded",
+    run: () => {
+      const attempts = readRel("apps/models/data/verification-attempts.ts");
+      const failures: string[] = [];
+      // Each of these must have at least one attempt stamped on or after
+      // the Sprint 8B re-verification date.
+      const required: { provider: string; needle: RegExp; label: string }[] = [
+        {
+          provider: "deepseek",
+          needle: /providerSlug:\s*"deepseek"[\s\S]*?attemptedAt:\s*"2026-05-21/,
+          label: "DeepSeek 2026-05-21 attempt",
+        },
+        {
+          provider: "mistral",
+          needle: /providerSlug:\s*"mistral"[\s\S]*?attemptedAt:\s*"2026-05-21/,
+          label: "Mistral 2026-05-21 attempt",
+        },
+      ];
+      for (const r of required) {
+        if (!r.needle.test(attempts)) {
+          failures.push(
+            `verification-attempts.ts is missing a Sprint 8B 2026-05-21 attempt entry for ${r.provider}. Re-verification pass is not auditable without it.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no comparison declares a winner (text-level check)",
+    run: () => {
+      const src = readRel("apps/models/data/comparisons.ts");
+      // Reinforces the type-level check above with a text-level guard:
+      // forbid the literal phrase "winner" or "best" in any comparison
+      // useCase/limitation/description field — apart from the explicit
+      // disclaimer "WebmasterID Models does not declare a winner" and the
+      // type-level "declaresWinner: false" assertion.
+      const flat = src.replace(/\s+/g, " ");
+      const offending: string[] = [];
+      const re =
+        /(name|description|useCases|limitations):\s*[\s\S]*?(?=,\s*[a-zA-Z]+:|\}|\])/g;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(flat)) !== null) {
+        const segment = m[0];
+        // Skip the explicit non-winner disclaimer.
+        const lowered = segment.toLowerCase();
+        if (lowered.includes("does not declare a winner")) continue;
+        if (/\bwinner\b|\bbest model\b/.test(lowered)) {
+          offending.push(segment.slice(0, 200));
+        }
+      }
+      return offending.length
+        ? "Comparison copy mentions 'winner' / 'best model' outside the explicit non-winner disclaimer:\n  " +
+            offending.join("\n  ")
+        : null;
+    },
+  },
+  {
     name: "Logo component + static SVGs are present",
     run: () => {
       const failures: string[] = [];

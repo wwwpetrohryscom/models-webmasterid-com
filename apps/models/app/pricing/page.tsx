@@ -52,6 +52,23 @@ export default function PricingPage() {
         </p>
       </aside>
 
+      <section aria-label="Cache-pricing semantics" className="card-surface p-4 text-sm text-muted-foreground">
+        <h2 className="text-base font-semibold text-foreground">
+          Cache-pricing semantics differ across providers
+        </h2>
+        <p className="mt-2">
+          We do not collapse provider-specific cache pricing into a single
+          row. Anthropic publishes per-token TTL cache writes (5-minute and
+          1-hour windows) and per-token cache reads. Google publishes a
+          per-hour cache <em>storage</em> rate alongside a one-shot cache
+          write fee. DeepSeek publishes an input cache-hit rate. Each row
+          on this page carries the unit semantics published by the vendor —
+          the &quot;Cache hit / 1M&quot; column below shows the cache-read
+          (or cache-hit-input) rate where the provider publishes one, and
+          renders <DataNotVerified /> otherwise.
+        </p>
+      </section>
+
       <section aria-label="Verified pricing" className="space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           Verified pricing ({verifiedRows.length})

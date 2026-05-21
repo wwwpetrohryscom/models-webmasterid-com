@@ -26,6 +26,7 @@ const STATIC_INDEXABLE = new Set<string>([
   "/infrastructure",
   "/docs",
   "/coverage",
+  "/sources",
 ]);
 
 const STATIC_NOINDEX = new Set<string>([

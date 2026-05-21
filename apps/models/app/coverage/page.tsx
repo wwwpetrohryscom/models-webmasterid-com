@@ -135,6 +135,61 @@ export default function CoveragePage() {
         </ul>
       </section>
 
+      <section
+        aria-label="Sprint 8B verification summary"
+        className="card-surface p-5 text-sm"
+      >
+        <h2 className="text-base font-semibold text-foreground">
+          Sprint 8B — DeepSeek &amp; Mistral verification summary
+        </h2>
+        <ul className="mt-3 space-y-2 text-muted-foreground">
+          <li>
+            <strong className="text-foreground">DeepSeek V4 Pro</strong>: API
+            string, lifecycle, context window, input cache-miss, input
+            cache-hit, and output pricing verified end-to-end against
+            DeepSeek&apos;s Models &amp; Pricing page and chat-completions
+            API reference. Re-verified on 2026-05-21 — values unchanged.
+            The 75% promotional discount on{" "}
+            <code className="rounded bg-muted px-1">deepseek-v4-pro</code>{" "}
+            is still active until 2026/05/31 15:59 UTC; the regular rate
+            is recorded as the durable value.
+          </li>
+          <li>
+            <strong className="text-foreground">DeepSeek R1 (historical)</strong>:
+            kept as a historical record anchored to the R1-0528 release
+            announcement. The R1 family is no longer in the current API
+            model parameter list, so the entry is recorded as{" "}
+            <em>retired</em> with{" "}
+            <code className="rounded bg-muted px-1">deepseek-v4-pro</code>{" "}
+            as the documented migration target.
+          </li>
+          <li>
+            <strong className="text-foreground">Mistral Large 3</strong>:
+            API string and lifecycle verified from Mistral&apos;s models
+            overview and table. Per-model spec card pages still 404 to
+            automated retrieval; the API pricing tab on
+            mistral.ai/pricing is still JS-driven. Pricing, context
+            window, max output, and modality remain unverified pending a
+            manual browser pass.
+          </li>
+          <li>
+            <strong className="text-foreground">Mistral Large 2</strong>:
+            Sprint 8B&apos;s preferred target is documented in Mistral&apos;s
+            Legacy/Deprecated table as deprecated 2024-11-30 and retired
+            2025-03-30 — already retired today. The catalogue carries it
+            as a historical entry; new workloads should evaluate Mistral
+            Large 3.
+          </li>
+          <li>
+            <strong className="text-foreground">Gemini cache pricing</strong>:
+            the schema keeps Google&apos;s per-hour cache storage rate (
+            <code className="rounded bg-muted px-1">1M cache storage / hour</code>
+            ) distinct from Anthropic&apos;s TTL-write rates. We do not
+            map one provider&apos;s cache semantics into another&apos;s.
+          </li>
+        </ul>
+      </section>
+
       <section aria-label="Retrieval attempts" className="space-y-3">
         <SectionHeader
           eyebrow="Audit log"
