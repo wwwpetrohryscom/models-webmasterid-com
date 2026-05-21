@@ -32,6 +32,22 @@ export const anthropicPricing: SourceCitation = citation({
     "Anthropic's pricing reference (model pricing, prompt caching multipliers, batch API pricing).",
 });
 
+/**
+ * Anthropic vendor status page. Used by the Sprint 9 vendor-status
+ * observer at `apps/models/lib/observers/anthropic.ts`. The status JSON
+ * feed (Statuspage's `/api/v2/status.json`) is served from the same
+ * host and redirects to status.claude.com. THIS IS A VENDOR-REPORTED
+ * SOURCE — it is not an independent uptime probe.
+ */
+export const anthropicStatusPage: SourceCitation = citation({
+  url: "https://status.anthropic.com",
+  name: "Anthropic — Status page",
+  type: "official-vendor-site",
+  retrievedAt: "2026-05-21T00:00:00.000Z",
+  notes:
+    "Anthropic's public status page (Statuspage-style). The machine-readable feed at /api/v2/status.json (redirects to status.claude.com) is consumed by the vendor-status observer at lib/observers/anthropic.ts. Vendor-reported; not an independent uptime monitor.",
+});
+
 // ---------------------------------------------------------------------------
 // Google AI primary sources.
 //

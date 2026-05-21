@@ -8,7 +8,15 @@ import { JsonLd } from "@/components/JsonLd";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { models } from "@/data/models";
 import { providers } from "@/data/providers";
+import { anthropicStatusPage } from "@/data/citations";
 import type { SourceCitation } from "@/lib/types";
+
+/**
+ * Sources that back observations rather than model facts. These are not
+ * referenced by `model.citations` because they document monitoring
+ * inputs (vendor status feeds), not verified model metrics.
+ */
+const STATUS_MONITORING_SOURCES: SourceCitation[] = [anthropicStatusPage];
 
 export const metadata: Metadata = buildMetadata({
   title: "Sources",
@@ -76,6 +84,25 @@ export default function SourcesPage() {
           .
         </p>
       </aside>
+
+      <section
+        aria-label="Status monitoring sources"
+        className="space-y-3"
+      >
+        <SectionHeader
+          eyebrow="Status monitoring"
+          title={`${STATUS_MONITORING_SOURCES.length} vendor-reported status source${STATUS_MONITORING_SOURCES.length === 1 ? "" : "s"}`}
+          description="Sources read by the Sprint 9 status observers in lib/observers/. Vendor-reported only — independent HTTP probes are not yet enabled."
+          as="h2"
+        />
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {STATUS_MONITORING_SOURCES.map((c) => (
+            <li key={c.url}>
+              <SourceCitationItem citation={c} />
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {providerOrder.map((slug) => {
         const list = grouped[slug];

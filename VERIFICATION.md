@@ -292,6 +292,42 @@ requires the **Manual vendor verification workflow** below.
 
 ---
 
+## Status monitoring policy
+
+Vendor-reported status and independent uptime are two different signals
+and WebmasterID Models keeps them strictly separate.
+
+- A **vendor-reported status observation** is a single, timestamped read
+  of the provider's own public status page or feed. The provider is
+  reporting on themselves. Every UI surface that renders one must label
+  it "Vendor-reported status observed by WebmasterID."
+- An **independent HTTP probe** is an HTTP request issued by
+  WebmasterID against the vendor's API. The result is an observation
+  whose source is `independent_http_probe`. Independent probes are NOT
+  YET ENABLED.
+- An **uptime percentage** is a derived metric over durable
+  observations. Until WebmasterID writes observations to durable
+  storage over a meaningful window, no uptime percentage is published.
+  A single observation cannot prove availability.
+- **No SLA claims.** Nothing on `/status` or in `/api/status/*` should
+  be read as a service-level commitment, availability guarantee, or
+  substitute for the provider's own status communication.
+- **Probe wall-clock time is not API latency.** The `latencyMs` field
+  on a `StatusObservation` is the wall-clock time of the fetch we made
+  to the status source. It must never be relabelled as API latency, on
+  any page or in any response payload.
+
+Adding a new observer:
+
+1. Implement a `StatusObserver` in `apps/models/lib/observers/<slug>.ts`.
+2. Register it in `apps/models/lib/observers/index.ts`.
+3. Add a primary-source citation in `apps/models/data/citations.ts`.
+4. Update the "Status observation coverage" panel on `/coverage`.
+5. Surface the citation in the Status monitoring sources section of
+   `/sources`.
+
+---
+
 ## Manual vendor verification workflow
 
 For vendors whose documentation cannot be retrieved by the automated

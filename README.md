@@ -92,6 +92,8 @@ Every page sets canonical URL, OpenGraph, and Twitter metadata via
 | --- | --- |
 | `/api/health` | Liveness check — version, environment, build timestamp. No secrets, no provider uptime claims. |
 | `/api/site` | Public site metadata — name, routes, crawler endpoints, verification policy. |
+| `/api/status/anthropic` | Single, freshly-issued vendor-reported `StatusObservation` for Anthropic. Always 200; on upstream failure the observation reports `observedStatus: "unknown"`. |
+| `/api/cron/status` | Runs every enabled status observer. Bearer-token-guarded via `CRON_SECRET` in production; refuses to run unguarded if the secret is missing on a Vercel production deployment. |
 
 Both endpoints are excluded from `robots.txt` and intentionally not
 indexed in search.

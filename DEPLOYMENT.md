@@ -22,7 +22,25 @@ and Bing Webmaster Tools.
 | Node.js version | 20.x or newer |
 | Production Branch | `main` |
 
-No environment variables are required for the current scaffold.
+### Environment variables
+
+| Name | Where | Purpose |
+| --- | --- | --- |
+| `CRON_SECRET` | Vercel project env (Production + Preview) | Bearer token required by `/api/cron/status` in production. If unset, the cron endpoint refuses to run in production. Vercel Cron passes this automatically when configured as a project env. |
+
+No other environment variables are required for the current scaffold.
+
+### Vercel Cron
+
+[`apps/models/vercel.json`](apps/models/vercel.json) declares an hourly
+cron against `/api/cron/status` which runs every enabled status observer
+(currently: Anthropic, vendor-reported). Because the Vercel project's
+Root Directory is `apps/models`, `vercel.json` lives at
+`apps/models/vercel.json` and the cron path is the route's path under
+that root. Set `CRON_SECRET` on the Vercel project (Production +
+Preview) so the endpoint is bearer-token-guarded; if it is missing in
+production, the route returns HTTP 503 with a clear message rather than
+running unguarded.
 
 ---
 
@@ -204,6 +222,33 @@ content integrity regression.
 | --- | --- |
 | `/api/health` | Liveness check. Returns version, environment, build timestamp. Safe for uptime monitors. |
 | `/api/site` | Public site metadata: name, description, routes, sitemap/robots/llms/rss/health URLs, verification policy. Useful for partner integrations. |
+| `/api/status/anthropic` | Single, freshly-issued vendor-reported status observation for Anthropic. Reads the Statuspage JSON feed and returns a normalised `StatusObservation`. Always 200; on upstream failure, `observedStatus` is `"unknown"` and the failure is captured in `httpStatus`/`note`. |
+| `/api/cron/status` | Runs every enabled status observer. Returns a JSON summary. Bearer-token-guarded via `CRON_SECRET` in production. |
 
-Neither endpoint exposes secrets, provider status, or fabricated uptime
-claims. Both are explicitly disallowed in `robots.txt`.
+None of these endpoints expose secrets, vendor-internal incident
+detail, or a fabricated uptime claim. All are explicitly disallowed
+in `robots.txt`.
+
+---
+
+## Status Monitoring Policy
+
+Sprint 9 wires the foundation for status observations. The discipline:
+
+- **Vendor-reported status is not independent uptime.** Observations
+  whose `source` is `vendor_status_page` or `vendor_status_api` are
+  the provider reporting on themselves. Every UI surface that renders
+  one must label it as such ("Vendor-reported status observed by
+  WebmasterID").
+- **Independent HTTP probes are a separate signal.** They are not yet
+  enabled for any provider. When enabled, they will be labelled
+  `independent_http_probe` and kept distinct from vendor observations.
+- **Uptime % requires durable observations over a meaningful window.**
+  WebmasterID does not write observations to durable storage yet, so
+  no uptime percentage is published. The cron is the prerequisite, not
+  the conclusion.
+- **No SLA claims.** Nothing on `/status` or in `/api/status/*` should
+  be read as a service-level commitment or availability guarantee.
+- **Probe wall-clock time is not API latency.** The `latencyMs` field
+  on a `StatusObservation` is the wall-clock time of the fetch we made
+  to the status source. It must never be relabelled as API latency.

@@ -690,6 +690,176 @@ const checks: Check[] = [
     },
   },
   {
+    name: "status observation types module exists (Sprint 9)",
+    run: () =>
+      requireFile(
+        "apps/models/lib/status-observations.ts",
+        "lib/status-observations.ts"
+      ),
+  },
+  {
+    name: "Anthropic vendor-status observer exists (Sprint 9)",
+    run: () =>
+      requireFile(
+        "apps/models/lib/observers/anthropic.ts",
+        "lib/observers/anthropic.ts"
+      ),
+  },
+  {
+    name: "/api/status/anthropic route exists (Sprint 9)",
+    run: () =>
+      requireFile(
+        "apps/models/app/api/status/anthropic/route.ts",
+        "/api/status/anthropic"
+      ),
+  },
+  {
+    name: "/api/cron/status route exists (Sprint 9)",
+    run: () =>
+      requireFile(
+        "apps/models/app/api/cron/status/route.ts",
+        "/api/cron/status"
+      ),
+  },
+  {
+    name: "/api/cron/status enforces CRON_SECRET in production",
+    run: () => {
+      const src = readRel("apps/models/app/api/cron/status/route.ts");
+      const failures: string[] = [];
+      if (!/CRON_SECRET/.test(src)) {
+        failures.push(
+          "cron route does not reference CRON_SECRET — production deployments must be guarded."
+        );
+      }
+      if (!/VERCEL_ENV/.test(src)) {
+        failures.push(
+          "cron route does not branch on VERCEL_ENV — required so production refuses to run unguarded when CRON_SECRET is missing."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/status page does not publish an uptime percentage",
+    run: () => {
+      const src = readRel("apps/models/app/status/page.tsx");
+      // Forbid any literal that looks like an uptime number, e.g.
+      // "99.9%", "99.99 %", "uptime: 100%". Allow the prose "uptime
+      // percentage" / "uptime %" tokens because the page explicitly
+      // explains why no percentage is shown.
+      const offending = [
+        ...src.matchAll(/\b\d{1,3}\.\d+\s*%/g),
+        ...src.matchAll(/\b100\s*%/g),
+      ];
+      if (offending.length) {
+        return (
+          "/status page contains numeric percentage literal(s):\n  " +
+          offending.map((m) => m[0]).join("\n  ")
+        );
+      }
+      return null;
+    },
+  },
+  {
+    name: "/status page wording labels vendor status as vendor-reported",
+    run: () => {
+      const src = readRel("apps/models/app/status/page.tsx").replace(
+        /\s+/g,
+        " "
+      );
+      const failures: string[] = [];
+      if (!/Vendor-reported status/i.test(src)) {
+        failures.push(
+          "/status page does not contain the phrase 'Vendor-reported status'."
+        );
+      }
+      if (!/not independent uptime/i.test(src)) {
+        failures.push(
+          "/status page does not explicitly state that vendor-reported status is not independent uptime."
+        );
+      }
+      // Forbid stating that an independent uptime measurement exists
+      // when only vendor-reported observations are wired.
+      if (
+        /independent\s+uptime\s+(monitor|probe|measurement|observation)\s+enabled/i.test(
+          src
+        )
+      ) {
+        failures.push(
+          "/status page claims an independent uptime monitor is enabled — Sprint 9 wires vendor-reported observations only."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no source labels probe latency as API latency",
+    run: () => {
+      const offenders: string[] = [];
+      const targets = [
+        "apps/models/lib/status-observations.ts",
+        "apps/models/lib/observers/anthropic.ts",
+        "apps/models/app/api/status/anthropic/route.ts",
+        "apps/models/app/api/cron/status/route.ts",
+        "apps/models/app/status/page.tsx",
+      ];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        // Strip JSDoc/line comments before scanning so the
+        // intentionally-cautionary "NOT the provider's API latency"
+        // phrasing in module-level documentation doesn't flag the file.
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        if (/\bAPI latency\b/i.test(stripped)) {
+          offenders.push(rel);
+        }
+      }
+      if (offenders.length) {
+        return (
+          "Files reference the phrase 'API latency' outside comments — probe wall-clock time must NEVER be relabelled as API latency:\n  " +
+          offenders.join("\n  ")
+        );
+      }
+      return null;
+    },
+  },
+  {
+    name: "Anthropic vendor-status citation is registered",
+    run: () => {
+      const src = readRel("apps/models/data/citations.ts");
+      if (!/anthropicStatusPage/.test(src)) {
+        return "citations.ts does not export an anthropicStatusPage citation. Every vendor status source consumed by an observer must have a primary-source citation.";
+      }
+      const observer = readRel("apps/models/lib/observers/anthropic.ts");
+      if (!/status\.anthropic\.com/.test(observer)) {
+        return "Anthropic observer URL drifted away from status.anthropic.com — keep the URL aligned with the registered citation.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "homepage does not contain a fabricated uptime percentage",
+    run: () => {
+      const src = readRel("apps/models/app/page.tsx");
+      const offending = [
+        ...src.matchAll(/\b\d{1,3}\.\d+\s*%/g),
+        ...src.matchAll(/\b100\s*%/g),
+      ];
+      // The existing "Avg API uptime" stat must still render
+      // unknownLabel()/UNVERIFIED_LABEL — covered by another check, but
+      // additionally we forbid any concrete percentage literal.
+      if (offending.length) {
+        return (
+          "Homepage contains numeric percentage literal(s):\n  " +
+          offending.map((m) => m[0]).join("\n  ")
+        );
+      }
+      return null;
+    },
+  },
+  {
     name: "no comparison declares a winner (text-level check)",
     run: () => {
       const src = readRel("apps/models/data/comparisons.ts");

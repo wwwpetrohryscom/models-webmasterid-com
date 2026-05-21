@@ -136,6 +136,58 @@ export default function CoveragePage() {
       </section>
 
       <section
+        aria-label="Status observation coverage"
+        className="card-surface p-5 text-sm"
+      >
+        <h2 className="text-base font-semibold text-foreground">
+          Status observation coverage
+        </h2>
+        <ul className="mt-3 space-y-2 text-muted-foreground">
+          <li>
+            <strong className="text-foreground">
+              Anthropic vendor-status observer:
+            </strong>{" "}
+            enabled. Reads the Statuspage JSON feed at{" "}
+            <Link
+              href="https://status.anthropic.com"
+              target="_blank"
+              rel="noreferrer"
+              className="text-primary hover:underline"
+            >
+              status.anthropic.com
+            </Link>
+            ; surfaced live at{" "}
+            <Link
+              href="/api/status/anthropic"
+              className="text-primary hover:underline"
+              prefetch={false}
+            >
+              /api/status/anthropic
+            </Link>
+            .
+          </li>
+          <li>
+            <strong className="text-foreground">
+              Independent HTTP probe:
+            </strong>{" "}
+            not enabled for any provider. Vendor-reported status is not
+            independent monitoring.
+          </li>
+          <li>
+            <strong className="text-foreground">Uptime percentage:</strong>{" "}
+            not computed. WebmasterID does not publish an uptime %
+            without durable observations over a meaningful window.
+          </li>
+          <li>
+            <strong className="text-foreground">Cron:</strong> hourly via
+            Vercel Cron against{" "}
+            <code className="rounded bg-muted px-1">/api/cron/status</code>;
+            bearer-token-guarded in production.
+          </li>
+        </ul>
+      </section>
+
+      <section
         aria-label="Sprint 8B verification summary"
         className="card-surface p-5 text-sm"
       >
