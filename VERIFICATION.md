@@ -370,12 +370,34 @@ strictly separate.
 
 Adding a new observer:
 
-1. Implement a `StatusObserver` in `apps/models/lib/observers/<slug>.ts`.
-2. Register it in `apps/models/lib/observers/index.ts`.
-3. Add a primary-source citation in `apps/models/data/citations.ts`.
-4. Update the "Status observation coverage" panel on `/coverage`.
-5. Surface the citation in the Status monitoring sources section of
+1. Implement a `StatusObserver` in `apps/models/lib/observers/<slug>.ts`
+   — for vendor feeds, follow the Anthropic / Google pattern; for
+   independent probes, use `createHttpProbeObserver()` from
+   `lib/observers/http-probe.ts` with a **public, non-inference,
+   non-billing** URL.
+2. Set the `source` field explicitly (`vendor_status_api` /
+   `vendor_status_page` / `independent_http_probe`).
+3. Register it in `apps/models/lib/observers/index.ts`.
+4. Add a primary-source citation in `apps/models/data/citations.ts`.
+5. Update the "Status observation coverage" panel on `/coverage`.
+6. Surface the citation in the Status monitoring sources section of
    `/sources`.
+
+Probe safety rules (enforced by the integrity guard suite):
+
+- Probes are unauthenticated. No `Authorization` header, no `api_key`,
+  no bearer token of any kind.
+- Probes never call inference endpoints (`/v1/messages`,
+  `generateContent`, `/chat/completions`, `/embeddings`,
+  `/audio/{speech,transcriptions}`, `/images/{generations,edits}`).
+- Probes target host roots, public docs, or other non-billing
+  surfaces. Reachability-only signals.
+- Probes are scheduled only by the hourly cron — never invoked from
+  request handlers.
+- Probe `latencyMs` is wall-clock fetch time. It is never relabelled
+  as API latency on any page or in any response payload.
+- Probe-success rate is a reachability signal, not API uptime. UI
+  copy must say so explicitly.
 
 ---
 

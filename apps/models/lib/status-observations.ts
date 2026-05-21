@@ -60,6 +60,12 @@ export interface StatusObservation {
 
 export interface StatusObserver {
   providerSlug: string;
+  /**
+   * Declarative source category for this observer. Must match the
+   * `source` field on every observation the observer produces — UI code
+   * uses this to group observers without inspecting their run output.
+   */
+  source: StatusObservationSource;
   /** Human-friendly description of what this observer reads. */
   description: string;
   run: () => Promise<StatusObservation>;

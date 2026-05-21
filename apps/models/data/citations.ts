@@ -48,6 +48,38 @@ export const anthropicStatusPage: SourceCitation = citation({
     "Anthropic's public status page (Statuspage-style). The machine-readable feed at /api/v2/status.json (redirects to status.claude.com) is consumed by the vendor-status observer at lib/observers/anthropic.ts. Vendor-reported; not an independent uptime monitor.",
 });
 
+/**
+ * Anthropic API host root, used as the target of the Sprint 12
+ * independent HTTP probe at `apps/models/lib/observers/anthropic-probe.ts`.
+ * The probe issues a single unauthenticated GET against the host root
+ * (no path) and treats any 2xx/3xx/4xx as "host reachable". No
+ * inference is performed, no API key is sent, no billing is triggered.
+ */
+export const anthropicApiHostProbeTarget: SourceCitation = citation({
+  url: "https://api.anthropic.com/",
+  name: "Anthropic — API host root (independent probe target)",
+  type: "official-vendor-site",
+  retrievedAt: "2026-05-21T00:00:00.000Z",
+  notes:
+    "Probe target only — the bare api.anthropic.com host responds 404 to unauthenticated GETs at /, which tells us the host is reachable without invoking any inference endpoint. Hourly probe via /api/cron/status.",
+});
+
+/**
+ * Google Cloud public incidents feed. Used by the Sprint 12 Google
+ * vendor-status observer at `apps/models/lib/observers/google.ts`. The
+ * feed is a JSON array of incident records; the observer filters to
+ * incidents touching Gemini / Vertex AI / AI Studio products. THIS IS
+ * A VENDOR-REPORTED SOURCE — Google reports on themselves.
+ */
+export const googleCloudStatusIncidents: SourceCitation = citation({
+  url: "https://status.cloud.google.com/incidents.json",
+  name: "Google Cloud — Incidents feed",
+  type: "official-vendor-site",
+  retrievedAt: "2026-05-21T00:00:00.000Z",
+  notes:
+    "Google Cloud's public incidents feed (JSON array of incident records). The vendor-status observer filters to incidents whose affected_products mention Gemini / Vertex AI / AI Studio. Vendor-reported; not an independent uptime monitor.",
+});
+
 // ---------------------------------------------------------------------------
 // Google AI primary sources.
 //

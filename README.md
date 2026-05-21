@@ -94,8 +94,9 @@ Every page sets canonical URL, OpenGraph, and Twitter metadata via
 | `/api/site` | Public site metadata — name, routes, crawler endpoints, verification policy. |
 | `/api/status/anthropic` | Single, freshly-issued vendor-reported `StatusObservation` for Anthropic. Always 200; on upstream failure the observation reports `observedStatus: "unknown"`. |
 | `/api/cron/status` | Runs every enabled status observer AND writes each observation to the durable status store when one is configured. Bearer-token-guarded via `CRON_SECRET` in production; refuses to run unguarded if the secret is missing on a Vercel production deployment. |
-| `/api/status/anthropic/latest` | Latest persisted observation for Anthropic, or a clear empty state when none exists. Always includes `storageConfigured` and `sampleCount`. |
-| `/api/status/anthropic/window` | Windowed view of persisted Anthropic observations (`?hours=24` by default, clamped to 1..720). Returns `uptimePercentage` only when storage is configured AND `sampleCount >= MINIMUM_OBSERVATIONS_FOR_UPTIME` AND the value is the share of stored observations whose vendor-reported status was `operational` — never an independent availability claim. |
+| `/api/status/[provider]` | Runs every observer registered for the provider and returns the freshly-issued `StatusObservation`s. 404 when no observer is registered. Each observation self-labels its `source` (vendor / probe). |
+| `/api/status/[provider]/latest` | Latest persisted observation for the provider, or a clear empty state when none exists. Always includes `storageConfigured` and `sampleCount`. |
+| `/api/status/[provider]/window` | Windowed view of persisted observations (`?hours=24` by default, clamped to 1..720). Includes a `bySource` breakdown so vendor and probe signals are visible side by side. Returns `uptimePercentage` only when storage is configured AND `sampleCount >= MINIMUM_OBSERVATIONS_FOR_UPTIME` AND even then it is the share of stored observations whose status was `operational` — never an independent availability claim. |
 
 ## Server filters and entity graph
 
@@ -127,6 +128,41 @@ Breadcrumbs and `BreadcrumbList` JSON-LD are emitted on every detail
 page (model, provider, comparison) and on the hub pages. The rendered
 trail and the structured-data trail use the same source of truth
 (`breadcrumbJsonLd()` in `lib/seo.ts`), so they cannot drift apart.
+
+## Status observers
+
+Observers live in [`apps/models/lib/observers/`](apps/models/lib/observers/)
+and self-register in
+[`lib/observers/index.ts`](apps/models/lib/observers/index.ts). Every
+observer declares a typed `source` field so UI code can group vendor
+and probe signals without inspecting prose.
+
+| Observer | Provider | Source | Target |
+| --- | --- | --- | --- |
+| `anthropicStatusObserver` | Anthropic | `vendor_status_api` | `status.anthropic.com/api/v2/status.json` (Statuspage feed) |
+| `anthropicIndependentProbe` | Anthropic | `independent_http_probe` | `https://api.anthropic.com/` (host-root reachability — NOT inference) |
+| `googleStatusObserver` | Google | `vendor_status_api` | `status.cloud.google.com/incidents.json` filtered to Gemini / Vertex AI / AI Studio products |
+
+The probe target for Anthropic is the API host root with no path; an
+unauthenticated GET returns 404 (the host is up, no resource at `/`).
+No API key is sent, no inference is triggered, no billing is invoked.
+Probe wall-clock fetch time is recorded as `latencyMs` and is **never**
+relabelled as API latency. A successful probe is a reachability
+signal, not an availability measurement, and not "full API uptime".
+
+Adding a new observer:
+
+1. Implement a `StatusObserver` in `lib/observers/<slug>.ts` — for
+   vendor feeds, follow the Anthropic example; for probes, call
+   `createHttpProbeObserver()` from
+   [`lib/observers/http-probe.ts`](apps/models/lib/observers/http-probe.ts)
+   with a public, non-inference URL.
+2. Set the `source` field explicitly.
+3. Register it in `lib/observers/index.ts`.
+4. Add a primary-source citation in `data/citations.ts`.
+5. The integrity guards refuse to ship if the observer is missing
+   `source`, or if a probe targets an inference / authenticated
+   endpoint.
 
 ## Durable status storage
 

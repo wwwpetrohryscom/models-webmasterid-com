@@ -706,12 +706,34 @@ const checks: Check[] = [
       ),
   },
   {
-    name: "/api/status/anthropic route exists (Sprint 9)",
+    name: "/api/status/[provider] dynamic route exists (Sprint 12)",
     run: () =>
       requireFile(
-        "apps/models/app/api/status/anthropic/route.ts",
-        "/api/status/anthropic"
+        "apps/models/app/api/status/[provider]/route.ts",
+        "/api/status/[provider]"
       ),
+  },
+  {
+    name: "no literal /api/status/anthropic route remains (Sprint 12)",
+    run: () => {
+      // Sprint 12 generalised the routes to /api/status/[provider]/*.
+      // The literal anthropic-specific routes must NOT exist, otherwise
+      // Next.js may route inconsistently for non-anthropic providers.
+      const offenders: string[] = [];
+      for (const rel of [
+        "apps/models/app/api/status/anthropic/route.ts",
+        "apps/models/app/api/status/anthropic/latest/route.ts",
+        "apps/models/app/api/status/anthropic/window/route.ts",
+      ]) {
+        if (fileExists(rel)) offenders.push(rel);
+      }
+      if (offenders.length) {
+        return `Sprint 12 generalised the status routes — these literal-segment routes must be removed:\n  ${offenders.join(
+          "\n  "
+        )}`;
+      }
+      return null;
+    },
   },
   {
     name: "/api/cron/status route exists (Sprint 9)",
@@ -799,7 +821,13 @@ const checks: Check[] = [
       const targets = [
         "apps/models/lib/status-observations.ts",
         "apps/models/lib/observers/anthropic.ts",
-        "apps/models/app/api/status/anthropic/route.ts",
+        "apps/models/lib/observers/anthropic-probe.ts",
+        "apps/models/lib/observers/google.ts",
+        "apps/models/lib/observers/http-probe.ts",
+        "apps/models/lib/observers/index.ts",
+        "apps/models/app/api/status/[provider]/route.ts",
+        "apps/models/app/api/status/[provider]/latest/route.ts",
+        "apps/models/app/api/status/[provider]/window/route.ts",
         "apps/models/app/api/cron/status/route.ts",
         "apps/models/app/status/page.tsx",
       ];
@@ -1120,19 +1148,19 @@ const checks: Check[] = [
     },
   },
   {
-    name: "/api/status/anthropic/latest route exists (Sprint 11)",
+    name: "/api/status/[provider]/latest route exists (Sprint 12)",
     run: () =>
       requireFile(
-        "apps/models/app/api/status/anthropic/latest/route.ts",
-        "/api/status/anthropic/latest"
+        "apps/models/app/api/status/[provider]/latest/route.ts",
+        "/api/status/[provider]/latest"
       ),
   },
   {
-    name: "/api/status/anthropic/window route exists (Sprint 11)",
+    name: "/api/status/[provider]/window route exists (Sprint 12)",
     run: () =>
       requireFile(
-        "apps/models/app/api/status/anthropic/window/route.ts",
-        "/api/status/anthropic/window"
+        "apps/models/app/api/status/[provider]/window/route.ts",
+        "/api/status/[provider]/window"
       ),
   },
   {
@@ -1143,7 +1171,7 @@ const checks: Check[] = [
       // the constant and the gating boolean.
       const store = readRel("apps/models/lib/status-store.ts");
       const win = readRel(
-        "apps/models/app/api/status/anthropic/window/route.ts"
+        "apps/models/app/api/status/[provider]/window/route.ts"
       );
       const failures: string[] = [];
       if (!/uptimeEligible/.test(store)) {
@@ -1216,10 +1244,13 @@ const checks: Check[] = [
         "apps/models/lib/status-store.ts",
         "apps/models/lib/status-observations.ts",
         "apps/models/lib/observers/anthropic.ts",
+        "apps/models/lib/observers/anthropic-probe.ts",
+        "apps/models/lib/observers/google.ts",
+        "apps/models/lib/observers/http-probe.ts",
         "apps/models/lib/observers/index.ts",
-        "apps/models/app/api/status/anthropic/route.ts",
-        "apps/models/app/api/status/anthropic/latest/route.ts",
-        "apps/models/app/api/status/anthropic/window/route.ts",
+        "apps/models/app/api/status/[provider]/route.ts",
+        "apps/models/app/api/status/[provider]/latest/route.ts",
+        "apps/models/app/api/status/[provider]/window/route.ts",
         "apps/models/app/api/cron/status/route.ts",
       ];
       const banned = /webmasterIdAnalytics|sendBeacon|userId|sessionId/;
@@ -1231,6 +1262,159 @@ const checks: Check[] = [
             `${rel} references analytics / user-identifier code — status pipeline must not store user or analytics data.`
           );
         }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "HTTP probe factory exists (Sprint 12)",
+    run: () =>
+      requireFile(
+        "apps/models/lib/observers/http-probe.ts",
+        "lib/observers/http-probe.ts"
+      ),
+  },
+  {
+    name: "Anthropic independent probe is registered (Sprint 12)",
+    run: () => {
+      if (!fileExists("apps/models/lib/observers/anthropic-probe.ts")) {
+        return "lib/observers/anthropic-probe.ts is missing.";
+      }
+      const registry = readRel("apps/models/lib/observers/index.ts");
+      if (!/anthropicIndependentProbe/.test(registry)) {
+        return "lib/observers/index.ts does not register anthropicIndependentProbe.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "Google vendor-status observer is registered (Sprint 12)",
+    run: () => {
+      if (!fileExists("apps/models/lib/observers/google.ts")) {
+        return "lib/observers/google.ts is missing.";
+      }
+      const registry = readRel("apps/models/lib/observers/index.ts");
+      if (!/googleStatusObserver/.test(registry)) {
+        return "lib/observers/index.ts does not register googleStatusObserver.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "every observer declares a source field (Sprint 12)",
+    run: () => {
+      const failures: string[] = [];
+      const files = [
+        "apps/models/lib/observers/anthropic.ts",
+        "apps/models/lib/observers/google.ts",
+        "apps/models/lib/observers/http-probe.ts",
+      ];
+      for (const rel of files) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        // Each StatusObserver literal must set `source:`.
+        if (!/source:\s*"(vendor_status_api|vendor_status_page|independent_http_probe)"/.test(src)) {
+          failures.push(
+            `${rel} declares an observer without a typed \`source:\` field.`
+          );
+        }
+      }
+      // The StatusObserver interface itself must require source.
+      const types = readRel("apps/models/lib/status-observations.ts");
+      if (
+        !/StatusObserver[\s\S]{0,400}source:\s*StatusObservationSource/.test(
+          types
+        )
+      ) {
+        failures.push(
+          "StatusObserver interface in lib/status-observations.ts must require a `source: StatusObservationSource` field."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "HTTP probe factory targets a non-inference public surface (Sprint 12)",
+    run: () => {
+      const src = readRel("apps/models/lib/observers/http-probe.ts");
+      const failures: string[] = [];
+      // The factory itself must not name any inference endpoint
+      // (Messages, generateContent, chat/completions) — that's a policy
+      // marker; concrete probes must point at non-inference URLs.
+      if (/\/v1\/messages|generateContent|chat\/completions/.test(src)) {
+        failures.push(
+          "lib/observers/http-probe.ts references an inference endpoint — probes must point at non-inference surfaces only."
+        );
+      }
+      // No Authorization header / API key reference inside the factory.
+      if (/Authorization\s*:|api[_-]?key/i.test(src)) {
+        failures.push(
+          "lib/observers/http-probe.ts references Authorization / api_key — probes must be unauthenticated."
+        );
+      }
+      // Must declare source = independent_http_probe on the returned
+      // observer.
+      if (
+        !/source:\s*"independent_http_probe"/.test(src)
+      ) {
+        failures.push(
+          "lib/observers/http-probe.ts does not stamp source: \"independent_http_probe\" on the returned observer."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no probe target is an inference endpoint (Sprint 12)",
+    run: () => {
+      const failures: string[] = [];
+      // Specific probe modules.
+      const probeFiles = [
+        "apps/models/lib/observers/anthropic-probe.ts",
+      ];
+      for (const rel of probeFiles) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        // Strip JSDoc/line comments first — the cautionary "we are NOT
+        // calling /v1/messages" lives in module-level documentation
+        // and must not trip the policy guard.
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        if (
+          /\/v1\/messages\b|generateContent\b|\/chat\/completions\b|\/embeddings\b|\/audio\/(speech|transcriptions)\b|\/images\/(generations|edits)\b/.test(
+            stripped
+          )
+        ) {
+          failures.push(
+            `${rel} appears to target an inference / billing endpoint. Probe URLs must be public, non-billing surfaces.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/status page never claims probes measure API uptime (Sprint 12)",
+    run: () => {
+      const src = readRel("apps/models/app/status/page.tsx").replace(
+        /\s+/g,
+        " "
+      );
+      const failures: string[] = [];
+      // The page must label probes as reachability signals, not uptime
+      // measurements. Look for the explicit caveat phrase.
+      if (!/reachability signal/i.test(src)) {
+        failures.push(
+          "/status page must describe probe success as a reachability signal, not API uptime."
+        );
+      }
+      // Forbid the phrase "probe-based uptime" / "probe uptime" as a
+      // headline claim (this is the exact relabelling we're guarding).
+      if (/probe[- ]?(?:based\s+)?uptime/i.test(src)) {
+        failures.push(
+          "/status page conflates probe success with API uptime — probe-success rate is not uptime."
+        );
       }
       return failures.length ? failures.join("\n") : null;
     },

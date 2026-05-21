@@ -10,7 +10,11 @@ import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { isFilteredRoute, robotsMetadata } from "@/lib/should-index";
 import { models } from "@/data/models";
 import { providers } from "@/data/providers";
-import { anthropicStatusPage } from "@/data/citations";
+import {
+  anthropicStatusPage,
+  anthropicApiHostProbeTarget,
+  googleCloudStatusIncidents,
+} from "@/data/citations";
 import type { SourceCitation, SourceType } from "@/lib/types";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -22,9 +26,14 @@ interface PageProps {
 /**
  * Sources that back observations rather than model facts. These are not
  * referenced by `model.citations` because they document monitoring
- * inputs (vendor status feeds), not verified model metrics.
+ * inputs (vendor status feeds and independent HTTP probe targets), not
+ * verified model metrics.
  */
-const STATUS_MONITORING_SOURCES: SourceCitation[] = [anthropicStatusPage];
+const STATUS_MONITORING_SOURCES: SourceCitation[] = [
+  anthropicStatusPage,
+  anthropicApiHostProbeTarget,
+  googleCloudStatusIncidents,
+];
 
 const SOURCE_TYPE_LABEL: Record<SourceType, string> = {
   "official-vendor-docs": "Official vendor docs",
@@ -95,9 +104,13 @@ function buildCitationIndex(): IndexedCitation[] {
 
   for (const c of STATUS_MONITORING_SOURCES) {
     const e = ensure(c);
-    // Anthropic status page → anthropic provider.
+    // Heuristic provider attribution for status citations: match
+    // hostname against known provider tokens.
     if (/anthropic|claude/i.test(c.url)) {
       e.providerSlugs.add("anthropic");
+    }
+    if (/google\.com|gcp|cloud\.google/i.test(c.url)) {
+      e.providerSlugs.add("google");
     }
     e.usage.add("status");
   }

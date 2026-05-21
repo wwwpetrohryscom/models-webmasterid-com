@@ -100,6 +100,7 @@ async function fetchAnthropicStatus(): Promise<StatusObservation> {
 
 export const anthropicStatusObserver: StatusObserver = {
   providerSlug: "anthropic",
+  source: "vendor_status_api",
   description:
     "Reads the public Anthropic Statuspage JSON feed (vendor-reported status, NOT an independent uptime probe).",
   run: fetchAnthropicStatus,

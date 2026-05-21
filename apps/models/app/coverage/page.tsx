@@ -21,6 +21,10 @@ import {
   isStatusStorageConfigured,
   MINIMUM_OBSERVATIONS_FOR_UPTIME,
 } from "@/lib/status-store";
+import {
+  ENABLED_OBSERVERS,
+  findObserversForProvider,
+} from "@/lib/observers";
 
 export const metadata: Metadata = buildMetadata({
   title: "Coverage",
@@ -258,41 +262,61 @@ export default function CoveragePage() {
         <h2 className="text-base font-semibold text-foreground">
           Status observation coverage
         </h2>
+        <p className="mt-2 text-muted-foreground">
+          {ENABLED_OBSERVERS.length} observer
+          {ENABLED_OBSERVERS.length === 1 ? "" : "s"} registered across the
+          provider graph. Vendor-reported observers and independent HTTP
+          probes are kept strictly separate; each observation records its
+          own `source`.
+        </p>
         <ul className="mt-3 space-y-2 text-muted-foreground">
-          <li>
-            <strong className="text-foreground">
-              Anthropic vendor-status observer:
-            </strong>{" "}
-            enabled. Reads the Statuspage JSON feed at{" "}
-            <Link
-              href="https://status.anthropic.com"
-              target="_blank"
-              rel="noreferrer"
-              className="text-primary hover:underline"
-            >
-              status.anthropic.com
-            </Link>
-            ; surfaced live at{" "}
-            <Link
-              href="/api/status/anthropic"
-              className="text-primary hover:underline"
-              prefetch={false}
-            >
-              /api/status/anthropic
-            </Link>
-            .
-          </li>
-          <li>
-            <strong className="text-foreground">
-              Independent HTTP probe:
-            </strong>{" "}
-            not enabled for any provider. Vendor-reported status is not
-            independent monitoring.
-          </li>
+          {providers.map((p) => {
+            const observers = findObserversForProvider(p.slug);
+            if (!observers.length) return null;
+            return (
+              <li key={p.slug}>
+                <strong className="text-foreground">{p.name}:</strong>{" "}
+                {observers
+                  .map((o) =>
+                    o.source === "independent_http_probe"
+                      ? "independent HTTP probe"
+                      : "vendor-status observer"
+                  )
+                  .join(" + ")}
+                . Live:{" "}
+                <Link
+                  href={`/api/status/${p.slug}`}
+                  className="text-primary hover:underline"
+                  prefetch={false}
+                >
+                  /api/status/{p.slug}
+                </Link>
+                {" · "}
+                <Link
+                  href={`/api/status/${p.slug}/latest`}
+                  className="text-primary hover:underline"
+                  prefetch={false}
+                >
+                  /latest
+                </Link>
+                {" · "}
+                <Link
+                  href={`/api/status/${p.slug}/window?hours=24`}
+                  className="text-primary hover:underline"
+                  prefetch={false}
+                >
+                  /window?hours=24
+                </Link>
+                .
+              </li>
+            );
+          })}
           <li>
             <strong className="text-foreground">Uptime percentage:</strong>{" "}
-            not computed. WebmasterID does not publish an uptime %
-            without durable observations over a meaningful window.
+            not computed. WebmasterID does not publish an uptime number
+            without durable observations over a meaningful window —
+            currently a minimum of {MINIMUM_OBSERVATIONS_FOR_UPTIME}{" "}
+            stored observations.
           </li>
           <li>
             <strong className="text-foreground">Cron:</strong> hourly via
@@ -316,33 +340,16 @@ export default function CoveragePage() {
             and nothing is written.
           </li>
           <li>
-            <strong className="text-foreground">Read endpoints:</strong>{" "}
-            <Link
-              href="/api/status/anthropic/latest"
-              prefetch={false}
-              className="text-primary hover:underline"
-            >
-              /api/status/anthropic/latest
-            </Link>{" "}
-            and{" "}
-            <Link
-              href="/api/status/anthropic/window?hours=24"
-              prefetch={false}
-              className="text-primary hover:underline"
-            >
-              /api/status/anthropic/window?hours=24
-            </Link>
-            .
-          </li>
-          <li>
             <strong className="text-foreground">
               Uptime window eligibility:
             </strong>{" "}
             not yet. Requires at least{" "}
             {MINIMUM_OBSERVATIONS_FOR_UPTIME} stored observations in the
-            window before any uptime-shaped number is exposed by the
-            window endpoint. The /status page itself does not display
-            this number.
+            window before any uptime-shaped number is exposed by{" "}
+            <code className="rounded bg-muted px-1">
+              /api/status/[provider]/window
+            </code>
+            . The /status page itself does not display this number.
           </li>
         </ul>
       </section>

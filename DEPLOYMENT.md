@@ -227,8 +227,10 @@ content integrity regression.
 | --- | --- |
 | `/api/health` | Liveness check. Returns version, environment, build timestamp. Safe for uptime monitors. |
 | `/api/site` | Public site metadata: name, description, routes, sitemap/robots/llms/rss/health URLs, verification policy. Useful for partner integrations. |
-| `/api/status/anthropic` | Single, freshly-issued vendor-reported status observation for Anthropic. Reads the Statuspage JSON feed and returns a normalised `StatusObservation`. Always 200; on upstream failure, `observedStatus` is `"unknown"` and the failure is captured in `httpStatus`/`note`. |
-| `/api/cron/status` | Runs every enabled status observer. Returns a JSON summary. Bearer-token-guarded via `CRON_SECRET` in production. |
+| `/api/status/[provider]` | Runs every observer registered for the provider and returns the freshly-issued `StatusObservation`s. 404 when no observer is registered for the slug. Each observation carries its own `source` so vendor and probe signals are not conflated. Always 200 for known providers, even when upstream failures occur (failures surface as `observedStatus: "unknown"` with a note). |
+| `/api/status/[provider]/latest` | Most-recent persisted observation for the provider, or an empty state. |
+| `/api/status/[provider]/window?hours=N` | Windowed view of persisted observations; includes a `bySource` breakdown. Default 24h, clamped 1..720. Uptime gating policy applies (see Durable Status Storage section). |
+| `/api/cron/status` | Runs every enabled status observer (across all providers and both source types). Returns a JSON summary including per-observation write outcomes. Bearer-token-guarded via `CRON_SECRET` in production. |
 
 None of these endpoints expose secrets, vendor-internal incident
 detail, or a fabricated uptime claim. All are explicitly disallowed
