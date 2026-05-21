@@ -406,6 +406,33 @@ Probe safety rules (enforced by the integrity guard suite):
 
 ---
 
+## Entity detail page discipline
+
+Model, provider, and comparison detail pages each render four
+standard surfaces in addition to their entity-specific content:
+
+- `EntityActionRail` — verb-led actions. Banned copy: "Get started",
+  "Start now", "Best model", "Choose winner", "Official partner",
+  "Trusted by OpenAI", "Maximize AI performance". Integrity guard:
+  *"no detail page uses salesy CTA copy"*.
+- `EntityMethodologyLinks` — link rail to research + docs methodology.
+  Integrity guard: *"every detail page renders methodology links"*.
+- `EntityDataGaps` (model + provider) — honest list of null/unverified
+  fields computed from the entity record at render time. The
+  component renders nothing if there are no gaps; the integrity guard
+  only requires presence in the JSX, so a fully verified record still
+  passes silently.
+- `EntityVerificationChecklist` (model only) — "X of Y fields verified"
+  driven by `isVerified()` on each field. No checkmark is hand-
+  asserted; the integrity guard verifies the component is present and
+  the checklist is sourced from the entity record.
+
+These four guarantees plus the existing breadcrumb + JSON-LD + source
+trail surface mean every detail page has the same source-discipline
+chrome regardless of which entity it represents.
+
+---
+
 ## Content pages
 
 Research guides and reference docs (`/research`, `/docs`) follow the

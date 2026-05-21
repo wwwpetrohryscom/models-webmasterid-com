@@ -129,6 +129,25 @@ page (model, provider, comparison) and on the hub pages. The rendered
 trail and the structured-data trail use the same source of truth
 (`breadcrumbJsonLd()` in `lib/seo.ts`), so they cannot drift apart.
 
+## Entity polish components
+
+Reusable server components for the model / provider / comparison
+detail pages live under
+[`apps/models/components/entity/`](apps/models/components/entity/):
+
+| Component | What it renders |
+| --- | --- |
+| `EntityActionRail` | Verb-led action row (Compare models / View pricing / Inspect provider / Review sources / Check coverage / Read methodology). Integrity guards forbid salesy copy ("Get started", "Best model", "Official partner", etc.). |
+| `EntityDataGaps` | Honest list of null/unverified fields, computed from the entity record. Renders nothing if there are no gaps. |
+| `EntityMethodologyLinks` | Persistent rail linking to relevant research + docs pages. |
+| `EntityVerificationChecklist` | Compact "X of Y fields verified" checklist driven by `isVerified()` on each field. No checkmark is hand-asserted. |
+
+All three detail page types render `EntityActionRail` and
+`EntityMethodologyLinks`; model + provider pages additionally render
+`EntityDataGaps`; model pages render `EntityVerificationChecklist`.
+Integrity guards check each of those presences and the absence of
+banned CTA phrases.
+
 ## Content components
 
 Reusable rich-content components live under
@@ -214,7 +233,19 @@ CRON_SECRET=… npm run smoke:production
 npm run build
 npm run start          # in another shell
 npm run smoke:local
+
+# Indexing QA — checks crawler-facing HTML markup + machine endpoints.
+npm run qa:indexing
+DOMAIN=http://localhost:3000 npm run qa:indexing
 ```
+
+`qa:indexing` verifies that every indexable hub + detail page returns
+200 HTML with a `<title>`, meta description, absolute canonical, no
+unexpected `noindex`, and at least one JSON-LD block where one is
+expected. It also samples filtered URLs (`?provider=`, `?verification=`,
+…) to confirm `noindex` is enforced on those, and confirms the
+sitemap / robots.txt / llms.txt reference the right paths. Exits
+non-zero on any failure.
 
 Each script prints a compact `PATH | HTTP | CONTENT-TYPE | RESULT |
 NOTE` table and exits non-zero on any failure. Failure modes the

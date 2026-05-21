@@ -17,6 +17,7 @@
     "check:production": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/check-production-readiness.ts",
     "smoke:local": "node scripts/smoke-local.mjs",
     "smoke:production": "node scripts/smoke-production.mjs",
+    "qa:indexing": "node scripts/indexing-qa.mjs",
     "validate": "npm run lint && npm run typecheck && npm run check:integrity && npm run check:production && npm run build"
   }
 }

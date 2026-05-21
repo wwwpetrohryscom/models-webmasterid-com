@@ -2049,6 +2049,130 @@ const checks: Check[] = [
     },
   },
   {
+    name: "entity-polish components exist (Sprint 17)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/components/entity/EntityActionRail.tsx",
+        "apps/models/components/entity/EntityDataGaps.tsx",
+        "apps/models/components/entity/EntityMethodologyLinks.tsx",
+        "apps/models/components/entity/EntityVerificationChecklist.tsx",
+      ]) {
+        if (!fileExists(rel)) failures.push(`Missing ${rel}`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "every detail page renders the action rail (Sprint 17)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/app/models/[slug]/page.tsx",
+        "apps/models/app/providers/[slug]/page.tsx",
+        "apps/models/app/compare/[slug]/page.tsx",
+      ]) {
+        const src = readRel(rel);
+        if (!/<EntityActionRail\b/.test(src)) {
+          failures.push(`${rel} does not render <EntityActionRail>.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "every detail page renders methodology links (Sprint 17)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/app/models/[slug]/page.tsx",
+        "apps/models/app/providers/[slug]/page.tsx",
+        "apps/models/app/compare/[slug]/page.tsx",
+      ]) {
+        const src = readRel(rel);
+        if (!/<EntityMethodologyLinks\b/.test(src)) {
+          failures.push(`${rel} does not render <EntityMethodologyLinks>.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "model + provider detail pages render data gaps panel (Sprint 17)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/app/models/[slug]/page.tsx",
+        "apps/models/app/providers/[slug]/page.tsx",
+      ]) {
+        const src = readRel(rel);
+        if (!/<EntityDataGaps\b/.test(src)) {
+          failures.push(`${rel} does not render <EntityDataGaps>.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "indexing-qa script + npm task exist (Sprint 17)",
+    run: () => {
+      const failures: string[] = [];
+      if (!fileExists("scripts/indexing-qa.mjs")) {
+        failures.push("Missing scripts/indexing-qa.mjs");
+      }
+      const pkg = readRel("package.json");
+      if (!/"qa:indexing":\s*"node scripts\/indexing-qa\.mjs"/.test(pkg)) {
+        failures.push(
+          "package.json missing the qa:indexing → node scripts/indexing-qa.mjs script."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no detail page uses salesy CTA copy (Sprint 17)",
+    run: () => {
+      const failures: string[] = [];
+      const targets = [
+        "apps/models/app/models/[slug]/page.tsx",
+        "apps/models/app/providers/[slug]/page.tsx",
+        "apps/models/app/compare/[slug]/page.tsx",
+        "apps/models/app/page.tsx",
+      ];
+      // Forbid these exact strings (case-insensitive). Same disciplines
+      // we apply to research/docs pages — see the content-pages guard.
+      const banned: { pattern: RegExp; label: string }[] = [
+        { pattern: /\bGet started\b/i, label: "Get started" },
+        { pattern: /\bStart now\b/i, label: "Start now" },
+        { pattern: /\bBest model\b/i, label: "Best model" },
+        { pattern: /\bChoose winner\b/i, label: "Choose winner" },
+        { pattern: /\bOfficial partner\b/i, label: "Official partner" },
+        { pattern: /\bTrusted by OpenAI\b/i, label: "Trusted by OpenAI" },
+        {
+          pattern: /\bMaximi[sz]e AI performance\b/i,
+          label: "Maximize AI performance",
+        },
+      ];
+      for (const rel of targets) {
+        const src = readRel(rel);
+        // Strip JSDoc + line comments so cautionary phrasing in
+        // maintainer notes (e.g. "// no 'Get started' here") does
+        // not trip the guard.
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned CTA phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
     name: "entity-graph helpers do not perform network fetches",
     run: () => {
       const src = readRel("apps/models/lib/entity-graph.ts");

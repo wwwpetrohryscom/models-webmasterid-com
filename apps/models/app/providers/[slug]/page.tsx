@@ -10,6 +10,12 @@ import { ModelBadge } from "@/components/ModelBadge";
 import { DataNotVerified } from "@/components/DataNotVerified";
 import { InternalLinkGrid } from "@/components/InternalLinkGrid";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { EntityActionRail } from "@/components/entity/EntityActionRail";
+import {
+  EntityDataGaps,
+  type DataGapItem,
+} from "@/components/entity/EntityDataGaps";
+import { EntityMethodologyLinks } from "@/components/entity/EntityMethodologyLinks";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { providers, getProviderBySlug } from "@/data/providers";
 import { models } from "@/data/models";
@@ -19,8 +25,8 @@ import { formatDateISO } from "@/lib/utils";
 import {
   getComparisonsForProvider,
   getRelatedProviders,
-  getStatusObserverForProvider,
 } from "@/lib/entity-graph";
+import { findObserversForProvider } from "@/lib/observers";
 
 interface RouteParams {
   slug: string;
@@ -130,7 +136,69 @@ export default async function ProviderPage({
 
   const relatedComparisons = getComparisonsForProvider(provider.slug);
   const relatedProviders = getRelatedProviders(provider.slug);
-  const observer = getStatusObserverForProvider(provider.slug);
+  const observer = findObserversForProvider(provider.slug);
+
+  const providerActions = [
+    {
+      label: "View tracked models",
+      href: `/models?provider=${provider.slug}`,
+    },
+    {
+      label: "View pricing rows",
+      href: `/pricing?provider=${provider.slug}`,
+    },
+    {
+      label: "Compare models",
+      href: `/compare?provider=${provider.slug}`,
+    },
+    {
+      label: "Review sources",
+      href: `/sources?provider=${provider.slug}`,
+    },
+    { label: "Check coverage", href: "/coverage" },
+    ...(observer.length > 0
+      ? [
+          {
+            label: "Status observations",
+            href: `/api/status/${provider.slug}`,
+            hint: "JSON",
+          },
+        ]
+      : []),
+  ];
+
+  // Per-provider data gaps. Compute from data so the list is honest.
+  const providerDataGaps: DataGapItem[] = [];
+  if (!provider.deprecationsUrl) {
+    providerDataGaps.push({
+      field: "Deprecations URL",
+      reason:
+        "Provider does not publish a stable deprecations page in their docs, or it has not yet been recorded.",
+    });
+  }
+  if (!provider.statusPageUrl) {
+    providerDataGaps.push({
+      field: "Public status page",
+      reason: "Provider has no public status page recorded.",
+    });
+  }
+  if (observer.length === 0) {
+    providerDataGaps.push({
+      field: "Status observer",
+      reason:
+        "No vendor-status or independent-probe observer wired for this provider yet.",
+    });
+  }
+  providerDataGaps.push({
+    field: "Regional availability",
+    reason:
+      "Per-provider regions array is null across the catalogue. Wiring Bedrock / Vertex availability matrices is a planned data expansion.",
+  });
+  providerDataGaps.push({
+    field: "Per-account rate-limit numbers",
+    reason:
+      "Rate-limit tiers live in account consoles and are not surfaced as verified fields on this site.",
+  });
 
   return (
     <PageShell
@@ -163,6 +231,8 @@ export default async function ProviderPage({
           },
         ]}
       />
+
+      <EntityActionRail label="Actions" actions={providerActions} />
 
       <section
         aria-label="Provider overview"
@@ -280,6 +350,8 @@ export default async function ProviderPage({
         </aside>
       ) : null}
 
+      <EntityDataGaps items={providerDataGaps} />
+
       <section
         aria-label="Provider entity graph"
         className="card-surface p-5 text-sm"
@@ -377,6 +449,31 @@ export default async function ProviderPage({
           />
         </section>
       ) : null}
+
+      <EntityMethodologyLinks
+        links={[
+          {
+            href: "/docs/provider-coverage",
+            label: "Provider coverage reference",
+            family: "docs",
+          },
+          {
+            href: "/research/source-verification-methodology",
+            label: "Source verification methodology",
+            family: "research",
+          },
+          {
+            href: "/research/ai-provider-status-monitoring",
+            label: "AI provider status monitoring",
+            family: "research",
+          },
+          {
+            href: "/docs/data-verification",
+            label: "Data verification rules",
+            family: "docs",
+          },
+        ]}
+      />
 
       {(() => {
         const attempts = attemptsByProvider(provider.slug);

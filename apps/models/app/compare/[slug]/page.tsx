@@ -11,6 +11,8 @@ import { InternalLinkGrid } from "@/components/InternalLinkGrid";
 import { JsonLd } from "@/components/JsonLd";
 import { SourceCitationList } from "@/components/SourceCitation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { EntityActionRail } from "@/components/entity/EntityActionRail";
+import { EntityMethodologyLinks } from "@/components/entity/EntityMethodologyLinks";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { robotsMetadata, shouldIndexComparison } from "@/lib/should-index";
 import { comparisons, getComparisonBySlug } from "@/data/comparisons";
@@ -77,6 +79,47 @@ export default async function ComparisonPage({
           { name: "Home", href: "/" },
           { name: "Compare", href: "/compare" },
           { name: comparison.name, href: `/compare/${comparison.slug}` },
+        ]}
+      />
+
+      <EntityActionRail
+        label="Actions"
+        actions={[
+          {
+            label: modelA.name,
+            href: `/models/${modelA.slug}`,
+            hint: "Model A",
+          },
+          {
+            label: modelB.name,
+            href: `/models/${modelB.slug}`,
+            hint: "Model B",
+          },
+          ...(providerA
+            ? [
+                {
+                  label: `Provider — ${providerA.name}`,
+                  href: `/providers/${providerA.slug}`,
+                },
+              ]
+            : []),
+          ...(providerB && providerB.slug !== providerA?.slug
+            ? [
+                {
+                  label: `Provider — ${providerB.name}`,
+                  href: `/providers/${providerB.slug}`,
+                },
+              ]
+            : []),
+          {
+            label: "View pricing rows",
+            href: `/pricing?provider=${modelA.providerSlug}`,
+          },
+          { label: "Review sources", href: "/sources" },
+          {
+            label: "Read comparison methodology",
+            href: "/docs/comparison-methodology",
+          },
         ]}
       />
 
@@ -306,6 +349,31 @@ export default async function ComparisonPage({
           ]}
         />
       </section>
+
+      <EntityMethodologyLinks
+        links={[
+          {
+            href: "/docs/comparison-methodology",
+            label: "Comparison methodology reference",
+            family: "docs",
+          },
+          {
+            href: "/research/model-selection",
+            label: "Model selection with verified data",
+            family: "research",
+          },
+          {
+            href: "/research/api-pricing-methodology",
+            label: "API pricing methodology",
+            family: "research",
+          },
+          {
+            href: "/docs/data-verification",
+            label: "Data verification rules",
+            family: "docs",
+          },
+        ]}
+      />
 
       <p className="text-xs text-muted-foreground">
         Want a new comparison? See{" "}

@@ -17,6 +17,13 @@ import { SourceCitationList } from "@/components/SourceCitation";
 import { DataNotVerified } from "@/components/DataNotVerified";
 import { ApiExample } from "@/components/ApiExample";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { EntityActionRail } from "@/components/entity/EntityActionRail";
+import { EntityDataGaps, type DataGapItem } from "@/components/entity/EntityDataGaps";
+import { EntityMethodologyLinks } from "@/components/entity/EntityMethodologyLinks";
+import {
+  EntityVerificationChecklist,
+  type VerificationChecklistItem,
+} from "@/components/entity/EntityVerificationChecklist";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { models, getModelBySlug } from "@/data/models";
 import { getProviderBySlug } from "@/data/providers";
@@ -70,6 +77,134 @@ export default async function ModelPage({
   const relatedModels = getRelatedModels(model.slug);
   const providerObserver = getStatusObserverForProvider(model.providerSlug);
 
+  // Action rail — only include endpoints we can verify exist on the
+  // entity. No "Get started"; verb-led labels only.
+  const actions = [
+    { label: "Compare models", href: "/compare", hint: "→" },
+    {
+      label: "View pricing rows",
+      href: `/pricing?provider=${model.providerSlug}`,
+    },
+    {
+      label: "Inspect provider",
+      href: `/providers/${model.providerSlug}`,
+    },
+    {
+      label: "Review sources",
+      href: `/sources?provider=${model.providerSlug}`,
+    },
+    { label: "Check coverage", href: "/coverage" },
+    {
+      label: "Read selection guide",
+      href: "/research/model-selection",
+    },
+  ];
+
+  // Field-by-field verification status driven by isVerified() — no
+  // hand-asserted "verified" checkmarks.
+  const verifiedPricingRows = model.pricing.filter((t) =>
+    isVerified(t.amount)
+  ).length;
+  const checklistItems: VerificationChecklistItem[] = [
+    {
+      field: "API identifiers (canonical / alias)",
+      status: isVerified(model.apiIdentifiers) ? "verified" : "missing",
+    },
+    {
+      field: "Context window",
+      status: isVerified(model.contextWindow) ? "verified" : "missing",
+    },
+    {
+      field: "Max output tokens",
+      status: isVerified(model.maxOutputTokens) ? "verified" : "missing",
+    },
+    {
+      field: "Modality channels",
+      status: isVerified(model.modality) ? "verified" : "missing",
+    },
+    {
+      field: "Knowledge cutoff",
+      status: isVerified(model.knowledgeCutoff) ? "verified" : "missing",
+    },
+    {
+      field: "Features (extended thinking / tool use / vision …)",
+      status: isVerified(model.features) ? "verified" : "missing",
+    },
+    {
+      field: "Lifecycle (active / deprecated / retired)",
+      status: isVerified(model.lifecycle) ? "verified" : "missing",
+    },
+    {
+      field: "Release date",
+      status: isVerified(model.releaseDate) ? "verified" : "missing",
+    },
+    {
+      field: "Snapshot date",
+      status: isVerified(model.snapshotDate) ? "verified" : "missing",
+    },
+    {
+      field: "Pricing rows",
+      status: verifiedPricingRows > 0 ? "verified" : "missing",
+      detail: `${verifiedPricingRows} pricing row${verifiedPricingRows === 1 ? "" : "s"} sourced`,
+    },
+  ];
+
+  // Honest data-gap list — only fields that are actually null get listed.
+  const dataGapItems: DataGapItem[] = [];
+  if (!isVerified(model.contextWindow)) {
+    dataGapItems.push({
+      field: "Context window",
+      reason:
+        "Not yet sourced from official documentation for this model.",
+    });
+  }
+  if (!isVerified(model.maxOutputTokens)) {
+    dataGapItems.push({
+      field: "Max output tokens",
+      reason:
+        "Provider docs do not publish a max-output number separately from the context window for this model, or the field has not yet been retrieved.",
+    });
+  }
+  if (!isVerified(model.modality)) {
+    dataGapItems.push({
+      field: "Modality channels",
+      reason:
+        "Provider docs describe the model without enumerating which input/output channels are supported, or the field has not yet been retrieved.",
+    });
+  }
+  if (!isVerified(model.knowledgeCutoff)) {
+    dataGapItems.push({
+      field: "Knowledge cutoff",
+      reason:
+        "No reliable cutoff date published in provider docs for this model.",
+    });
+  }
+  if (verifiedPricingRows === 0) {
+    dataGapItems.push({
+      field: "Pricing",
+      reason:
+        "No pricing rows verified yet. Provider pricing pages may render with JavaScript only, or may not publish per-model rates at a stable URL.",
+    });
+  }
+  if (model.benchmarks.length === 0) {
+    dataGapItems.push({
+      field: "Benchmark scores",
+      reason:
+        "No third-party benchmark scores have been verified for any model on this site — see the benchmark-limitations guide for why.",
+    });
+  }
+  if (
+    !isVerified(model.infrastructure.regions) &&
+    !isVerified(model.infrastructure.avgLatencyMs) &&
+    !isVerified(model.infrastructure.uptimePercent)
+  ) {
+    dataGapItems.push({
+      field: "Infrastructure (regions / latency / uptime)",
+      reason:
+        "Infrastructure fields are intentionally null until a durable measurement source is wired. See the inference-infrastructure guide.",
+    });
+  }
+
   return (
     <PageShell
       eyebrow="Model intelligence"
@@ -94,6 +229,8 @@ export default async function ModelPage({
           buildModelJsonLd(model, provider),
         ]}
       />
+
+      <EntityActionRail label="Actions" actions={actions} />
 
       <section aria-label="Model overview" className="card-surface p-5">
         <div className="flex flex-wrap items-center gap-3">
@@ -177,6 +314,13 @@ export default async function ModelPage({
       </section>
 
       <VerificationSummary model={model} />
+
+      <EntityVerificationChecklist
+        items={checklistItems}
+        caption="Each row reflects the actual state on the record — no checkmark is asserted without isVerified() returning true."
+      />
+
+      <EntityDataGaps items={dataGapItems} />
 
       {isVerified(model.apiIdentifiers) ? (
         <section
@@ -490,6 +634,41 @@ const response = await client.messages.create({
           </p>
         </section>
       )}
+
+      <EntityMethodologyLinks
+        links={[
+          {
+            href: "/research/model-selection",
+            label: "Choosing a model with verified data",
+            family: "research",
+          },
+          {
+            href: "/research/api-pricing-methodology",
+            label: "API pricing methodology",
+            family: "research",
+          },
+          {
+            href: "/research/model-context-windows",
+            label: "Context windows in practice",
+            family: "research",
+          },
+          {
+            href: "/docs/model-page-schema",
+            label: "ModelEntity field schema",
+            family: "docs",
+          },
+          {
+            href: "/docs/pricing-fields",
+            label: "PricingUnit reference",
+            family: "docs",
+          },
+          {
+            href: "/docs/data-verification",
+            label: "Data verification rules",
+            family: "docs",
+          },
+        ]}
+      />
 
       <section
         aria-label="Verification queue"

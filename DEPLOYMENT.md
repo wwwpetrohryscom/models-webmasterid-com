@@ -363,16 +363,20 @@ missing the `statusEndpoints` field; `/api/cron/status` returning HTML
      return `outcome: "skipped_no_store"`. Both must be set together
      to enable storage; setting only one is treated as unconfigured.
 
-6. **Run the production smoke test.**
+6. **Run the production smoke test + indexing QA.**
    ```bash
    npm run smoke:production
    # or, with bearer-auth for the cron endpoint:
    CRON_SECRET=… npm run smoke:production
+
+   # Crawler-facing markup + machine endpoints:
+   npm run qa:indexing
    ```
-   The script prints a `PATH | HTTP | CONTENT-TYPE | RESULT | NOTE`
-   table and exits non-zero on any failure. Status / debug / site
-   endpoints must respond JSON; an HTML response on any API endpoint
-   means the bundle is still stale.
+   `smoke:production` checks API + page reachability and the
+   route-contract shape. `qa:indexing` checks the HTML markup
+   crawlers actually consume (titles, canonicals, JSON-LD, noindex
+   on filtered URLs, sitemap / robots / llms.txt references). Both
+   exit non-zero on failure.
 
 7. **Expected post-deploy outcomes.**
    - `/api/site` JSON includes `statusEndpoints`, `debugEndpoints`,
