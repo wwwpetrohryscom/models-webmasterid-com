@@ -12,9 +12,28 @@ const ROUTES = [
   "/pricing",
   "/infrastructure",
   "/status",
+  "/coverage",
+  "/sources",
   "/news",
   "/research",
   "/docs",
+];
+
+/**
+ * Status API surface, listed so partner integrations can discover every
+ * status endpoint without scraping the codebase. Each entry is a stable
+ * literal URL; the dynamic `/api/status/[provider]/*` route serves the
+ * same payloads when the slug is recognised but is not enumerated here
+ * because there is no canonical list of "all possible providers".
+ */
+const STATUS_ENDPOINTS = [
+  "/api/cron/status",
+  "/api/status/anthropic",
+  "/api/status/anthropic/latest",
+  "/api/status/anthropic/window",
+  "/api/status/google",
+  "/api/status/google/latest",
+  "/api/status/google/window",
 ];
 
 export function GET() {
@@ -32,6 +51,7 @@ export function GET() {
       llms: `${siteConfig.url}/llms.txt`,
       rss: `${siteConfig.url}/rss.xml`,
       health: `${siteConfig.url}/api/health`,
+      statusEndpoints: STATUS_ENDPOINTS.map((p) => `${siteConfig.url}${p}`),
       updatedDate: siteConfig.buildDate,
       verificationPolicy:
         "Data not verified unless backed by primary source citation.",

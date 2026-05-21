@@ -104,8 +104,19 @@ curl -sS -o /dev/null -w "%{http_code}  %{content_type}  %{url_effective}\n" \
   "$DOMAIN/rss.xml" \
   "$DOMAIN/opengraph-image" \
   "$DOMAIN/api/health" \
-  "$DOMAIN/api/site"
+  "$DOMAIN/api/site" \
+  "$DOMAIN/api/status/anthropic" \
+  "$DOMAIN/api/status/anthropic/latest" \
+  "$DOMAIN/api/status/anthropic/window?hours=24" \
+  "$DOMAIN/api/status/google" \
+  "$DOMAIN/api/status/google/latest" \
+  "$DOMAIN/api/status/google/window?hours=24"
 ```
+
+Every status endpoint must respond with HTTP 200 and
+`Content-Type: application/json`. If any returns `text/html`, the
+deployment is stale — the route file is not in the production bundle.
+Re-deploy, then re-run the smoke test.
 
 Expected:
 
@@ -122,7 +133,11 @@ Expected:
 | `/rss.xml` | 200 | `application/rss+xml` | |
 | `/opengraph-image` | 200 | `image/png` | 1200×630 |
 | `/api/health` | 200 | `application/json` | `status: "ok"`, `environment: "production"` |
-| `/api/site` | 200 | `application/json` | `url` and `domain` match production |
+| `/api/site` | 200 | `application/json` | `url` and `domain` match production; `statusEndpoints` listed |
+| `/api/status/anthropic` | 200 | `application/json` | `observerCount >= 1`; observations include both `vendor_status_api` and `independent_http_probe` source values |
+| `/api/status/google` | 200 | `application/json` | `observerCount >= 1`; observation `source` is `vendor_status_api` |
+| `/api/status/[anthropic|google]/latest` | 200 | `application/json` | `storageConfigured` boolean present; `empty: true` is OK when no observations stored yet |
+| `/api/status/[anthropic|google]/window?hours=24` | 200 | `application/json` | `windowHours: 24`, `uptimeEligible: false` (until 24+ observations) |
 
 ### Indexability
 

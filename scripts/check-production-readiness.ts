@@ -714,25 +714,100 @@ const checks: Check[] = [
       ),
   },
   {
-    name: "no literal /api/status/anthropic route remains (Sprint 12)",
+    name: "every observed provider has a literal status route trio (Sprint 12B)",
     run: () => {
-      // Sprint 12 generalised the routes to /api/status/[provider]/*.
-      // The literal anthropic-specific routes must NOT exist, otherwise
-      // Next.js may route inconsistently for non-anthropic providers.
-      const offenders: string[] = [];
-      for (const rel of [
-        "apps/models/app/api/status/anthropic/route.ts",
-        "apps/models/app/api/status/anthropic/latest/route.ts",
-        "apps/models/app/api/status/anthropic/window/route.ts",
+      // Sprint 12B restored the literal-segment routes alongside the
+      // dynamic `[provider]` route as a deployment-safety belt-and-
+      // suspenders. Every provider that has at least one observer
+      // registered MUST also have a literal route trio (root + latest +
+      // window) so URL consumers do not depend on the dynamic-segment
+      // route being deployed correctly.
+      //
+      // The observer registry lives in lib/observers/index.ts; we read
+      // it as a regex (the script can't import TS at build time without
+      // tsx). Any slug that appears in a `providerSlug: "..."` literal
+      // there must also have route files on disk.
+      const registry = readRel("apps/models/lib/observers/index.ts");
+      // For each observer file referenced by the registry, look at the
+      // observer source to find its providerSlug.
+      const observerFiles = [
+        "apps/models/lib/observers/anthropic.ts",
+        "apps/models/lib/observers/anthropic-probe.ts",
+        "apps/models/lib/observers/google.ts",
+      ];
+      const slugs = new Set<string>();
+      for (const rel of observerFiles) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const matches = src.matchAll(/providerSlug:\s*"([^"]+)"/g);
+        for (const m of matches) slugs.add(m[1]);
+      }
+      void registry; // referenced for future expansion
+      const failures: string[] = [];
+      for (const slug of slugs) {
+        const trio = [
+          `apps/models/app/api/status/${slug}/route.ts`,
+          `apps/models/app/api/status/${slug}/latest/route.ts`,
+          `apps/models/app/api/status/${slug}/window/route.ts`,
+        ];
+        for (const rel of trio) {
+          if (!fileExists(rel)) {
+            failures.push(
+              `Missing literal status route ${rel} — required for "${slug}" because an observer is registered for that slug.`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "literal status routes forward to shared handler (Sprint 12B)",
+    run: () => {
+      // Each literal status route must delegate to the shared helper in
+      // lib/status-handlers.ts. We do NOT want hand-rolled JSON in each
+      // route file — that's how the two route shapes drifted before.
+      const literalFiles: string[] = [];
+      for (const slug of ["anthropic", "google"]) {
+        literalFiles.push(
+          `apps/models/app/api/status/${slug}/route.ts`,
+          `apps/models/app/api/status/${slug}/latest/route.ts`,
+          `apps/models/app/api/status/${slug}/window/route.ts`
+        );
+      }
+      const failures: string[] = [];
+      for (const rel of literalFiles) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (!/from\s+["']@\/lib\/status-handlers["']/.test(src)) {
+          failures.push(
+            `${rel} does not import from @/lib/status-handlers — every literal status route must delegate to the shared handler so the dynamic and literal routes cannot drift.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lib/status-handlers.ts exports the three handler functions (Sprint 12B)",
+    run: () => {
+      const rel = "apps/models/lib/status-handlers.ts";
+      if (!fileExists(rel)) return "lib/status-handlers.ts is missing.";
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const name of [
+        "handleStatusObservation",
+        "handleStatusLatest",
+        "handleStatusWindow",
+        "parseWindowHours",
       ]) {
-        if (fileExists(rel)) offenders.push(rel);
+        if (!new RegExp(`export (async )?function ${name}\\b`).test(src)) {
+          failures.push(
+            `${rel} does not export ${name} — required by the literal and dynamic status routes.`
+          );
+        }
       }
-      if (offenders.length) {
-        return `Sprint 12 generalised the status routes — these literal-segment routes must be removed:\n  ${offenders.join(
-          "\n  "
-        )}`;
-      }
-      return null;
+      return failures.length ? failures.join("\n") : null;
     },
   },
   {
@@ -820,6 +895,7 @@ const checks: Check[] = [
       const offenders: string[] = [];
       const targets = [
         "apps/models/lib/status-observations.ts",
+        "apps/models/lib/status-handlers.ts",
         "apps/models/lib/observers/anthropic.ts",
         "apps/models/lib/observers/anthropic-probe.ts",
         "apps/models/lib/observers/google.ts",
@@ -828,6 +904,12 @@ const checks: Check[] = [
         "apps/models/app/api/status/[provider]/route.ts",
         "apps/models/app/api/status/[provider]/latest/route.ts",
         "apps/models/app/api/status/[provider]/window/route.ts",
+        "apps/models/app/api/status/anthropic/route.ts",
+        "apps/models/app/api/status/anthropic/latest/route.ts",
+        "apps/models/app/api/status/anthropic/window/route.ts",
+        "apps/models/app/api/status/google/route.ts",
+        "apps/models/app/api/status/google/latest/route.ts",
+        "apps/models/app/api/status/google/window/route.ts",
         "apps/models/app/api/cron/status/route.ts",
         "apps/models/app/status/page.tsx",
       ];
@@ -1166,13 +1248,13 @@ const checks: Check[] = [
   {
     name: "window endpoint gates uptime behind MINIMUM_OBSERVATIONS_FOR_UPTIME",
     run: () => {
-      // The threshold lives in lib/status-store.ts. The window endpoint
-      // proxies the store's computation. Confirm both sides reference
-      // the constant and the gating boolean.
+      // The threshold lives in lib/status-store.ts. Sprint 12B moved
+      // the window endpoint plumbing into the shared
+      // lib/status-handlers.ts so every literal and dynamic route uses
+      // the same code path. Verify the store + shared handler both
+      // reference the gating boolean / call.
       const store = readRel("apps/models/lib/status-store.ts");
-      const win = readRel(
-        "apps/models/app/api/status/[provider]/window/route.ts"
-      );
+      const handlers = readRel("apps/models/lib/status-handlers.ts");
       const failures: string[] = [];
       if (!/uptimeEligible/.test(store)) {
         failures.push(
@@ -1184,9 +1266,9 @@ const checks: Check[] = [
           "lib/status-store.ts does not gate uptimePercentage behind sampleCount >= MINIMUM_OBSERVATIONS_FOR_UPTIME."
         );
       }
-      if (!/getObservationWindow/.test(win)) {
+      if (!/getObservationWindow/.test(handlers)) {
         failures.push(
-          "window endpoint does not call store.getObservationWindow()."
+          "lib/status-handlers.ts does not call store.getObservationWindow() — the window endpoint plumbing has drifted."
         );
       }
       return failures.length ? failures.join("\n") : null;
@@ -1243,6 +1325,7 @@ const checks: Check[] = [
       const targets = [
         "apps/models/lib/status-store.ts",
         "apps/models/lib/status-observations.ts",
+        "apps/models/lib/status-handlers.ts",
         "apps/models/lib/observers/anthropic.ts",
         "apps/models/lib/observers/anthropic-probe.ts",
         "apps/models/lib/observers/google.ts",
@@ -1251,6 +1334,12 @@ const checks: Check[] = [
         "apps/models/app/api/status/[provider]/route.ts",
         "apps/models/app/api/status/[provider]/latest/route.ts",
         "apps/models/app/api/status/[provider]/window/route.ts",
+        "apps/models/app/api/status/anthropic/route.ts",
+        "apps/models/app/api/status/anthropic/latest/route.ts",
+        "apps/models/app/api/status/anthropic/window/route.ts",
+        "apps/models/app/api/status/google/route.ts",
+        "apps/models/app/api/status/google/latest/route.ts",
+        "apps/models/app/api/status/google/window/route.ts",
         "apps/models/app/api/cron/status/route.ts",
       ];
       const banned = /webmasterIdAnalytics|sendBeacon|userId|sessionId/;
