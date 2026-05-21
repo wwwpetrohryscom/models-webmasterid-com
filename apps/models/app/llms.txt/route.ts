@@ -9,6 +9,7 @@ import {
   shouldIndexModel,
 } from "@/lib/should-index";
 import { getModelBySlug } from "@/data/models";
+import { contentPages } from "@/lib/content";
 
 export const dynamic = "force-static";
 
@@ -131,11 +132,28 @@ export function GET() {
   }
   buf.push(line(""));
 
+  buf.push(line("## Research guides"));
+  for (const p of contentPages.filter(
+    (x) => x.indexable && x.slug.startsWith("/research/")
+  )) {
+    buf.push(line(`- [${p.title}](${siteConfig.url}${p.slug}) — ${p.description}`));
+  }
+  buf.push(line(""));
+
+  buf.push(line("## Documentation"));
+  for (const p of contentPages.filter(
+    (x) => x.indexable && x.slug.startsWith("/docs/")
+  )) {
+    buf.push(line(`- [${p.title}](${siteConfig.url}${p.slug}) — ${p.description}`));
+  }
+  buf.push(line(""));
+
   buf.push(line("## Machine-readable endpoints"));
   buf.push(line(`- Sitemap: ${siteConfig.url}/sitemap.xml`));
   buf.push(line(`- Robots:  ${siteConfig.url}/robots.txt`));
   buf.push(line(`- RSS:     ${siteConfig.url}/rss.xml`));
   buf.push(line(`- Site metadata: ${siteConfig.url}/api/site`));
+  buf.push(line(`- Deployment debug: ${siteConfig.url}/api/debug/deployment`));
   buf.push(line(`- Health:  ${siteConfig.url}/api/health`));
 
   return new Response(buf.join(""), {

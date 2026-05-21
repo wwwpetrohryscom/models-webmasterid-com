@@ -472,6 +472,46 @@ export default async function PricingPage({ searchParams }: PageProps) {
           <code className="rounded bg-muted px-1">noindex, follow</code>.
         </p>
       </aside>
+
+      <aside
+        className="card-surface p-5 text-sm text-muted-foreground"
+        aria-label="How to read pricing rows"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+          How to read these rows
+        </p>
+        <ul className="mt-2 list-disc space-y-1 pl-5">
+          <li>
+            See{" "}
+            <Link
+              href="/research/api-pricing-methodology"
+              className="text-primary hover:underline"
+            >
+              /research/api-pricing-methodology
+            </Link>{" "}
+            for the full methodology — including why cache pricing is
+            kept as separate units instead of normalised into one
+            column.
+          </li>
+          <li>
+            See{" "}
+            <Link
+              href="/docs/pricing-fields"
+              className="text-primary hover:underline"
+            >
+              /docs/pricing-fields
+            </Link>{" "}
+            for the PricingUnit enum reference.
+          </li>
+          <li>
+            Unverified pricing is intentionally hidden — when a
+            provider&apos;s page renders only with JavaScript (Mistral)
+            or returns HTTP 403 (OpenAI), no rate is shown. The
+            relevant models appear under <em>Pending verification</em>{" "}
+            below.
+          </li>
+        </ul>
+      </aside>
     </PageShell>
   );
 }

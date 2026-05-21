@@ -18,14 +18,14 @@
  * commit (from VERCEL_GIT_COMMIT_SHA) does not start with this prefix.
  */
 
-export const ROUTE_SET_VERSION = "status-api-v2";
+export const ROUTE_SET_VERSION = "content-v3";
 
 /**
  * Short prefix of the latest commit on `main` that this version of the
  * route contract was authored against. Smoke tests can compare against
  * `process.env.VERCEL_GIT_COMMIT_SHA` to flag stale deployments.
  */
-export const EXPECTED_DEPLOYED_COMMIT_PREFIX = "1fbf002";
+export const EXPECTED_DEPLOYED_COMMIT_PREFIX = "1219d0b";
 
 /** Indexable + noindex hub / detail pages a smoke test should reach. */
 export const REQUIRED_PAGE_ROUTES = [
@@ -37,6 +37,8 @@ export const REQUIRED_PAGE_ROUTES = [
   "/status",
   "/coverage",
   "/sources",
+  "/research",
+  "/docs",
 ] as const;
 export type RequiredPageRoute = (typeof REQUIRED_PAGE_ROUTES)[number];
 

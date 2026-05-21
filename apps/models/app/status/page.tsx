@@ -422,6 +422,35 @@ export default function StatusPage() {
           production, the cron refuses to run unguarded.
         </p>
       </section>
+
+      <aside
+        className="card-surface p-5 text-sm text-muted-foreground"
+        aria-label="Methodology"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+          Methodology and reference
+        </p>
+        <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+          <li>
+            <Link
+              href="/research/ai-provider-status-monitoring"
+              className="text-primary hover:underline"
+            >
+              AI provider status monitoring
+            </Link>{" "}
+            — the methodology behind the three signals.
+          </li>
+          <li>
+            <Link
+              href="/docs/status-observations"
+              className="text-primary hover:underline"
+            >
+              Status observation reference
+            </Link>{" "}
+            — schema and gating policy.
+          </li>
+        </ul>
+      </aside>
     </PageShell>
   );
 }

@@ -195,6 +195,20 @@ export default async function SourcesPage({ searchParams }: PageProps) {
           <Link href="/coverage" className="text-primary hover:underline">
             /coverage
           </Link>
+          . For the methodology behind these citations, see{" "}
+          <Link
+            href="/research/source-verification-methodology"
+            className="text-primary hover:underline"
+          >
+            /research/source-verification-methodology
+          </Link>{" "}
+          and the reference at{" "}
+          <Link
+            href="/docs/data-verification"
+            className="text-primary hover:underline"
+          >
+            /docs/data-verification
+          </Link>
           .
         </p>
       </aside>

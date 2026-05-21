@@ -496,6 +496,36 @@ export default function CoveragePage() {
         </div>
       </section>
 
+      <aside
+        className="card-surface p-5 text-sm text-muted-foreground"
+        aria-label="Methodology"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+          Methodology and reference
+        </p>
+        <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+          <li>
+            <Link
+              href="/research/source-verification-methodology"
+              className="text-primary hover:underline"
+            >
+              Source verification methodology
+            </Link>{" "}
+            — how citations and retrieval timestamps flow through the
+            entity graph.
+          </li>
+          <li>
+            <Link
+              href="/docs/data-verification"
+              className="text-primary hover:underline"
+            >
+              Data verification reference
+            </Link>{" "}
+            — VerifiedField, MaybeVerified, and the source allow-list.
+          </li>
+        </ul>
+      </aside>
+
       <section aria-label="What you will not find" className="card-surface p-5 text-sm text-muted-foreground">
         <h2 className="text-base font-semibold text-foreground">
           What you will not find on this site

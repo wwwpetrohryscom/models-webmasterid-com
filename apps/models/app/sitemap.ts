@@ -8,6 +8,7 @@ import {
   shouldIndexModel,
   shouldIndexStaticRoute,
 } from "@/lib/should-index";
+import { contentPages } from "@/lib/content";
 
 interface StaticRoute {
   path: string;
@@ -25,6 +26,7 @@ const STATIC_ROUTES: StaticRoute[] = [
   { path: "/infrastructure", changeFrequency: "weekly", priority: 0.6 },
   { path: "/coverage", changeFrequency: "weekly", priority: 0.7 },
   { path: "/sources", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/research", changeFrequency: "weekly", priority: 0.7 },
   { path: "/docs", changeFrequency: "monthly", priority: 0.5 },
 ];
 
@@ -68,5 +70,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     }));
 
-  return [...staticEntries, ...modelEntries, ...comparisonEntries];
+  const contentEntries: MetadataRoute.Sitemap = contentPages
+    .filter((p) => p.indexable)
+    .map((p) => ({
+      url: `${siteConfig.url}${p.slug}`,
+      lastModified: new Date(p.updatedDate),
+      changeFrequency: "monthly" as const,
+      priority: p.slug.startsWith("/research/") ? 0.6 : 0.55,
+    }));
+
+  return [
+    ...staticEntries,
+    ...modelEntries,
+    ...comparisonEntries,
+    ...contentEntries,
+  ];
 }

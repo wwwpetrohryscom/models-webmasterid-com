@@ -401,6 +401,35 @@ Probe safety rules (enforced by the integrity guard suite):
 
 ---
 
+## Content pages
+
+Research guides and reference docs (`/research`, `/docs`) follow the
+same verification discipline as the entity catalogue:
+
+- Pages may explain methodology and reference schemas freely. They
+  may cite verified facts from the catalogue (e.g. "Claude Opus 4.7
+  has a 1M-token context window") because those facts already trace
+  to a source citation.
+- Pages may NOT introduce new claims about a specific model /
+  provider / pricing row that are not already verified in the data
+  layer. If a page wants to say something specific that is not yet
+  verified, it must frame it as methodology, not a claim — e.g.
+  "Mistral pricing requires a manual browser pass" is acceptable
+  because it describes our retrieval state; "Mistral Large 3 costs X"
+  is not.
+- Pages must not introduce new banned phrases. Integrity guard:
+  "no content page contains forbidden marketing phrasing" — checks
+  for "best AI model", "guaranteed uptime", "real-time uptime
+  percentage", "official partner", "trusted by OpenAI".
+- Every page is registered in `apps/models/lib/content.ts` with
+  slug, title, description, related routes, keywords, indexability,
+  and JSON-LD type. The hubs (`/research`, `/docs`), sitemap,
+  llms.txt, and `/api/site` all read from this registry; the
+  integrity guards verify the registry and the route tree stay in
+  sync.
+
+---
+
 ## Manual vendor verification workflow
 
 For vendors whose documentation cannot be retrieved by the automated

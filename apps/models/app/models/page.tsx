@@ -291,6 +291,53 @@ export default async function ModelsIndexPage({
           remains the indexed catalogue.
         </p>
       </aside>
+
+      <aside
+        className="card-surface p-5 text-sm text-muted-foreground"
+        aria-label="How to read this catalogue"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+          How to read this catalogue
+        </p>
+        <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+          <li>
+            <Link
+              href="/docs/model-page-schema"
+              className="text-primary hover:underline"
+            >
+              Model page schema
+            </Link>{" "}
+            — every field on a model record.
+          </li>
+          <li>
+            <Link
+              href="/docs/pricing-fields"
+              className="text-primary hover:underline"
+            >
+              Pricing fields
+            </Link>{" "}
+            — what each pricing unit means.
+          </li>
+          <li>
+            <Link
+              href="/research/model-selection"
+              className="text-primary hover:underline"
+            >
+              Model selection
+            </Link>{" "}
+            — a verified-data approach to choosing.
+          </li>
+          <li>
+            <Link
+              href="/research/model-context-windows"
+              className="text-primary hover:underline"
+            >
+              Context windows in practice
+            </Link>
+            .
+          </li>
+        </ul>
+      </aside>
     </PageShell>
   );
 }

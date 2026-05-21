@@ -171,7 +171,15 @@ export default async function CompareIndexPage({ searchParams }: PageProps) {
           <strong>No winner declared.</strong> Every comparison sets
           verified attributes side-by-side. Readers compare against their
           own workload; the platform does not rank, score, or recommend a
-          model over another.
+          model over another. See{" "}
+          <Link
+            href="/docs/comparison-methodology"
+            className="text-primary hover:underline"
+          >
+            /docs/comparison-methodology
+          </Link>{" "}
+          for the rules behind the two-sided / one-sided / pending
+          buckets.
         </p>
       </aside>
 

@@ -17,6 +17,7 @@ import {
   ROUTE_SET_VERSION,
   STATUS_ENDPOINTS,
 } from "@/lib/route-contract";
+import { contentPages } from "@/lib/content";
 
 export const dynamic = "force-static";
 
@@ -49,6 +50,12 @@ export function GET() {
       health: absolute("/api/health"),
       statusEndpoints: STATUS_ENDPOINTS.map(absolute),
       debugEndpoints: DEBUG_ENDPOINTS.map(absolute),
+      researchPages: contentPages
+        .filter((p) => p.indexable && p.slug.startsWith("/research/"))
+        .map((p) => absolute(p.slug)),
+      docsPages: contentPages
+        .filter((p) => p.indexable && p.slug.startsWith("/docs/"))
+        .map((p) => absolute(p.slug)),
       updatedDate: siteConfig.buildDate,
       verificationPolicy:
         "Data not verified unless backed by primary source citation.",

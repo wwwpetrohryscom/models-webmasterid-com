@@ -511,6 +511,79 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Useful content layer */}
+      <section
+        aria-label="Build with verified model infrastructure data"
+        className="container-page mt-16"
+      >
+        <SectionHeader
+          eyebrow="Methodology + reference"
+          title="Build with verified model infrastructure data"
+          description="Source-aware research guides and reference docs that go beyond the catalogue rows — how to read pricing, how status is monitored, how comparisons are constructed, and how verification works end-to-end."
+          cta={{ label: "All research", href: "/research" }}
+        />
+        <ul className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[
+            {
+              href: "/compare",
+              eyebrow: "Catalogue",
+              title: "Compare verified models",
+              body: "Two-sided verified comparisons of pricing, context, modality, and lifecycle — never a winner.",
+            },
+            {
+              href: "/research/api-pricing-methodology",
+              eyebrow: "Research guide",
+              title: "Understand API pricing",
+              body: "How input/output/cache/batch units differ across providers and why we keep them as separate rows.",
+            },
+            {
+              href: "/status",
+              eyebrow: "Catalogue",
+              title: "Track provider status",
+              body: "Vendor-reported observations and independent HTTP probes — kept strictly separate; no fabricated uptime.",
+            },
+            {
+              href: "/sources",
+              eyebrow: "Audit",
+              title: "Review source coverage",
+              body: "Every primary-source citation indexed by provider and source type.",
+            },
+            {
+              href: "/research/source-verification-methodology",
+              eyebrow: "Research guide",
+              title: "Learn verification methodology",
+              body: "VerifiedField, MaybeVerified, source allow-list, retrieval cadence, JSON-LD exclusion policy.",
+            },
+            {
+              href: "/research/inference-infrastructure",
+              eyebrow: "Research guide",
+              title: "Explore infrastructure limits",
+              body: "Regions, batching, caching, rate limits — fields we record, fields we leave open.",
+            },
+          ].map((card) => (
+            <li key={card.href}>
+              <Link
+                href={card.href}
+                className="card-surface block h-full p-5 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {card.eyebrow}
+                </p>
+                <p className="mt-1 text-base font-semibold text-foreground">
+                  {card.title}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {card.body}
+                </p>
+                <p className="mt-3 text-xs font-medium text-primary">
+                  Read →
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* Trust / value strip */}
       <section
         aria-label="Why WebmasterID Models"

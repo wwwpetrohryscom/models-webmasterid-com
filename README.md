@@ -129,6 +129,36 @@ page (model, provider, comparison) and on the hub pages. The rendered
 trail and the structured-data trail use the same source of truth
 (`breadcrumbJsonLd()` in `lib/seo.ts`), so they cannot drift apart.
 
+## Useful content
+
+A research + reference layer lives under [`/research`](apps/models/app/research/)
+and [`/docs`](apps/models/app/docs/). Every page is registered in
+[`lib/content.ts`](apps/models/lib/content.ts) — the single source of
+truth for the sitemap, llms.txt, `/api/site`'s `researchPages` /
+`docsPages` arrays, and the integrity guards.
+
+Editorial discipline:
+
+- Source-aware. Every claim about a specific model / provider /
+  pricing row cites the existing verified registry. Where a value is
+  not yet verified, the page calls it out as a data gap rather than
+  inventing one.
+- No winner claims. The same `declaresWinner: false` discipline that
+  applies to /compare applies to /research.
+- No benchmark scores in page bodies. The benchmark-limitations guide
+  exists specifically to explain why.
+- No uptime percentages. The status guide names the threshold
+  constant from `lib/status-store.ts` but does not publish a number.
+- Every page renders breadcrumbs + Article/TechArticle JSON-LD via
+  the shared [`<ContentPageShell>`](apps/models/components/ContentPageShell.tsx).
+
+Adding a new content page is two edits: add an entry to
+`contentPages` in `lib/content.ts`, and add a route file under
+`/research/<slug>/page.tsx` or `/docs/<slug>/page.tsx` that imports
+`ContentPageShell` and renders the body. The integrity guards
+verify the slug appears in both places and that the page does not
+contain any of the banned marketing phrases.
+
 ## Route contract and smoke tests
 
 The set of routes the deployment is contractually required to serve

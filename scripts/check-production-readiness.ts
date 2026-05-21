@@ -1695,6 +1695,179 @@ const checks: Check[] = [
     },
   },
   {
+    name: "content registry module exists (Sprint 14)",
+    run: () =>
+      requireFile("apps/models/lib/content.ts", "lib/content.ts"),
+  },
+  {
+    name: "ContentPageShell component exists (Sprint 14)",
+    run: () =>
+      requireFile(
+        "apps/models/components/ContentPageShell.tsx",
+        "components/ContentPageShell.tsx"
+      ),
+  },
+  {
+    name: "all research routes from the content registry have route files",
+    run: () => {
+      const content = readRel("apps/models/lib/content.ts");
+      const failures: string[] = [];
+      const slugs = [
+        ...content.matchAll(/slug:\s*"(\/research\/[^"]+)"/g),
+      ].map((m) => m[1]);
+      for (const slug of slugs) {
+        const dir = `apps/models/app${slug}/page.tsx`;
+        if (!fileExists(dir)) failures.push(`Missing route file ${dir}`);
+      }
+      // Sanity: 8 research routes expected per the Sprint 14 plan.
+      if (slugs.length < 8) {
+        failures.push(
+          `Content registry lists only ${slugs.length} research routes; Sprint 14 expects 8.`
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "all docs routes from the content registry have route files",
+    run: () => {
+      const content = readRel("apps/models/lib/content.ts");
+      const failures: string[] = [];
+      const slugs = [
+        ...content.matchAll(/slug:\s*"(\/docs\/[^"]+)"/g),
+      ].map((m) => m[1]);
+      for (const slug of slugs) {
+        const dir = `apps/models/app${slug}/page.tsx`;
+        if (!fileExists(dir)) failures.push(`Missing route file ${dir}`);
+      }
+      if (slugs.length < 6) {
+        failures.push(
+          `Content registry lists only ${slugs.length} docs routes; Sprint 14 expects 6.`
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/research hub references the content registry",
+    run: () => {
+      const src = readRel("apps/models/app/research/page.tsx");
+      if (!/from\s+["']@\/lib\/content["']/.test(src)) {
+        return "/research/page.tsx does not import from @/lib/content — the hub must read from the registry.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/docs hub references the content registry",
+    run: () => {
+      const src = readRel("apps/models/app/docs/page.tsx");
+      if (!/from\s+["']@\/lib\/content["']/.test(src)) {
+        return "/docs/page.tsx does not import from @/lib/content — the hub must read from the registry.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "sitemap surfaces content pages",
+    run: () => {
+      const src = readRel("apps/models/app/sitemap.ts");
+      if (!/from\s+["']@\/lib\/content["']/.test(src)) {
+        return "sitemap.ts does not import from @/lib/content — content pages must appear in the sitemap.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "llms.txt enumerates research + docs pages",
+    run: () => {
+      const src = readRel("apps/models/app/llms.txt/route.ts");
+      if (!/from\s+["']@\/lib\/content["']/.test(src)) {
+        return "llms.txt route does not import the content registry — research / docs pages will not appear.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/api/site enumerates research + docs pages",
+    run: () => {
+      const src = readRel("apps/models/app/api/site/route.ts");
+      const failures: string[] = [];
+      if (!/researchPages/.test(src)) {
+        failures.push(
+          "/api/site does not surface a researchPages field. Partner integrations / smoke tests cannot discover the content."
+        );
+      }
+      if (!/docsPages/.test(src)) {
+        failures.push("/api/site does not surface a docsPages field.");
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no content page contains forbidden marketing phrasing",
+    run: () => {
+      // Pages must NOT contain blanket marketing claims. The phrases
+      // below are policy violations regardless of context. We scan the
+      // /research and /docs route trees only — site-wide phrases like
+      // those are allowed in disclaimers / refutation context (see the
+      // existing no-winner guard for that pattern).
+      const banned: { pattern: RegExp; label: string }[] = [
+        { pattern: /\bbest AI model\b/i, label: "best AI model" },
+        { pattern: /\bguaranteed uptime\b/i, label: "guaranteed uptime" },
+        {
+          pattern: /\breal[- ]time uptime percentage\b/i,
+          label: "real-time uptime percentage",
+        },
+        { pattern: /\bofficial partner\b/i, label: "official partner" },
+        { pattern: /\btrusted by OpenAI\b/i, label: "trusted by OpenAI" },
+      ];
+      const failures: string[] = [];
+      // Walk research + docs trees.
+      const roots = [
+        "apps/models/app/research",
+        "apps/models/app/docs",
+      ];
+      const walk = (dir: string, acc: string[]): string[] => {
+        const here = resolve(ROOT, dir);
+        let entries: string[] = [];
+        try {
+          entries = readdirSync(here);
+        } catch {
+          return acc;
+        }
+        for (const e of entries) {
+          const rel = `${dir}/${e}`;
+          const abs = resolve(ROOT, rel);
+          try {
+            const st = statSync(abs);
+            if (st.isDirectory()) {
+              walk(rel, acc);
+            } else if (e === "page.tsx") {
+              acc.push(rel);
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+        return acc;
+      };
+      const files: string[] = [];
+      for (const r of roots) walk(r, files);
+      for (const rel of files) {
+        const src = readRel(rel);
+        for (const b of banned) {
+          if (b.pattern.test(src)) {
+            failures.push(
+              `${rel} contains forbidden phrase "${b.label}" — content pages must not assert blanket marketing claims.`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
     name: "entity-graph helpers do not perform network fetches",
     run: () => {
       const src = readRel("apps/models/lib/entity-graph.ts");

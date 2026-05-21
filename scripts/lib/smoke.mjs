@@ -21,6 +21,8 @@ const PAGE_ROUTES = [
   "/status",
   "/coverage",
   "/sources",
+  "/research",
+  "/docs",
 ];
 
 const API_ROUTES = [

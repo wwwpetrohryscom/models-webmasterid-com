@@ -2,23 +2,45 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageShell } from "@/components/PageShell";
 import { JsonLd } from "@/components/JsonLd";
-import { DataNotVerified } from "@/components/DataNotVerified";
+import { SectionHeader } from "@/components/SectionHeader";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
+import {
+  docsPages,
+  RESEARCH_SECTION_LABEL,
+  type ContentSection,
+} from "@/lib/content";
+import { formatDateISO } from "@/lib/utils";
 
 export const metadata: Metadata = buildMetadata({
   title: "Docs",
   description:
-    "How WebmasterID Models structures, verifies, and surfaces AI model intelligence.",
+    "Reference documentation for the WebmasterID Models data model — VerifiedField + MaybeVerified, the PricingUnit enum, StatusObservation, comparison rules, provider coverage dimensions, and the ModelEntity schema.",
   path: "/docs",
 });
 
-export default function DocsPage() {
+export default function DocsHubPage() {
+  const sections: ContentSection[] = [
+    "data-model",
+    "data-verification",
+    "pricing-docs",
+    "status-docs",
+    "comparison-docs",
+  ];
+
   return (
     <PageShell
-      eyebrow="Documentation"
+      eyebrow="Reference hub"
       title="Docs"
-      intro="How WebmasterID Models is structured, how data is verified, and how to read the verification badges that appear across the platform."
+      intro="Reference documentation for the data model behind every model, provider, comparison, and observation. Each docs page is a stable schema reference; the methodology behind those schemas lives in /research."
     >
+      <Breadcrumbs
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Docs", href: "/docs" },
+        ]}
+      />
+
       <JsonLd
         data={breadcrumbJsonLd([
           { name: "Home", href: "/" },
@@ -26,125 +48,127 @@ export default function DocsPage() {
         ])}
       />
 
-      <article className="card-surface space-y-4 p-6 text-sm leading-relaxed text-muted-foreground">
-        <section>
-          <h2 className="text-base font-semibold text-foreground">
-            Entity model
-          </h2>
-          <p className="mt-2">
-            WebmasterID Models is built around a small set of entity types:
-            <strong className="text-foreground"> ModelEntity</strong>,
-            <strong className="text-foreground"> ProviderEntity</strong>,
-            <strong className="text-foreground"> BenchmarkEntity</strong>,
-            <strong className="text-foreground"> PricingEntity</strong>,
-            <strong className="text-foreground"> ComparisonEntity</strong>,
-            <strong className="text-foreground"> RegionEntity</strong>, and
-            <strong className="text-foreground"> StatusEntity</strong>. Each
-            has a stable slug, a description, and verification metadata.
-          </p>
-        </section>
+      <aside
+        role="note"
+        aria-label="Editorial policy"
+        className="card-surface p-4 text-sm text-muted-foreground"
+      >
+        <p>
+          Docs describe the verified-data schema, not opinions. They are
+          reference material — every field is documented with the same
+          source-discipline rules used in the live entity graph. See{" "}
+          <Link
+            href="/docs/data-verification"
+            className="text-primary hover:underline"
+          >
+            data verification
+          </Link>{" "}
+          for the foundational rules.
+        </p>
+      </aside>
 
-        <section>
-          <h2 className="text-base font-semibold text-foreground">
-            Verification states
-          </h2>
-          <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>
-              <strong className="text-foreground">Verified</strong> — fields
-              confirmed against an official primary source within the latest
-              check interval.
-            </li>
-            <li>
-              <strong className="text-foreground">Partial</strong> — entity
-              identity is confirmed but some fields are unverified.
-            </li>
-            <li>
-              <strong className="text-foreground">Unverified</strong> — the
-              entity is known to exist but no fields have been confirmed
-              against a primary source yet.
-            </li>
-            <li>
-              <strong className="text-foreground">Deprecated</strong> — the
-              entity is no longer current and is retained for reference only.
-            </li>
-          </ul>
-        </section>
+      {sections.map((section) => {
+        const items = docsPages.filter((p) => p.section === section);
+        if (items.length === 0) return null;
+        return (
+          <section
+            key={section}
+            aria-label={RESEARCH_SECTION_LABEL[section]}
+            className="space-y-3"
+          >
+            <SectionHeader
+              eyebrow={RESEARCH_SECTION_LABEL[section]}
+              title={`${items.length} page${items.length === 1 ? "" : "s"}`}
+              as="h2"
+            />
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {items.map((page) => (
+                <li key={page.slug}>
+                  <Link
+                    href={page.slug}
+                    className="card-surface block h-full p-5 transition hover:border-primary/30 hover:shadow-elevated"
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {RESEARCH_SECTION_LABEL[page.section]}
+                    </p>
+                    <h3 className="mt-1 text-base font-semibold text-foreground">
+                      {page.title}
+                    </h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {page.description}
+                    </p>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      Last updated: {formatDateISO(page.updatedDate)}
+                    </p>
+                    <p className="mt-2 text-xs font-medium text-primary">
+                      Read reference →
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })}
 
-        <section>
-          <h2 className="text-base font-semibold text-foreground">
-            The unverified-data label
-          </h2>
-          <p className="mt-2">
-            When a metric — pricing, latency, uptime, benchmark score,
-            release date — has not been confirmed against an official
-            source, the canonical unverified-data label is rendered in
-            its place rather than an estimate. It looks like this:{" "}
-            <DataNotVerified />. The platform does not extrapolate,
-            average, or interpolate values.
-          </p>
-        </section>
+      <aside
+        className="card-surface p-5 text-sm text-muted-foreground"
+        aria-label="Crawler endpoints"
+      >
+        <h2 className="text-base font-semibold text-foreground">
+          Machine-readable endpoints
+        </h2>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+          <li>
+            <Link href="/sitemap.xml" className="text-primary hover:underline">
+              /sitemap.xml
+            </Link>
+          </li>
+          <li>
+            <Link href="/robots.txt" className="text-primary hover:underline">
+              /robots.txt
+            </Link>
+          </li>
+          <li>
+            <Link href="/llms.txt" className="text-primary hover:underline">
+              /llms.txt
+            </Link>
+          </li>
+          <li>
+            <Link href="/rss.xml" className="text-primary hover:underline">
+              /rss.xml
+            </Link>
+          </li>
+          <li>
+            <Link href="/api/site" className="text-primary hover:underline" prefetch={false}>
+              /api/site
+            </Link>
+          </li>
+          <li>
+            <Link href="/api/debug/deployment" className="text-primary hover:underline" prefetch={false}>
+              /api/debug/deployment
+            </Link>
+          </li>
+        </ul>
+      </aside>
 
-        <section>
-          <h2 className="text-base font-semibold text-foreground">
-            Sources
-          </h2>
-          <p className="mt-2">
-            Each entity supports{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">
-              sourceUrl
-            </code>
-            ,{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">
-              sourceName
-            </code>
-            ,{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">
-              sourceType
-            </code>
-            ,{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">
-              lastCheckedAt
-            </code>
-            , and{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">
-              confidenceLevel
-            </code>{" "}
-            fields. Preference is given to official vendor documentation and
-            primary sources over secondary summaries.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-base font-semibold text-foreground">
-            Crawler endpoints
-          </h2>
-          <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>
-              <Link
-                href="/sitemap.xml"
-                className="text-primary hover:underline"
-              >
-                /sitemap.xml
-              </Link>
-            </li>
-            <li>
-              <Link href="/robots.txt" className="text-primary hover:underline">
-                /robots.txt
-              </Link>
-            </li>
-            <li>
-              <Link href="/llms.txt" className="text-primary hover:underline">
-                /llms.txt
-              </Link>
-            </li>
-            <li>
-              <Link href="/rss.xml" className="text-primary hover:underline">
-                /rss.xml
-              </Link>
-            </li>
-          </ul>
-        </section>
-      </article>
+      <aside
+        className="card-surface p-5 text-sm text-muted-foreground"
+        aria-label="Methodology"
+      >
+        <h2 className="text-base font-semibold text-foreground">
+          Methodology and guides
+        </h2>
+        <p className="mt-2">
+          See{" "}
+          <Link href="/research" className="text-primary hover:underline">
+            /research
+          </Link>{" "}
+          for source-aware guides on model selection, API pricing,
+          context windows, status monitoring, benchmark methodology, and
+          inference infrastructure.
+        </p>
+      </aside>
     </PageShell>
   );
 }

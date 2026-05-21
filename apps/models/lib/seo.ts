@@ -107,6 +107,51 @@ export function breadcrumbJsonLd(
   };
 }
 
+/**
+ * Article / TechArticle JSON-LD for research and docs content pages.
+ *
+ * Notes:
+ *   - `headline` is the page title.
+ *   - `description` is the metadata description.
+ *   - `dateModified` should be the page's authored `updatedDate`.
+ *   - We do not assert benchmark scores, uptime, latency, or any other
+ *     unverified metric inside the article markup. Pages whose body
+ *     contains methodology explanations only are fine; pages that
+ *     publish a specific metric must source it through the verified
+ *     citation registry, never through this helper.
+ *   - `inLanguage` is derived from siteConfig.locale.
+ */
+export function articleJsonLd({
+  type = "Article",
+  headline,
+  description,
+  path,
+  dateModified,
+}: {
+  type?: "Article" | "TechArticle";
+  headline: string;
+  description: string;
+  path: string;
+  dateModified: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": type,
+    headline,
+    description,
+    url: absoluteUrl(path),
+    mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl(path) },
+    inLanguage: siteConfig.locale,
+    dateModified,
+    isAccessibleForFree: true,
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.ecosystem,
+      url: "https://webmasterid.com",
+    },
+  };
+}
+
 export function datasetJsonLd({
   name,
   description,

@@ -27,11 +27,11 @@ const STATIC_INDEXABLE = new Set<string>([
   "/docs",
   "/coverage",
   "/sources",
+  "/research",
 ]);
 
 const STATIC_NOINDEX = new Set<string>([
   "/news",
-  "/research",
   "/status",
 ]);
 
