@@ -68,3 +68,40 @@ export function robotsMetadata(indexable: boolean) {
     ? { index: true, follow: true }
     : { index: false, follow: true };
 }
+
+/**
+ * Filter-aware indexing for hub pages (`/models`, `/pricing`, `/compare`,
+ * `/sources`). When any meaningful query-string filter is set, the
+ * filtered URL is `noindex, follow` so search engines do not treat it
+ * as a separate document, but they still traverse outbound links. The
+ * unfiltered base URL remains indexable.
+ *
+ * Pagination / locale params can be added to this allow-list later if
+ * we want a specific filtered facet to be indexable; the default is to
+ * suppress all filter combinations.
+ */
+const FILTERED_KEYS = new Set<string>([
+  "q",
+  "provider",
+  "verification",
+  "lifecycle",
+  "modality",
+  "status",
+  "unit",
+  "indexable",
+  "sourceType",
+]);
+
+export function isFilteredRoute(
+  searchParams: Record<string, string | string[] | undefined> | undefined
+): boolean {
+  if (!searchParams) return false;
+  for (const key of Object.keys(searchParams)) {
+    if (!FILTERED_KEYS.has(key)) continue;
+    const v = searchParams[key];
+    if (typeof v === "string" && v.trim().length > 0) return true;
+    if (Array.isArray(v) && v.some((x) => x && x.trim().length > 0))
+      return true;
+  }
+  return false;
+}

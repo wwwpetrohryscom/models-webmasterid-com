@@ -95,6 +95,37 @@ Every page sets canonical URL, OpenGraph, and Twitter metadata via
 | `/api/status/anthropic` | Single, freshly-issued vendor-reported `StatusObservation` for Anthropic. Always 200; on upstream failure the observation reports `observedStatus: "unknown"`. |
 | `/api/cron/status` | Runs every enabled status observer. Bearer-token-guarded via `CRON_SECRET` in production; refuses to run unguarded if the secret is missing on a Vercel production deployment. |
 
+## Server filters and entity graph
+
+The hub pages — `/models`, `/pricing`, `/compare`, `/sources` — accept
+GET query-string filters and render filtered results server-side. No
+client-side search dependency. Supported parameters:
+
+| Hub | Parameters |
+| --- | --- |
+| `/models` | `q`, `provider`, `verification`, `lifecycle`, `modality` |
+| `/pricing` | `q`, `provider`, `status`, `unit` |
+| `/compare` | `q`, `provider`, `verification`, `indexable` |
+| `/sources` | `provider`, `sourceType` |
+
+Indexing policy for filtered URLs:
+- Unfiltered base URL: `index, follow` (canonical).
+- Any filtered URL: `noindex, follow` via `robotsMetadata(!filtered)` in
+  the page's `generateMetadata`. `isFilteredRoute(searchParams)` in
+  [`lib/should-index.ts`](apps/models/lib/should-index.ts) decides.
+
+Cross-entity navigation is centralised in
+[`lib/entity-graph.ts`](apps/models/lib/entity-graph.ts) — pure,
+deterministic, network-free helpers over the typed local data layer.
+Helpers do not synthesise unverified claims; if a metric is unverified,
+helpers expose `null` and the renderer decides whether to surface
+`<DataNotVerified>`.
+
+Breadcrumbs and `BreadcrumbList` JSON-LD are emitted on every detail
+page (model, provider, comparison) and on the hub pages. The rendered
+trail and the structured-data trail use the same source of truth
+(`breadcrumbJsonLd()` in `lib/seo.ts`), so they cannot drift apart.
+
 Both endpoints are excluded from `robots.txt` and intentionally not
 indexed in search.
 

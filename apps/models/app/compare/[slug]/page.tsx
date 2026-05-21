@@ -10,6 +10,7 @@ import { DataFreshness } from "@/components/DataFreshness";
 import { InternalLinkGrid } from "@/components/InternalLinkGrid";
 import { JsonLd } from "@/components/JsonLd";
 import { SourceCitationList } from "@/components/SourceCitation";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { robotsMetadata, shouldIndexComparison } from "@/lib/should-index";
 import { comparisons, getComparisonBySlug } from "@/data/comparisons";
@@ -71,6 +72,14 @@ export default async function ComparisonPage({
       title={comparison.name}
       intro={comparison.description}
     >
+      <Breadcrumbs
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Compare", href: "/compare" },
+          { name: comparison.name, href: `/compare/${comparison.slug}` },
+        ]}
+      />
+
       <aside
         role="note"
         aria-label="Comparison policy"
@@ -265,6 +274,29 @@ export default async function ComparisonPage({
               label: modelB.name,
               href: `/models/${modelB.slug}`,
               description: `Full ${modelB.name} intelligence record`,
+            },
+            ...(providerA
+              ? [
+                  {
+                    label: providerA.name,
+                    href: `/providers/${providerA.slug}`,
+                    description: `Provider page for ${providerA.name}`,
+                  },
+                ]
+              : []),
+            ...(providerB && providerB.slug !== providerA?.slug
+              ? [
+                  {
+                    label: providerB.name,
+                    href: `/providers/${providerB.slug}`,
+                    description: `Provider page for ${providerB.name}`,
+                  },
+                ]
+              : []),
+            {
+              label: "Pricing for both providers",
+              href: `/pricing?provider=${modelA.providerSlug}`,
+              description: `Filtered to ${providerA?.name ?? modelA.providerSlug}`,
             },
             {
               label: "All comparisons",

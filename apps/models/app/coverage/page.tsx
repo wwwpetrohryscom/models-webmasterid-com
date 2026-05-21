@@ -6,12 +6,17 @@ import { VerificationBadge } from "@/components/VerificationBadge";
 import { DataNotVerified } from "@/components/DataNotVerified";
 import { JsonLd } from "@/components/JsonLd";
 import { SectionHeader } from "@/components/SectionHeader";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { providers, getProviderBySlug } from "@/data/providers";
 import { models } from "@/data/models";
 import { verificationAttempts } from "@/data/verification-attempts";
 import { isVerified } from "@/lib/verified";
 import { formatDateISO } from "@/lib/utils";
+import {
+  getEntityCoverageSummary,
+  getStatusObserverForProvider,
+} from "@/lib/entity-graph";
 
 export const metadata: Metadata = buildMetadata({
   title: "Coverage",
@@ -49,18 +54,110 @@ const ATTEMPT_LABEL: Record<string, string> = {
 };
 
 export default function CoveragePage() {
+  const summary = getEntityCoverageSummary();
+  const summaryCards: { label: string; value: number; href?: string }[] = [
+    {
+      label: "Verified models",
+      value: summary.verifiedModels,
+      href: "/models?verification=verified",
+    },
+    {
+      label: "Partially verified models",
+      value: summary.partiallyVerifiedModels,
+      href: "/models?verification=partial",
+    },
+    {
+      label: "Retired / historical models",
+      value: summary.retiredOrHistoricalModels,
+      href: "/models?lifecycle=retired",
+    },
+    {
+      label: "Verified providers",
+      value: summary.verifiedProviders,
+      href: "/providers",
+    },
+    {
+      label: "Providers with status observer",
+      value: summary.providersWithStatusObserver,
+      href: "/status",
+    },
+    {
+      label: "Verified pricing rows",
+      value: summary.verifiedPricingRows,
+      href: "/pricing?status=verified",
+    },
+    {
+      label: "Indexed comparisons",
+      value: summary.twoSidedVerifiedComparisons,
+      href: "/compare?indexable=yes",
+    },
+    {
+      label: "Noindex comparisons",
+      value:
+        summary.oneSidedVerifiedComparisons + summary.pendingComparisons,
+      href: "/compare?indexable=no",
+    },
+  ];
+
   return (
     <PageShell
       eyebrow="Transparency"
       title="Coverage"
       intro="Verification state across the entity graph. This page reports exactly what has been verified against primary sources, what has been attempted but blocked, and what is still pending. There is no fabricated coverage here — if a field is unverified, this page says so."
     >
+      <Breadcrumbs
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Coverage", href: "/coverage" },
+        ]}
+      />
+
       <JsonLd
         data={breadcrumbJsonLd([
           { name: "Home", href: "/" },
           { name: "Coverage", href: "/coverage" },
         ])}
       />
+
+      <section
+        aria-label="Entity graph summary"
+        className="space-y-3"
+      >
+        <SectionHeader
+          eyebrow="At a glance"
+          title="Entity graph summary"
+          description="Counts derived from the typed local data layer. Cards link into the corresponding filtered hub view (filtered URLs are noindex, follow)."
+          as="h2"
+        />
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {summaryCards.map((card) => {
+            const inner = (
+              <>
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                  {card.label}
+                </p>
+                <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
+                  {card.value}
+                </p>
+              </>
+            );
+            return (
+              <li key={card.label}>
+                {card.href ? (
+                  <Link
+                    href={card.href}
+                    className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+                  >
+                    {inner}
+                  </Link>
+                ) : (
+                  <div className="card-surface p-4">{inner}</div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
 
       <section aria-label="Per-provider coverage" className="space-y-3">
         <SectionHeader
@@ -129,6 +226,21 @@ export default function CoveragePage() {
                 <p className="text-xs text-muted-foreground">
                   {p.notes ?? "No coverage notes recorded for this provider yet."}
                 </p>
+                {(() => {
+                  const observer = getStatusObserverForProvider(p.slug);
+                  if (!observer) return null;
+                  return (
+                    <p className="text-xs">
+                      <Link
+                        href={`/api/status/${p.slug}`}
+                        prefetch={false}
+                        className="text-primary hover:underline"
+                      >
+                        Vendor-status observation API →
+                      </Link>
+                    </p>
+                  );
+                })()}
               </li>
             );
           })}

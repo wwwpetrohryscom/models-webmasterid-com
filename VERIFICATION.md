@@ -292,6 +292,46 @@ requires the **Manual vendor verification workflow** below.
 
 ---
 
+## Server filter and entity-graph policy
+
+The hub pages (`/models`, `/pricing`, `/compare`, `/sources`) accept
+GET filter parameters and render filtered results server-side.
+
+- **No client-side filtering library.** Filters submit to the same
+  route via a plain `<form method="get">`. Results stay crawlable.
+- **Canonical stays the base URL.** A filtered URL is `noindex,
+  follow`; the unfiltered base URL is `index, follow`. The decision
+  flows through `isFilteredRoute(searchParams)` in
+  `lib/should-index.ts` and `robotsMetadata(!filtered)` in each hub's
+  `generateMetadata()`.
+- **Filtered URLs never emit a different canonical.** They share the
+  base canonical so search engines de-duplicate naturally; `noindex,
+  follow` ensures the filter facets do not pollute the index.
+- **No pricing amount is rendered outside the verified pricing helpers.**
+  Filtered pricing rows go through `<VerifiedField>` /
+  `<DataNotVerified>` like every other pricing render.
+- **Comparison hub never declares a winner.** Filtering by indexability
+  is allowed; filtering by "best" is not a category.
+
+Entity-graph helpers in `apps/models/lib/entity-graph.ts` provide
+cross-entity navigation (model → provider, model → comparisons, model
+→ citations, provider → status observer, summary counts). Helpers
+MUST:
+
+- Be pure functions over the typed local data layer.
+- Never call `fetch()` or read `process.env`.
+- Never synthesise verified claims — if the underlying field is
+  unverified, the helper exposes `null` and the renderer decides
+  whether to surface `<DataNotVerified>`.
+
+Breadcrumbs and `BreadcrumbList` JSON-LD are emitted on every detail
+page (model, provider, comparison) and on hub pages. The visible
+trail and the structured-data trail both flow through `breadcrumbJsonLd()`
+and the `<Breadcrumbs>` component, so they cannot drift apart. The
+trail uses absolute canonical URLs.
+
+---
+
 ## Status monitoring policy
 
 Vendor-reported status and independent uptime are two different signals

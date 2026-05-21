@@ -3,25 +3,130 @@ import Link from "next/link";
 import { PageShell } from "@/components/PageShell";
 import { ModelBadge } from "@/components/ModelBadge";
 import { JsonLd } from "@/components/JsonLd";
-import { buildMetadata, breadcrumbJsonLd, datasetJsonLd } from "@/lib/seo";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import {
+  buildMetadata,
+  breadcrumbJsonLd,
+  datasetJsonLd,
+} from "@/lib/seo";
+import { isFilteredRoute, robotsMetadata } from "@/lib/should-index";
 import { siteConfig } from "@/lib/site-config";
 import { models } from "@/data/models";
-import { getProviderBySlug } from "@/data/providers";
+import { providers, getProviderBySlug } from "@/data/providers";
+import { isVerified } from "@/lib/verified";
+import type {
+  LifecycleStatus,
+  ModalityChannel,
+  VerificationStatus,
+} from "@/lib/types";
 
-export const metadata: Metadata = buildMetadata({
-  title: "AI Models",
-  description:
-    "Browse tracked AI models across OpenAI, Anthropic, Google, Meta, Mistral, DeepSeek, and more.",
-  path: "/models",
-});
+type SearchParams = Record<string, string | string[] | undefined>;
 
-export default function ModelsIndexPage() {
+interface PageProps {
+  searchParams: Promise<SearchParams>;
+}
+
+const VERIFICATION_OPTIONS: { value: VerificationStatus; label: string }[] = [
+  { value: "verified", label: "Verified" },
+  { value: "partial", label: "Partially verified" },
+  { value: "unverified", label: "Unverified" },
+];
+
+const LIFECYCLE_OPTIONS: { value: LifecycleStatus; label: string }[] = [
+  { value: "active", label: "Active" },
+  { value: "preview", label: "Preview" },
+  { value: "deprecated", label: "Deprecated" },
+  { value: "retired", label: "Retired" },
+];
+
+const MODALITY_OPTIONS: { value: ModalityChannel | "text" | "image" | "audio" | "video"; label: string }[] = [
+  { value: "text", label: "Text" },
+  { value: "image", label: "Image" },
+  { value: "audio", label: "Audio" },
+  { value: "video", label: "Video" },
+];
+
+function readParam(
+  searchParams: SearchParams,
+  key: string
+): string | undefined {
+  const v = searchParams[key];
+  if (typeof v === "string" && v.trim().length > 0) return v.trim();
+  return undefined;
+}
+
+export async function generateMetadata({
+  searchParams,
+}: PageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const filtered = isFilteredRoute(params);
+  return {
+    ...buildMetadata({
+      title: "AI Models",
+      description:
+        "Browse tracked AI models across Anthropic, Google, DeepSeek, Mistral, OpenAI, Meta, and more. Filter by provider, verification status, lifecycle, and modality.",
+      path: "/models",
+    }),
+    robots: robotsMetadata(!filtered),
+  };
+}
+
+export default async function ModelsIndexPage({
+  searchParams,
+}: PageProps) {
+  const params = await searchParams;
+  const q = readParam(params, "q")?.toLowerCase();
+  const providerFilter = readParam(params, "provider");
+  const verificationFilter = readParam(params, "verification") as
+    | VerificationStatus
+    | undefined;
+  const lifecycleFilter = readParam(params, "lifecycle") as
+    | LifecycleStatus
+    | undefined;
+  const modalityFilter = readParam(params, "modality")?.toLowerCase();
+
+  const filtered = isFilteredRoute(params);
+
+  const results = models.filter((m) => {
+    if (q) {
+      const haystack =
+        `${m.name} ${m.slug} ${m.description ?? ""}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    if (providerFilter && m.providerSlug !== providerFilter) return false;
+    if (
+      verificationFilter &&
+      m.verificationStatus !== verificationFilter
+    ) {
+      return false;
+    }
+    if (lifecycleFilter) {
+      if (!isVerified(m.lifecycle)) return false;
+      if (m.lifecycle.value.status !== lifecycleFilter) return false;
+    }
+    if (modalityFilter) {
+      if (!isVerified(m.modality)) return false;
+      const found = m.modality.value.some((ch) =>
+        ch.toLowerCase().includes(modalityFilter)
+      );
+      if (!found) return false;
+    }
+    return true;
+  });
+
   return (
     <PageShell
       eyebrow="Catalogue"
       title="AI Models"
       intro="Structured catalogue of AI models with provider attribution, verification status, and links to deeper intelligence. Unknown metrics are explicitly marked as not yet verified."
     >
+      <Breadcrumbs
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Models", href: "/models" },
+        ]}
+      />
+
       <JsonLd
         data={[
           breadcrumbJsonLd([
@@ -37,14 +142,20 @@ export default function ModelsIndexPage() {
         ]}
       />
 
-      <section aria-label="Filter and search" className="card-surface p-4">
-        <div className="grid gap-3 sm:grid-cols-3">
+      <form
+        method="get"
+        action="/models"
+        aria-label="Filter and search models"
+        className="card-surface p-4"
+      >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <label className="text-xs text-muted-foreground">
             <span className="block font-medium text-foreground">Search</span>
             <input
               type="search"
+              name="q"
+              defaultValue={q ?? ""}
               placeholder="Filter by model name…"
-              readOnly
               aria-label="Search models"
               className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
@@ -52,11 +163,17 @@ export default function ModelsIndexPage() {
           <label className="text-xs text-muted-foreground">
             <span className="block font-medium text-foreground">Provider</span>
             <select
-              defaultValue=""
+              name="provider"
+              defaultValue={providerFilter ?? ""}
               aria-label="Filter by provider"
               className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
             >
               <option value="">All providers</option>
+              {providers.map((p) => (
+                <option key={p.slug} value={p.slug}>
+                  {p.name}
+                </option>
+              ))}
             </select>
           </label>
           <label className="text-xs text-muted-foreground">
@@ -64,31 +181,95 @@ export default function ModelsIndexPage() {
               Verification
             </span>
             <select
-              defaultValue=""
+              name="verification"
+              defaultValue={verificationFilter ?? ""}
               aria-label="Filter by verification status"
               className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
             >
               <option value="">Any status</option>
+              {VERIFICATION_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-muted-foreground">
+            <span className="block font-medium text-foreground">Lifecycle</span>
+            <select
+              name="lifecycle"
+              defaultValue={lifecycleFilter ?? ""}
+              aria-label="Filter by lifecycle status"
+              className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            >
+              <option value="">Any lifecycle</option>
+              {LIFECYCLE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-muted-foreground">
+            <span className="block font-medium text-foreground">Modality</span>
+            <select
+              name="modality"
+              defaultValue={modalityFilter ?? ""}
+              aria-label="Filter by modality"
+              className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            >
+              <option value="">Any modality</option>
+              {MODALITY_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
             </select>
           </label>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Filters are a visual placeholder. Server-side filtering ships in the
-          next iteration.
-        </p>
-      </section>
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          <button
+            type="submit"
+            className="inline-flex h-8 items-center rounded-lg border border-primary/30 bg-primary/10 px-3 font-medium text-primary hover:bg-primary/15"
+          >
+            Apply filters
+          </button>
+          {filtered ? (
+            <Link href="/models" className="text-primary hover:underline">
+              Reset
+            </Link>
+          ) : null}
+          <span>
+            {results.length} model{results.length === 1 ? "" : "s"}
+            {filtered ? " match the current filters" : " in the catalogue"}.
+          </span>
+        </div>
+      </form>
 
       <section aria-label="Models">
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {models.map((m) => {
-            const p = getProviderBySlug(m.providerSlug);
-            return (
-              <li key={m.slug}>
-                <ModelBadge model={m} providerName={p?.name ?? "Unknown"} />
-              </li>
-            );
-          })}
-        </ul>
+        {results.length === 0 ? (
+          <div className="card-surface p-5 text-sm text-muted-foreground">
+            <p>
+              No models match the current filters. Try{" "}
+              <Link href="/models" className="text-primary hover:underline">
+                resetting
+              </Link>{" "}
+              or removing one of: search query, provider, verification,
+              lifecycle, modality.
+            </p>
+          </div>
+        ) : (
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {results.map((m) => {
+              const p = getProviderBySlug(m.providerSlug);
+              return (
+                <li key={m.slug}>
+                  <ModelBadge model={m} providerName={p?.name ?? "Unknown"} />
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </section>
 
       <aside className="card-surface p-5 text-sm text-muted-foreground">
@@ -101,7 +282,13 @@ export default function ModelsIndexPage() {
           <Link href="/providers" className="text-primary hover:underline">
             Providers
           </Link>{" "}
-          to scope by lab.
+          to scope by lab. Filtered URLs on this hub are{" "}
+          <code className="rounded bg-muted px-1">noindex, follow</code> so the
+          canonical{" "}
+          <Link href="/models" className="text-primary hover:underline">
+            /models
+          </Link>{" "}
+          remains the indexed catalogue.
         </p>
       </aside>
     </PageShell>

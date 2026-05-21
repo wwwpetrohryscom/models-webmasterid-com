@@ -16,12 +16,17 @@ import { VerificationSummary } from "@/components/VerificationSummary";
 import { SourceCitationList } from "@/components/SourceCitation";
 import { DataNotVerified } from "@/components/DataNotVerified";
 import { ApiExample } from "@/components/ApiExample";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { models, getModelBySlug } from "@/data/models";
 import { getProviderBySlug } from "@/data/providers";
-import { comparisons } from "@/data/comparisons";
 import { isVerified } from "@/lib/verified";
 import { buildModelJsonLd } from "@/lib/model-jsonld";
+import {
+  getRelatedModels,
+  getComparisonsForModel,
+  getStatusObserverForProvider,
+} from "@/lib/entity-graph";
 import {
   anthropicModelsOverview,
   deepseekApiReference,
@@ -61,9 +66,9 @@ export default async function ModelPage({
   const model = getModelBySlug(slug);
   if (!model) notFound();
   const provider = getProviderBySlug(model.providerSlug);
-  const relatedComparisons = comparisons.filter(
-    (c) => c.modelA === model.slug || c.modelB === model.slug
-  );
+  const relatedComparisons = getComparisonsForModel(model.slug);
+  const relatedModels = getRelatedModels(model.slug);
+  const providerObserver = getStatusObserverForProvider(model.providerSlug);
 
   return (
     <PageShell
@@ -71,6 +76,14 @@ export default async function ModelPage({
       title={model.name}
       intro={model.description}
     >
+      <Breadcrumbs
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Models", href: "/models" },
+          { name: model.name, href: `/models/${model.slug}` },
+        ]}
+      />
+
       <JsonLd
         data={[
           breadcrumbJsonLd([
@@ -306,6 +319,81 @@ export default async function ModelPage({
           />
         </section>
       ) : null}
+
+      {relatedModels.length ? (
+        <section aria-label="Related models" className="space-y-3">
+          <SectionHeader
+            eyebrow="Continue"
+            title="Related models"
+            description="Other models in the catalogue — same provider first, then the rest of the graph."
+            as="h2"
+          />
+          <InternalLinkGrid
+            items={relatedModels.map((m) => {
+              const p = getProviderBySlug(m.providerSlug);
+              return {
+                label: m.name,
+                href: `/models/${m.slug}`,
+                description: `${p?.name ?? "Unknown provider"} · ${m.verificationStatus}`,
+              };
+            })}
+          />
+        </section>
+      ) : null}
+
+      <section
+        aria-label="Provider context"
+        className="card-surface p-5 text-sm"
+      >
+        <SectionHeader
+          eyebrow="Entity graph"
+          title="Provider context"
+          as="h2"
+        />
+        <ul className="mt-3 space-y-2 text-muted-foreground">
+          {provider ? (
+            <li>
+              Provider page:{" "}
+              <Link
+                href={`/providers/${provider.slug}`}
+                className="text-primary hover:underline"
+              >
+                /providers/{provider.slug}
+              </Link>
+            </li>
+          ) : null}
+          <li>
+            Pricing rows for this provider:{" "}
+            <Link
+              href={`/pricing?provider=${model.providerSlug}`}
+              className="text-primary hover:underline"
+            >
+              /pricing?provider={model.providerSlug}
+            </Link>
+          </li>
+          <li>
+            Sources for this provider:{" "}
+            <Link
+              href={`/sources?provider=${model.providerSlug}`}
+              className="text-primary hover:underline"
+            >
+              /sources?provider={model.providerSlug}
+            </Link>
+          </li>
+          {providerObserver ? (
+            <li>
+              Vendor-status observation API:{" "}
+              <Link
+                href={`/api/status/${model.providerSlug}`}
+                prefetch={false}
+                className="text-primary hover:underline"
+              >
+                /api/status/{model.providerSlug}
+              </Link>
+            </li>
+          ) : null}
+        </ul>
+      </section>
 
       {model.providerSlug === "anthropic" && isVerified(model.apiIdentifiers) ? (
         <ApiExample

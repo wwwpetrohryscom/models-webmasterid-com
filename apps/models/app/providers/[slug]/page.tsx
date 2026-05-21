@@ -8,12 +8,19 @@ import { JsonLd } from "@/components/JsonLd";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ModelBadge } from "@/components/ModelBadge";
 import { DataNotVerified } from "@/components/DataNotVerified";
+import { InternalLinkGrid } from "@/components/InternalLinkGrid";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { providers, getProviderBySlug } from "@/data/providers";
 import { models } from "@/data/models";
 import { getBrandAsset } from "@/data/brand-assets";
 import { attemptsByProvider } from "@/data/verification-attempts";
 import { formatDateISO } from "@/lib/utils";
+import {
+  getComparisonsForProvider,
+  getRelatedProviders,
+  getStatusObserverForProvider,
+} from "@/lib/entity-graph";
 
 interface RouteParams {
   slug: string;
@@ -121,12 +128,24 @@ export default async function ProviderPage({
   ).length;
   const brandAsset = getBrandAsset(provider.slug);
 
+  const relatedComparisons = getComparisonsForProvider(provider.slug);
+  const relatedProviders = getRelatedProviders(provider.slug);
+  const observer = getStatusObserverForProvider(provider.slug);
+
   return (
     <PageShell
       eyebrow="Provider"
       title={provider.name}
       intro={provider.description}
     >
+      <Breadcrumbs
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Providers", href: "/providers" },
+          { name: provider.name, href: `/providers/${provider.slug}` },
+        ]}
+      />
+
       <JsonLd
         data={[
           breadcrumbJsonLd([
@@ -259,6 +278,104 @@ export default async function ProviderPage({
             <strong className="text-foreground">Notes:</strong> {provider.notes}
           </p>
         </aside>
+      ) : null}
+
+      <section
+        aria-label="Provider entity graph"
+        className="card-surface p-5 text-sm"
+      >
+        <SectionHeader
+          eyebrow="Entity graph"
+          title="Related coverage"
+          as="h2"
+        />
+        <ul className="mt-3 space-y-2 text-muted-foreground">
+          <li>
+            Filtered models view:{" "}
+            <Link
+              href={`/models?provider=${provider.slug}`}
+              className="text-primary hover:underline"
+            >
+              /models?provider={provider.slug}
+            </Link>
+          </li>
+          <li>
+            Pricing rows:{" "}
+            <Link
+              href={`/pricing?provider=${provider.slug}`}
+              className="text-primary hover:underline"
+            >
+              /pricing?provider={provider.slug}
+            </Link>
+          </li>
+          <li>
+            Sources:{" "}
+            <Link
+              href={`/sources?provider=${provider.slug}`}
+              className="text-primary hover:underline"
+            >
+              /sources?provider={provider.slug}
+            </Link>
+          </li>
+          <li>
+            Comparisons:{" "}
+            <Link
+              href={`/compare?provider=${provider.slug}`}
+              className="text-primary hover:underline"
+            >
+              /compare?provider={provider.slug}
+            </Link>
+          </li>
+          <li>
+            Status observer:{" "}
+            {observer ? (
+              <Link
+                href={`/api/status/${provider.slug}`}
+                prefetch={false}
+                className="text-primary hover:underline"
+              >
+                /api/status/{provider.slug}
+              </Link>
+            ) : (
+              <span>not enabled</span>
+            )}
+          </li>
+        </ul>
+      </section>
+
+      {relatedComparisons.length ? (
+        <section aria-label="Related comparisons" className="space-y-3">
+          <SectionHeader
+            eyebrow="Compare"
+            title="Comparisons involving this provider"
+            as="h2"
+          />
+          <InternalLinkGrid
+            items={relatedComparisons.map((c) => ({
+              label: c.name,
+              href: `/compare/${c.slug}`,
+              description: c.description.slice(0, 120),
+            }))}
+          />
+        </section>
+      ) : null}
+
+      {relatedProviders.length ? (
+        <section aria-label="Related providers" className="space-y-3">
+          <SectionHeader
+            eyebrow="Continue"
+            title="Related providers"
+            description="Providers that appear alongside this one in comparisons, plus the rest of the catalogue."
+            as="h2"
+          />
+          <InternalLinkGrid
+            items={relatedProviders.map((p) => ({
+              label: p.name,
+              href: `/providers/${p.slug}`,
+              description: p.headquarters ?? undefined,
+            }))}
+          />
+        </section>
       ) : null}
 
       {(() => {

@@ -840,6 +840,210 @@ const checks: Check[] = [
     },
   },
   {
+    name: "entity-graph helper module exists (Sprint 10)",
+    run: () =>
+      requireFile(
+        "apps/models/lib/entity-graph.ts",
+        "lib/entity-graph.ts"
+      ),
+  },
+  {
+    name: "Breadcrumbs component exists (Sprint 10)",
+    run: () =>
+      requireFile(
+        "apps/models/components/Breadcrumbs.tsx",
+        "components/Breadcrumbs.tsx"
+      ),
+  },
+  {
+    name: "isFilteredRoute helper is declared in should-index.ts",
+    run: () => {
+      const src = readRel("apps/models/lib/should-index.ts");
+      if (!/export function isFilteredRoute/.test(src)) {
+        return "lib/should-index.ts does not export isFilteredRoute(searchParams).";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/models supports q/provider/verification/lifecycle/modality params",
+    run: () => {
+      const src = readRel("apps/models/app/models/page.tsx");
+      const missing: string[] = [];
+      for (const key of [
+        "q",
+        "provider",
+        "verification",
+        "lifecycle",
+        "modality",
+      ]) {
+        const namePattern = new RegExp(`name="${key}"`);
+        if (!namePattern.test(src)) missing.push(key);
+      }
+      if (missing.length) {
+        return `app/models/page.tsx is missing form field(s) for filter param(s): ${missing.join(", ")}.`;
+      }
+      if (!/isFilteredRoute\(params\)/.test(src)) {
+        return "app/models/page.tsx does not call isFilteredRoute() for noindex policy.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/pricing supports q/provider/status/unit params",
+    run: () => {
+      const src = readRel("apps/models/app/pricing/page.tsx");
+      const missing: string[] = [];
+      for (const key of ["q", "provider", "status", "unit"]) {
+        const namePattern = new RegExp(`name="${key}"`);
+        if (!namePattern.test(src)) missing.push(key);
+      }
+      if (missing.length) {
+        return `app/pricing/page.tsx is missing form field(s) for filter param(s): ${missing.join(", ")}.`;
+      }
+      if (!/isFilteredRoute\(params\)/.test(src)) {
+        return "app/pricing/page.tsx does not call isFilteredRoute() for noindex policy.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/compare supports q/provider/verification/indexable params",
+    run: () => {
+      const src = readRel("apps/models/app/compare/page.tsx");
+      const missing: string[] = [];
+      for (const key of [
+        "q",
+        "provider",
+        "verification",
+        "indexable",
+      ]) {
+        const namePattern = new RegExp(`name="${key}"`);
+        if (!namePattern.test(src)) missing.push(key);
+      }
+      if (missing.length) {
+        return `app/compare/page.tsx is missing form field(s) for filter param(s): ${missing.join(", ")}.`;
+      }
+      if (!/isFilteredRoute\(params\)/.test(src)) {
+        return "app/compare/page.tsx does not call isFilteredRoute() for noindex policy.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/sources supports provider/sourceType params",
+    run: () => {
+      const src = readRel("apps/models/app/sources/page.tsx");
+      const missing: string[] = [];
+      for (const key of ["provider", "sourceType"]) {
+        const namePattern = new RegExp(`name="${key}"`);
+        if (!namePattern.test(src)) missing.push(key);
+      }
+      if (missing.length) {
+        return `app/sources/page.tsx is missing form field(s) for filter param(s): ${missing.join(", ")}.`;
+      }
+      if (!/isFilteredRoute\(params\)/.test(src)) {
+        return "app/sources/page.tsx does not call isFilteredRoute() for noindex policy.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "filtered hubs emit robotsMetadata(!filtered) (noindex on filter)",
+    run: () => {
+      const failures: string[] = [];
+      const targets = [
+        "apps/models/app/models/page.tsx",
+        "apps/models/app/pricing/page.tsx",
+        "apps/models/app/compare/page.tsx",
+        "apps/models/app/sources/page.tsx",
+      ];
+      for (const rel of targets) {
+        const src = readRel(rel);
+        if (!/robots:\s*robotsMetadata\(!filtered\)/.test(src)) {
+          failures.push(
+            `${rel} does not declare robots: robotsMetadata(!filtered) in generateMetadata — filtered URLs would stay indexable.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "detail pages render <Breadcrumbs> (Sprint 10)",
+    run: () => {
+      const failures: string[] = [];
+      const targets: { rel: string; label: string }[] = [
+        {
+          rel: "apps/models/app/models/[slug]/page.tsx",
+          label: "/models/[slug]",
+        },
+        {
+          rel: "apps/models/app/providers/[slug]/page.tsx",
+          label: "/providers/[slug]",
+        },
+        {
+          rel: "apps/models/app/compare/[slug]/page.tsx",
+          label: "/compare/[slug]",
+        },
+      ];
+      for (const t of targets) {
+        const src = readRel(t.rel);
+        if (!/<Breadcrumbs\b/.test(src)) {
+          failures.push(`${t.label} does not render <Breadcrumbs>.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "detail pages emit BreadcrumbList JSON-LD (Sprint 10)",
+    run: () => {
+      const failures: string[] = [];
+      const targets: { rel: string; label: string }[] = [
+        {
+          rel: "apps/models/app/models/[slug]/page.tsx",
+          label: "/models/[slug]",
+        },
+        {
+          rel: "apps/models/app/providers/[slug]/page.tsx",
+          label: "/providers/[slug]",
+        },
+        {
+          rel: "apps/models/app/compare/[slug]/page.tsx",
+          label: "/compare/[slug]",
+        },
+      ];
+      for (const t of targets) {
+        const src = readRel(t.rel);
+        if (!/breadcrumbJsonLd\(/.test(src)) {
+          failures.push(
+            `${t.label} does not emit breadcrumbJsonLd() — BreadcrumbList structured data missing.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "entity-graph helpers do not perform network fetches",
+    run: () => {
+      const src = readRel("apps/models/lib/entity-graph.ts");
+      // The helpers should be pure local reads. Forbid `fetch(`,
+      // `process.env`, and dynamic imports of network clients.
+      const banned = [/\bfetch\s*\(/, /\bprocess\.env\b/];
+      const failures: string[] = [];
+      for (const re of banned) {
+        if (re.test(src)) {
+          failures.push(
+            `lib/entity-graph.ts references ${re} — helpers must be pure local reads.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
     name: "homepage does not contain a fabricated uptime percentage",
     run: () => {
       const src = readRel("apps/models/app/page.tsx");

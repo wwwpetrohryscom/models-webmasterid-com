@@ -5,6 +5,7 @@ import { ProviderLogo } from "@/components/ProviderLogo";
 import { SectionHeader } from "@/components/SectionHeader";
 import { DataNotVerified } from "@/components/DataNotVerified";
 import { JsonLd } from "@/components/JsonLd";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { robotsMetadata } from "@/lib/should-index";
 import { providers } from "@/data/providers";
@@ -53,6 +54,13 @@ export default function StatusPage() {
       title="Provider Status"
       intro="Status observation hub. WebmasterID Models records vendor-reported status as a vendor-reported observation, and runs independent HTTP probes only when explicitly enabled. This page does not publish an uptime percentage."
     >
+      <Breadcrumbs
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Status", href: "/status" },
+        ]}
+      />
+
       <JsonLd
         data={breadcrumbJsonLd([
           { name: "Home", href: "/" },

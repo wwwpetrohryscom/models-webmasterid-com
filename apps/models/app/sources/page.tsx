@@ -5,11 +5,19 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { SourceCitationItem } from "@/components/SourceCitation";
 import { DataNotVerified } from "@/components/DataNotVerified";
 import { JsonLd } from "@/components/JsonLd";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
+import { isFilteredRoute, robotsMetadata } from "@/lib/should-index";
 import { models } from "@/data/models";
 import { providers } from "@/data/providers";
 import { anthropicStatusPage } from "@/data/citations";
-import type { SourceCitation } from "@/lib/types";
+import type { SourceCitation, SourceType } from "@/lib/types";
+
+type SearchParams = Record<string, string | string[] | undefined>;
+
+interface PageProps {
+  searchParams: Promise<SearchParams>;
+}
 
 /**
  * Sources that back observations rather than model facts. These are not
@@ -18,48 +26,141 @@ import type { SourceCitation } from "@/lib/types";
  */
 const STATUS_MONITORING_SOURCES: SourceCitation[] = [anthropicStatusPage];
 
-export const metadata: Metadata = buildMetadata({
-  title: "Sources",
-  description:
-    "Every primary-source citation backing a verified value on WebmasterID Models. Grouped by provider; each entry links back to the live source page.",
-  path: "/sources",
-});
+const SOURCE_TYPE_LABEL: Record<SourceType, string> = {
+  "official-vendor-docs": "Official vendor docs",
+  "official-vendor-pricing": "Official vendor pricing",
+  "official-vendor-site": "Official vendor site",
+  "regulatory-filing": "Regulatory filing",
+  "research-paper": "Research paper",
+  "public-dataset": "Public dataset",
+  unknown: "Unknown",
+};
 
-/**
- * Build a deduplicated list of every citation referenced by any model
- * entity, grouped by provider slug. Citations are uniquified by URL
- * across the whole catalogue so that one entry per source URL is shown.
- */
-function citationsByProvider(): Record<string, SourceCitation[]> {
-  const byProvider: Record<string, Map<string, SourceCitation>> = {};
-  for (const m of models) {
-    const slug = m.providerSlug;
-    byProvider[slug] ??= new Map();
-    for (const c of m.citations) {
-      if (!byProvider[slug].has(c.url)) byProvider[slug].set(c.url, c);
-    }
-  }
-  const out: Record<string, SourceCitation[]> = {};
-  for (const [slug, m] of Object.entries(byProvider)) {
-    out[slug] = Array.from(m.values());
-  }
-  return out;
+function readParam(
+  searchParams: SearchParams,
+  key: string
+): string | undefined {
+  const v = searchParams[key];
+  if (typeof v === "string" && v.trim().length > 0) return v.trim();
+  return undefined;
 }
 
-export default function SourcesPage() {
-  const grouped = citationsByProvider();
-  const totalCitations = Object.values(grouped).reduce(
-    (n, list) => n + list.length,
-    0
-  );
+export async function generateMetadata({
+  searchParams,
+}: PageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const filtered = isFilteredRoute(params);
+  return {
+    ...buildMetadata({
+      title: "Sources",
+      description:
+        "Every primary-source citation backing a verified value on WebmasterID Models. Grouped by provider and source type; each entry links back to the live source page. Filter by provider or source type.",
+      path: "/sources",
+    }),
+    robots: robotsMetadata(!filtered),
+  };
+}
+
+/**
+ * Build a deduplicated index of every citation referenced by any model
+ * entity, plus the status-monitoring sources. The index records, for
+ * each unique URL, which providers it appears under and what kind of
+ * entity it backs (model / status).
+ */
+interface IndexedCitation {
+  citation: SourceCitation;
+  providerSlugs: Set<string>;
+  usage: Set<"model" | "status">;
+}
+
+function buildCitationIndex(): IndexedCitation[] {
+  const byUrl = new Map<string, IndexedCitation>();
+
+  function ensure(c: SourceCitation): IndexedCitation {
+    let entry = byUrl.get(c.url);
+    if (!entry) {
+      entry = { citation: c, providerSlugs: new Set(), usage: new Set() };
+      byUrl.set(c.url, entry);
+    }
+    return entry;
+  }
+
+  for (const m of models) {
+    for (const c of m.citations) {
+      const e = ensure(c);
+      e.providerSlugs.add(m.providerSlug);
+      e.usage.add("model");
+    }
+  }
+
+  for (const c of STATUS_MONITORING_SOURCES) {
+    const e = ensure(c);
+    // Anthropic status page → anthropic provider.
+    if (/anthropic|claude/i.test(c.url)) {
+      e.providerSlugs.add("anthropic");
+    }
+    e.usage.add("status");
+  }
+
+  return Array.from(byUrl.values());
+}
+
+export default async function SourcesPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const providerFilter = readParam(params, "provider");
+  const sourceTypeFilter = readParam(params, "sourceType") as
+    | SourceType
+    | undefined;
+
+  const filtered = isFilteredRoute(params);
+
+  const allCitations = buildCitationIndex();
+
+  const visible = allCitations.filter((entry) => {
+    if (
+      providerFilter &&
+      !entry.providerSlugs.has(providerFilter) &&
+      // a citation with no provider attachment shouldn't survive a provider filter
+      true
+    ) {
+      if (!entry.providerSlugs.has(providerFilter)) return false;
+    }
+    if (sourceTypeFilter && entry.citation.type !== sourceTypeFilter) {
+      return false;
+    }
+    return true;
+  });
+
+  const visibleByProvider: Record<string, IndexedCitation[]> = {};
+  for (const entry of visible) {
+    const slugs = entry.providerSlugs.size
+      ? Array.from(entry.providerSlugs)
+      : ["other"];
+    for (const slug of slugs) {
+      (visibleByProvider[slug] ??= []).push(entry);
+    }
+  }
+
+  const visibleByType: Record<string, IndexedCitation[]> = {};
+  for (const entry of visible) {
+    (visibleByType[entry.citation.type] ??= []).push(entry);
+  }
+
   const providerOrder = providers.map((p) => p.slug);
 
   return (
     <PageShell
       eyebrow="Transparency"
       title="Sources"
-      intro={`Every primary-source citation that backs a verified value on this site. ${totalCitations} unique URLs are listed below. Each citation records when it was last retrieved and a short note describing what was actually used.`}
+      intro={`Every primary-source citation that backs a verified value on this site. ${allCitations.length} unique URLs are indexed below. Each entry records when it was last retrieved and a short note describing what was used.`}
     >
+      <Breadcrumbs
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Sources", href: "/sources" },
+        ]}
+      />
+
       <JsonLd
         data={breadcrumbJsonLd([
           { name: "Home", href: "/" },
@@ -85,6 +186,100 @@ export default function SourcesPage() {
         </p>
       </aside>
 
+      <form
+        method="get"
+        action="/sources"
+        aria-label="Filter citations"
+        className="card-surface p-4"
+      >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <label className="text-xs text-muted-foreground">
+            <span className="block font-medium text-foreground">Provider</span>
+            <select
+              name="provider"
+              defaultValue={providerFilter ?? ""}
+              aria-label="Filter by provider"
+              className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            >
+              <option value="">All providers</option>
+              {providers.map((p) => (
+                <option key={p.slug} value={p.slug}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-muted-foreground">
+            <span className="block font-medium text-foreground">
+              Source type
+            </span>
+            <select
+              name="sourceType"
+              defaultValue={sourceTypeFilter ?? ""}
+              aria-label="Filter by source type"
+              className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            >
+              <option value="">All source types</option>
+              {(
+                Object.keys(SOURCE_TYPE_LABEL) as SourceType[]
+              ).map((k) => (
+                <option key={k} value={k}>
+                  {SOURCE_TYPE_LABEL[k]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="flex items-end gap-3 text-xs text-muted-foreground">
+            <button
+              type="submit"
+              className="inline-flex h-9 items-center rounded-lg border border-primary/30 bg-primary/10 px-3 font-medium text-primary hover:bg-primary/15"
+            >
+              Apply filters
+            </button>
+            {filtered ? (
+              <Link href="/sources" className="text-primary hover:underline">
+                Reset
+              </Link>
+            ) : null}
+          </div>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          {visible.length} citation{visible.length === 1 ? "" : "s"} match
+          {filtered ? " the current filters" : ""}. Filtered URLs are{" "}
+          <code className="rounded bg-muted px-1">noindex, follow</code>.
+        </p>
+      </form>
+
+      <section
+        aria-label="By source type"
+        className="space-y-3"
+      >
+        <SectionHeader
+          eyebrow="Grouped"
+          title="By source type"
+          as="h2"
+          description="Distribution of indexed citations across the source-type allow-list."
+        />
+        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {(Object.keys(SOURCE_TYPE_LABEL) as SourceType[]).map((t) => {
+            const count = visibleByType[t]?.length ?? 0;
+            return (
+              <li
+                key={t}
+                className="card-surface flex items-center justify-between gap-3 p-3 text-sm"
+              >
+                <span className="text-muted-foreground">
+                  {SOURCE_TYPE_LABEL[t]}
+                </span>
+                <span className="font-semibold tabular-nums text-foreground">
+                  {count}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
       <section
         aria-label="Status monitoring sources"
         className="space-y-3"
@@ -105,8 +300,16 @@ export default function SourcesPage() {
       </section>
 
       {providerOrder.map((slug) => {
-        const list = grouped[slug];
-        if (!list || !list.length) return null;
+        const list = (visibleByProvider[slug] ?? []).map(
+          (entry) => entry.citation
+        );
+        // Deduplicate citations per provider section (a single URL can
+        // attach to multiple providers via the index, but each section
+        // should show each URL once).
+        const dedup = Array.from(
+          new Map(list.map((c) => [c.url, c])).values()
+        );
+        if (!dedup.length) return null;
         const provider = providers.find((p) => p.slug === slug);
         return (
           <section
@@ -116,11 +319,11 @@ export default function SourcesPage() {
           >
             <SectionHeader
               eyebrow={provider?.name ?? slug}
-              title={`${list.length} primary-source citation${list.length === 1 ? "" : "s"}`}
+              title={`${dedup.length} primary-source citation${dedup.length === 1 ? "" : "s"}`}
               as="h2"
             />
             <ul className="grid gap-2 sm:grid-cols-2">
-              {list.map((c) => (
+              {dedup.map((c) => (
                 <li key={c.url}>
                   <SourceCitationItem citation={c} />
                 </li>
