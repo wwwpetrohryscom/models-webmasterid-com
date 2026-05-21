@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPageShell } from "@/components/ContentPageShell";
+import { PricingUnitTable } from "@/components/content/PricingUnitTable";
+import { MethodologyMatrix } from "@/components/content/MethodologyMatrix";
 import { buildMetadata } from "@/lib/seo";
 import { getContentPage } from "@/lib/content";
 
@@ -25,6 +27,8 @@ export default function Page() {
       toc={[
         { id: "what-rows-mean", label: "What a row on /pricing means" },
         { id: "base-tokens", label: "Input and output tokens" },
+        { id: "pricing-unit-matrix", label: "Pricing unit matrix" },
+        { id: "provider-cache-comparison", label: "Provider cache semantics side-by-side" },
         { id: "cache-pricing", label: "Cache pricing is provider-specific" },
         { id: "batch-pricing", label: "Batch API pricing" },
         { id: "prompt-size", label: "Prompt-size tiers" },
@@ -135,6 +139,64 @@ export default function Page() {
           pricing hub does not adjust for tokenizer differences; cost
           projections that need precision should sample real prompts on
           each vendor&apos;s tokenizer.
+        </p>
+      </section>
+
+      <section id="pricing-unit-matrix">
+        <h2>Pricing unit matrix</h2>
+        <p>
+          Every row on{" "}
+          <Link href="/pricing" className="text-primary hover:underline">
+            /pricing
+          </Link>{" "}
+          is one of the units below. The matrix documents the
+          vocabulary; per-provider verified amounts live on each model
+          record and render through the existing pricing helpers.
+        </p>
+        <PricingUnitTable />
+      </section>
+
+      <section id="provider-cache-comparison">
+        <h2>Provider cache semantics side-by-side</h2>
+        <MethodologyMatrix
+          caption="Cache pricing semantics across providers"
+          columns={["Anthropic", "Google Gemini", "DeepSeek"]}
+          rows={[
+            {
+              label: "Cache write fee",
+              note: "Cost when a payload first enters the cache",
+              cells: [
+                "Two TTL tiers: 5-minute and 1-hour cache write rates, both per-million-tokens.",
+                "Single one-shot cache write fee, per-million-tokens. Independent of storage rate.",
+                "No explicit write fee published — input rate is split into cache-miss vs cache-hit instead.",
+              ],
+            },
+            {
+              label: "Cache read / hit",
+              note: "Cost when a request reuses cached content",
+              cells: [
+                "Single per-million-tokens cache read rate. Same number across all TTLs.",
+                "No per-read fee — cached tokens are billed via the per-hour storage rate.",
+                "Cache-hit input rate is dramatically lower than cache-miss input (sometimes ~100× lower).",
+              ],
+            },
+            {
+              label: "Storage / retention",
+              note: "Recurring cost while cache exists",
+              cells: [
+                "TTL-bound: cache disappears after 5 minutes or 1 hour depending on which write rate was used.",
+                "Per-hour storage rate, per-million-tokens, continuing as long as the cache exists.",
+                "Not disclosed — DeepSeek treats cache state as an implementation detail.",
+              ],
+            },
+          ]}
+        />
+        <p className="text-xs text-muted-foreground">
+          These semantics are deliberately kept as separate units in
+          the catalogue. A cost projection that maps Google&apos;s
+          per-hour storage onto Anthropic&apos;s TTL writes will be
+          wrong by a multiplier; the only safe way to compare is
+          per-workload arithmetic.
         </p>
       </section>
 

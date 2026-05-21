@@ -1868,6 +1868,187 @@ const checks: Check[] = [
     },
   },
   {
+    name: "content components directory exists (Sprint 16)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/components/content/MethodologyMatrix.tsx",
+        "apps/models/components/content/PricingUnitTable.tsx",
+        "apps/models/components/content/StatusSignalTable.tsx",
+        "apps/models/components/content/ProviderCoverageMatrix.tsx",
+        "apps/models/components/content/ContentStatCard.tsx",
+        "apps/models/components/content/FieldDefinitionTable.tsx",
+      ]) {
+        if (!fileExists(rel)) failures.push(`Missing ${rel}`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "every research/docs page uses ContentPageShell (Sprint 16)",
+    run: () => {
+      const failures: string[] = [];
+      const roots = [
+        "apps/models/app/research",
+        "apps/models/app/docs",
+      ];
+      const walk = (dir: string, acc: string[]): string[] => {
+        const here = resolve(ROOT, dir);
+        let entries: string[] = [];
+        try {
+          entries = readdirSync(here);
+        } catch {
+          return acc;
+        }
+        for (const e of entries) {
+          const rel = `${dir}/${e}`;
+          const abs = resolve(ROOT, rel);
+          try {
+            const st = statSync(abs);
+            if (st.isDirectory()) {
+              walk(rel, acc);
+            } else if (e === "page.tsx") {
+              acc.push(rel);
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+        return acc;
+      };
+      const files: string[] = [];
+      for (const r of roots) walk(r, files);
+      // Hub pages (the two index pages) intentionally render their own
+      // chrome — skip them.
+      const hubs = new Set([
+        "apps/models/app/research/page.tsx",
+        "apps/models/app/docs/page.tsx",
+      ]);
+      for (const rel of files) {
+        if (hubs.has(rel)) continue;
+        const src = readRel(rel);
+        if (!/<ContentPageShell\b/.test(src)) {
+          failures.push(
+            `${rel} does not render <ContentPageShell> — every research/docs detail page must use the shared shell.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Mistral Large 3 is verified end-to-end (Sprint 16)",
+    run: () => {
+      const src = readRel("apps/models/data/models.ts");
+      const block = src.split('slug: "mistral-large-3"').pop() ?? "";
+      const head = block.slice(0, 6000);
+      const failures: string[] = [];
+      if (!/verificationStatus:\s*"verified"/.test(head)) {
+        failures.push(
+          "mistral-large-3 entry must carry verificationStatus: 'verified' after the Sprint 16 expansion."
+        );
+      }
+      if (!/canonical:\s*"mistral-large-2512"/.test(head)) {
+        failures.push(
+          "mistral-large-3 canonical must be the pinned snapshot 'mistral-large-2512'."
+        );
+      }
+      if (!/contextWindow:\s*verified\(256_000/.test(head)) {
+        failures.push(
+          "mistral-large-3 contextWindow must be verified(256_000) from the v25.12 spec card."
+        );
+      }
+      // Pricing must include both base rows with the verified amounts.
+      if (!/verified\(0\.5,\s*mistralLarge3ModelCard/.test(head)) {
+        failures.push(
+          "mistral-large-3 must have a verified $0.5/M input pricing row sourced from the spec card."
+        );
+      }
+      if (!/verified\(1\.5,\s*mistralLarge3ModelCard/.test(head)) {
+        failures.push(
+          "mistral-large-3 must have a verified $1.5/M output pricing row sourced from the spec card."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI metric appears without an OpenAI citation (Sprint 16)",
+    run: () => {
+      const src = readRel("apps/models/data/models.ts");
+      const citations = readRel("apps/models/data/citations.ts");
+      // Allow the GPT-5 entry as long as it's still wrapped in
+      // unverifiedModel(); fail if a verified() call is made against an
+      // openai-slug model without an OpenAI citation token.
+      const gpt5Block = src.match(
+        /unverifiedModel\(\{[^}]*?slug:\s*"gpt-5"[\s\S]*?\}\)/
+      );
+      if (!gpt5Block) {
+        // GPT-5 is no longer in the unverified bucket — require an
+        // OpenAI citation in citations.ts.
+        if (!/openai/i.test(citations)) {
+          return "GPT-5 is no longer in unverifiedModel(...) but no openai citation has been added to citations.ts.";
+        }
+      }
+      return null;
+    },
+  },
+  {
+    name: "no content page contains a numeric uptime percentage (Sprint 16)",
+    run: () => {
+      const failures: string[] = [];
+      const roots = [
+        "apps/models/app/research",
+        "apps/models/app/docs",
+      ];
+      const walk = (dir: string, acc: string[]): string[] => {
+        const here = resolve(ROOT, dir);
+        let entries: string[] = [];
+        try {
+          entries = readdirSync(here);
+        } catch {
+          return acc;
+        }
+        for (const e of entries) {
+          const rel = `${dir}/${e}`;
+          const abs = resolve(ROOT, rel);
+          try {
+            const st = statSync(abs);
+            if (st.isDirectory()) {
+              walk(rel, acc);
+            } else if (e === "page.tsx") {
+              acc.push(rel);
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+        return acc;
+      };
+      const files: string[] = [];
+      for (const r of roots) walk(r, files);
+      for (const rel of files) {
+        const src = readRel(rel);
+        // Strip comments so cautionary "no 99.9% claim" prose doesn't trip.
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        const offending = [
+          ...stripped.matchAll(/\b\d{1,3}\.\d+\s*%/g),
+          ...stripped.matchAll(/\b(?:99|100)\s*%/g),
+        ];
+        if (offending.length) {
+          failures.push(
+            `${rel} contains numeric percentage literal(s): ${offending
+              .map((m) => `"${m[0]}"`)
+              .join(", ")}`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
     name: "entity-graph helpers do not perform network fetches",
     run: () => {
       const src = readRel("apps/models/lib/entity-graph.ts");

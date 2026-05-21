@@ -300,6 +300,28 @@ export const verificationAttempts: VerificationAttempt[] = [
     notes:
       "Marketing-side page still renders Le Chat plans; API pricing tab is JS-driven. Mistral pricing rows remain empty.",
   },
+
+  // ---------------------------------------------------------------------
+  // Sprint 16 — Mistral Large 3 spec card now accessible at a new URL.
+  // ---------------------------------------------------------------------
+  {
+    providerSlug: "mistral",
+    url: "https://docs.mistral.ai/models/model-cards/mistral-large-3-25-12",
+    target: "Mistral Large 3 (v25.12) per-model spec card",
+    attemptedAt: "2026-05-21T15:00:00.000Z",
+    result: "verified",
+    notes:
+      "Mistral moved spec cards from /getting-started/models/<slug> to /models/model-cards/<slug>. The new URL is reachable and yields canonical pinned snapshot `mistral-large-2512`, context window 256k, input $0.5 / output $1.5 per 1M tokens. Max output and explicit modality channel list are still not stated on the page.",
+  },
+  {
+    providerSlug: "openai",
+    url: "https://platform.openai.com/docs/models/gpt-5",
+    target: "OpenAI GPT-5 model docs (Sprint 16 retry)",
+    attemptedAt: "2026-05-21T15:00:00.000Z",
+    result: "blocked-403",
+    notes:
+      "platform.openai.com still returns HTTP 403 to automated retrieval. OpenAI verification remains blocked pending a manual browser pass.",
+  },
 ];
 
 export function attemptsByProvider(slug: string): VerificationAttempt[] {

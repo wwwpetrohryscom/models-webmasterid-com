@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPageShell } from "@/components/ContentPageShell";
+import { FieldDefinitionTable } from "@/components/content/FieldDefinitionTable";
 import { buildMetadata } from "@/lib/seo";
 import { getContentPage } from "@/lib/content";
 
@@ -76,24 +77,33 @@ export default function Page() {
           /compare groups every ComparisonEntity into one of three
           buckets:
         </p>
-        <ul>
-          <li>
-            <strong>Two-sided verified.</strong> Both compared models
-            carry{" "}
-            <code className="rounded bg-muted px-1">verificationStatus: &quot;verified&quot;</code>.
-            These comparisons are indexable and surfaced first.
-          </li>
-          <li>
-            <strong>One-sided verified.</strong> Exactly one of the
-            compared models is verified end-to-end. Useful as a
-            reference (one side&apos;s metrics are sourced) but
-            asymmetric; surfaced in a second section.
-          </li>
-          <li>
-            <strong>Pending.</strong> Neither side is verified. Kept
-            structural until verification lands; noindex.
-          </li>
-        </ul>
+        <FieldDefinitionTable
+          caption="Comparison buckets"
+          identifierHeader="Bucket"
+          rows={[
+            {
+              identifier: "two-sided-verified",
+              title: "Both models verified",
+              definition:
+                "Both compared models carry verificationStatus: 'verified'.",
+              rule: "Indexable. Surfaced first on /compare. JSON-LD includes the full pricing/context/modality fields.",
+            },
+            {
+              identifier: "one-sided-verified",
+              title: "One model verified",
+              definition:
+                "Exactly one of the compared models is verified end-to-end; the other is partial or unverified.",
+              rule: "Indexable. Surfaced second. The asymmetry is documented on the page; unverified fields render as the canonical label.",
+            },
+            {
+              identifier: "pending",
+              title: "Neither side verified",
+              definition:
+                "Both sides are partial or unverified. Kept structural until verification lands.",
+              rule: "Noindex. Filtered URL set is also noindex per the global hub rules.",
+            },
+          ]}
+        />
       </section>
 
       <section id="table-rules">

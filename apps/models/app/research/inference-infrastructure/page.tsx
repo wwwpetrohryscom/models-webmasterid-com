@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPageShell } from "@/components/ContentPageShell";
+import { MethodologyMatrix } from "@/components/content/MethodologyMatrix";
 import { buildMetadata } from "@/lib/seo";
 import { getContentPage } from "@/lib/content";
 
@@ -29,6 +30,7 @@ export default function Page() {
         { id: "status-feeds", label: "Status feeds" },
         { id: "batching-caching", label: "Batching and caching" },
         { id: "rate-limits", label: "Rate limits and throughput" },
+        { id: "public-vs-private", label: "Public vs private fields" },
         { id: "what-we-do-not-know", label: "What we do not know" },
         { id: "roadmap", label: "Data roadmap" },
       ]}
@@ -240,6 +242,58 @@ export default function Page() {
           published value; they belong in operational tooling, not in
           a public data catalogue.
         </p>
+      </section>
+
+      <section id="public-vs-private">
+        <h2>Public vs private infrastructure fields</h2>
+        <MethodologyMatrix
+          caption="What providers typically publish vs keep private"
+          columns={["Usually public", "Usually private"]}
+          rows={[
+            {
+              label: "API endpoint shape",
+              cells: [
+                "Endpoint URL, model parameter format, payload schema.",
+                "Internal routing / load-balancer topology.",
+              ],
+            },
+            {
+              label: "Pricing",
+              cells: [
+                "Per-token rates for current models; batch / cache schedule.",
+                "Per-account tier pricing, enterprise discounts.",
+              ],
+            },
+            {
+              label: "Status",
+              cells: [
+                "Vendor-reported indicator on a status page or JSON feed.",
+                "Per-region health, per-instance load.",
+              ],
+            },
+            {
+              label: "Regions",
+              cells: [
+                "Top-level cloud availability (Bedrock, Vertex catalogues).",
+                "Per-region GPU allocation, traffic shaping.",
+              ],
+            },
+            {
+              label: "Rate limits",
+              cells: [
+                "Default tier limits (sometimes).",
+                "Account-specific quotas, dynamic throttling thresholds.",
+              ],
+            },
+            {
+              label: "Architecture",
+              cells: [
+                "Model family + tokenizer sometimes.",
+                "Parameter counts, training mix, fine-tune chain, serving stack.",
+              ],
+            },
+          ]}
+        />
       </section>
 
       <section id="what-we-do-not-know">

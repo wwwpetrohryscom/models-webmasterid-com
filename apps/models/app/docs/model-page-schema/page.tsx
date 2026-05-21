@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPageShell } from "@/components/ContentPageShell";
+import { FieldDefinitionTable } from "@/components/content/FieldDefinitionTable";
 import { buildMetadata } from "@/lib/seo";
 import { getContentPage } from "@/lib/content";
 
@@ -23,6 +24,7 @@ export default function Page() {
       page={page}
       breadcrumbParent={{ name: "Docs", href: "/docs" }}
       toc={[
+        { id: "fields-table", label: "Field reference" },
         { id: "shape", label: "ModelEntity shape" },
         { id: "identifiers", label: "API identifiers" },
         { id: "lifecycle", label: "Lifecycle and snapshot" },
@@ -51,6 +53,79 @@ export default function Page() {
         },
       ]}
     >
+      <section id="fields-table">
+        <h2>Field reference</h2>
+        <FieldDefinitionTable
+          caption="ModelEntity field reference"
+          identifierHeader="Field"
+          rows={[
+            {
+              identifier: "id",
+              definition: "Stable internal record id.",
+            },
+            {
+              identifier: "slug",
+              definition: "URL slug used in /models/<slug>.",
+              rule: "Once shipped, never renamed.",
+            },
+            {
+              identifier: "providerSlug",
+              definition: "Foreign key into providers.",
+            },
+            {
+              identifier: "apiIdentifiers",
+              definition:
+                "MaybeVerified<{canonical, alias?, bedrock?, vertex?, other?}>",
+              rule: "Canonical is the pinned snapshot; alias is the rolling pointer.",
+            },
+            {
+              identifier: "lifecycle",
+              definition:
+                "MaybeVerified<{status, retirementDate?, migrationTarget?}>",
+              rule: "Drives /models?lifecycle= filter and the lifecycle badge.",
+            },
+            {
+              identifier: "contextWindow",
+              definition: "MaybeVerified<number> input token limit.",
+            },
+            {
+              identifier: "maxOutputTokens",
+              definition: "MaybeVerified<number> output token limit.",
+            },
+            {
+              identifier: "modality",
+              definition: "MaybeVerified<ModalityChannel[]>",
+              rule: "Input + output channels tracked separately.",
+            },
+            {
+              identifier: "features",
+              definition:
+                "MaybeVerified<{extendedThinking, adaptiveThinking, priorityTier, visionInput, toolUse}>",
+            },
+            {
+              identifier: "pricing",
+              definition: "VerifiedPricingTier[] — see /docs/pricing-fields.",
+              rule: "Every row with a verified amount carries a citation.",
+            },
+            {
+              identifier: "benchmarks",
+              definition: "VerifiedBenchmarkScore[]",
+              rule: "Empty across every model today. No scores published.",
+            },
+            {
+              identifier: "infrastructure",
+              definition:
+                "{regions, avgLatencyMs, uptimePercent} — all MaybeVerified.",
+              rule: "All null today. No fabricated latency/uptime/regions.",
+            },
+            {
+              identifier: "citations",
+              definition: "Deduplicated union of every citation referenced by verified fields.",
+            },
+          ]}
+        />
+      </section>
+
       <section id="shape">
         <h2>ModelEntity shape</h2>
         <pre className="overflow-x-auto rounded-lg border border-border bg-background/60 p-3 text-[12px] leading-relaxed">

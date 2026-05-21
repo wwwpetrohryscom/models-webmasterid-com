@@ -129,6 +129,25 @@ page (model, provider, comparison) and on the hub pages. The rendered
 trail and the structured-data trail use the same source of truth
 (`breadcrumbJsonLd()` in `lib/seo.ts`), so they cannot drift apart.
 
+## Content components
+
+Reusable rich-content components live under
+[`apps/models/components/content/`](apps/models/components/content/):
+
+| Component | Used by |
+| --- | --- |
+| `MethodologyMatrix` | Research pages — cross-cutting comparison tables. |
+| `PricingUnitTable` | `/research/api-pricing-methodology`, `/docs/pricing-fields`. |
+| `StatusSignalTable` | `/research/ai-provider-status-monitoring`, `/docs/status-observations`. Reads the observer registry at render time. |
+| `ProviderCoverageMatrix` | `/providers`, `/coverage`, `/docs/provider-coverage`. Live counts from `data/`. |
+| `ContentStatCard` | Homepage "Current verified coverage" strip. |
+| `FieldDefinitionTable` | `/docs/data-verification`, `/docs/status-observations`, `/docs/comparison-methodology`, `/docs/model-page-schema`. |
+
+All are pure server components with semantic `<table>` markup, no client
+JS, no charting library. Numbers in `ProviderCoverageMatrix` and
+`ContentStatCard` come from the typed local data layer — none are
+fabricated.
+
 ## Useful content
 
 A research + reference layer lives under [`/research`](apps/models/app/research/)
@@ -369,13 +388,19 @@ Brand-asset policy: [`BRAND_ASSETS.md`](BRAND_ASSETS.md).
   Models & Pricing page, and chat-completion API reference. A 75%
   promotional discount on v4-pro is active until 2026/05/31 15:59 UTC;
   the regular rate is recorded as the canonical durable value.
+- Mistral — Mistral Large 3 (canonical snapshot `mistral-large-2512`).
+  Verified from Mistral's models overview, models table, API reference,
+  and the per-model spec card at
+  `docs.mistral.ai/models/model-cards/mistral-large-3-25-12`. Context
+  window 256k; pricing $0.5 input / $1.5 output per 1M tokens. Max
+  output and explicit modality channel list remain null — the spec card
+  describes the model as "multimodal" without enumerating channels.
 
 **Partially verified models:**
 
-- Mistral — Mistral Large 3. API string and lifecycle verified; the
-  per-model spec card page returned 404 on both 2026-05-20 and the
-  Sprint 8B re-verification on 2026-05-21, so context window, max
-  output, modality, and pricing remain unverified.
+_(All providers previously listed under this section have been promoted
+to fully verified during Sprint 16. Mistral Large 3's spec card moved
+to `/models/model-cards/<slug>` and is now reachable.)_
 
 **Historical / retired entries (lifecycle only):**
 

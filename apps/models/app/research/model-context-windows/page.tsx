@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPageShell } from "@/components/ContentPageShell";
+import { MethodologyMatrix } from "@/components/content/MethodologyMatrix";
 import { buildMetadata } from "@/lib/seo";
 import { getContentPage } from "@/lib/content";
 
@@ -26,6 +27,7 @@ export default function Page() {
         { id: "what-it-is", label: "What a context window actually is" },
         { id: "input-vs-output", label: "Input limit vs output limit" },
         { id: "tokenizer-differences", label: "Tokenizer differences across providers" },
+        { id: "verified-matrix", label: "Verified context + output matrix" },
         { id: "verified-examples", label: "Verified examples in the catalogue" },
         { id: "long-context-cost", label: "Long-context cost considerations" },
         { id: "what-we-do-not-claim", label: "What we do not claim" },
@@ -149,6 +151,109 @@ export default function Page() {
           the vendor&apos;s own published numbers; a cost projection that
           needs precision should sample real prompts on each
           vendor&apos;s tokenizer.
+        </p>
+      </section>
+
+      <section id="verified-matrix">
+        <h2>Verified context + output matrix</h2>
+        <MethodologyMatrix
+          caption="Verified context and output limits across catalogue models"
+          columns={["Context (input) tokens", "Max output tokens", "Source"]}
+          rows={[
+            {
+              label: "Claude Opus 4.7",
+              note: "Anthropic Models overview, current flagship",
+              cells: [
+                "1,000,000",
+                "128,000 (300k via Message Batches beta header)",
+                <Link
+                  key="opus"
+                  href="/models/claude-opus-4-7"
+                  className="text-primary hover:underline"
+                >
+                  /models/claude-opus-4-7
+                </Link>,
+              ],
+            },
+            {
+              label: "Claude Sonnet 4.6",
+              cells: [
+                "1,000,000",
+                "64,000",
+                <Link
+                  key="sonnet"
+                  href="/models/claude-sonnet-4-6"
+                  className="text-primary hover:underline"
+                >
+                  /models/claude-sonnet-4-6
+                </Link>,
+              ],
+            },
+            {
+              label: "Claude Haiku 4.5",
+              cells: [
+                "200,000",
+                "64,000",
+                <Link
+                  key="haiku"
+                  href="/models/claude-haiku-4-5"
+                  className="text-primary hover:underline"
+                >
+                  /models/claude-haiku-4-5
+                </Link>,
+              ],
+            },
+            {
+              label: "Gemini 2.5 Pro",
+              note: "Per-model docs at ai.google.dev",
+              cells: [
+                "1,048,576",
+                "65,536",
+                <Link
+                  key="gemini"
+                  href="/models/gemini-2-5-pro"
+                  className="text-primary hover:underline"
+                >
+                  /models/gemini-2-5-pro
+                </Link>,
+              ],
+            },
+            {
+              label: "DeepSeek V4 Pro",
+              note: "DeepSeek Models & Pricing",
+              cells: [
+                "1,000,000",
+                "—",
+                <Link
+                  key="deepseek"
+                  href="/models/deepseek-v4-pro"
+                  className="text-primary hover:underline"
+                >
+                  /models/deepseek-v4-pro
+                </Link>,
+              ],
+            },
+            {
+              label: "Claude Opus 4 (deprecated)",
+              note: "Retired 2026-06-15",
+              cells: [
+                "200,000",
+                "32,000",
+                <Link
+                  key="opus4"
+                  href="/models/claude-opus-4"
+                  className="text-primary hover:underline"
+                >
+                  /models/claude-opus-4
+                </Link>,
+              ],
+            },
+          ]}
+        />
+        <p className="mt-2 text-xs text-muted-foreground">
+          DeepSeek V4 Pro&apos;s max output is not separately published
+          on the Models &amp; Pricing page; the field renders as the
+          canonical unverified-data label on its model page.
         </p>
       </section>
 

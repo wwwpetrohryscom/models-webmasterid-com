@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPageShell } from "@/components/ContentPageShell";
 import { DataNotVerified } from "@/components/DataNotVerified";
+import { FieldDefinitionTable } from "@/components/content/FieldDefinitionTable";
 import { buildMetadata } from "@/lib/seo";
 import { getContentPage } from "@/lib/content";
 
@@ -62,27 +63,35 @@ export default function Page() {
           <code className="rounded bg-muted px-1">verificationStatus</code>{" "}
           drawn from a fixed enum:
         </p>
-        <ul>
-          <li>
-            <code className="rounded bg-muted px-1">verified</code> — every
-            metric on the entity is wrapped in a VerifiedField with a
-            current citation. Eligible for indexable detail pages,
-            JSON-LD metric emission, and hub filters that surface
-            verified rows first.
-          </li>
-          <li>
-            <code className="rounded bg-muted px-1">partial</code> — some
-            metrics are verified, others are{" "}
-            <code className="rounded bg-muted px-1">null</code>. Detail
-            pages render verified fields normally and the canonical
-            unverified-data label for the rest.
-          </li>
-          <li>
-            <code className="rounded bg-muted px-1">unverified</code> — the
-            entity is known to exist (canonical identifier, slug)
-            but no metric has been confirmed. Catalogue entry only.
-          </li>
-        </ul>
+        <FieldDefinitionTable
+          caption="VerificationStatus enum"
+          identifierHeader="Status"
+          rows={[
+            {
+              identifier: "verified",
+              definition:
+                "Every metric on the entity is wrapped in a VerifiedField with a current citation.",
+              rule: "Eligible for indexable detail pages, JSON-LD metric emission, and hub filters that surface verified rows first.",
+            },
+            {
+              identifier: "partial",
+              definition:
+                "Some metrics are verified, others are null.",
+              rule: (
+                <>
+                  Detail pages render verified fields normally and the
+                  canonical unverified-data label for the rest.
+                </>
+              ),
+            },
+            {
+              identifier: "unverified",
+              definition:
+                "Entity identity is known (canonical identifier, slug) but no metric has been confirmed against a primary source.",
+              rule: "Catalogue entry only. Detail pages render the unverified-data label for every metric.",
+            },
+          ]}
+        />
         <p>
           Lifecycle status (
           <code className="rounded bg-muted px-1">active</code>,{" "}
@@ -103,31 +112,49 @@ export default function Page() {
           <code className="rounded bg-muted px-1">type</code> field
           drawn from a closed union:
         </p>
-        <ul>
-          <li>
-            <code className="rounded bg-muted px-1">official-vendor-docs</code>
-          </li>
-          <li>
-            <code className="rounded bg-muted px-1">official-vendor-pricing</code>
-          </li>
-          <li>
-            <code className="rounded bg-muted px-1">official-vendor-site</code>
-          </li>
-          <li>
-            <code className="rounded bg-muted px-1">regulatory-filing</code>
-          </li>
-          <li>
-            <code className="rounded bg-muted px-1">research-paper</code>
-          </li>
-          <li>
-            <code className="rounded bg-muted px-1">public-dataset</code>
-          </li>
-          <li>
-            <code className="rounded bg-muted px-1">unknown</code> — placeholder
-            for sources whose type has not been classified yet (rarely
-            used; rejected for metric citations).
-          </li>
-        </ul>
+        <FieldDefinitionTable
+          caption="SourceType allow-list"
+          identifierHeader="type"
+          rows={[
+            {
+              identifier: "official-vendor-docs",
+              definition:
+                "Provider's own technical documentation on a provider-controlled domain.",
+              rule: "Preferred for context window, max output, modality, lifecycle, features.",
+            },
+            {
+              identifier: "official-vendor-pricing",
+              definition:
+                "Provider's own pricing reference, on a provider-controlled domain, at a stable URL.",
+              rule: "The only acceptable source for verified pricing amounts.",
+            },
+            {
+              identifier: "official-vendor-site",
+              definition:
+                "Provider marketing surface, used only when the fact is structurally bound there (HQ, status page URL).",
+              rule: "Limited use; never the source for a metric.",
+            },
+            {
+              identifier: "regulatory-filing",
+              definition: "Authoritative regulator's record.",
+            },
+            {
+              identifier: "research-paper",
+              definition:
+                "Peer-reviewed paper or recognised preprint archive, for architecture / training claims the provider has published.",
+            },
+            {
+              identifier: "public-dataset",
+              definition:
+                "Publicly-versioned dataset, used as a benchmark reference.",
+            },
+            {
+              identifier: "unknown",
+              definition: "Placeholder for unclassified sources.",
+              rule: "Rejected for metric citations. Rare; mostly historical.",
+            },
+          ]}
+        />
         <p>
           Blog posts, social posts, leaderboard pages, and AI-generated
           summaries are not on the allow-list. The constructor at{" "}

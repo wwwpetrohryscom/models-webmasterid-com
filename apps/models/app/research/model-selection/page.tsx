@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPageShell } from "@/components/ContentPageShell";
+import { MethodologyMatrix } from "@/components/content/MethodologyMatrix";
 import { buildMetadata } from "@/lib/seo";
 import { getContentPage } from "@/lib/content";
 
@@ -28,6 +29,8 @@ export default function Page() {
         { id: "lifecycle", label: "Lifecycle and deprecation" },
         { id: "reliability", label: "Reliability signals" },
         { id: "unknown-data", label: "How unknown data is treated" },
+        { id: "selection-checklist", label: "Selection checklist" },
+        { id: "not-to-optimise", label: "What not to optimise for" },
         { id: "next-steps", label: "Next steps" },
       ]}
       verifiedToday={[
@@ -276,6 +279,154 @@ export default function Page() {
           in a manual browser pass or (b) deprioritise the model until
           the gap closes.
         </p>
+      </section>
+
+      <section id="selection-checklist">
+        <h2>Selection checklist</h2>
+        <MethodologyMatrix
+          caption="Selection-criteria checklist tied to verified fields"
+          columns={[
+            "Field on /models",
+            "Where to confirm",
+          ]}
+          rows={[
+            {
+              label: "Provider attribution",
+              cells: [
+                "providerSlug",
+                <Link
+                  key="prov"
+                  href="/providers"
+                  className="text-primary hover:underline"
+                >
+                  /providers
+                </Link>,
+              ],
+            },
+            {
+              label: "Canonical API ID + aliases",
+              cells: [
+                "apiIdentifiers.canonical / alias",
+                "Model detail page → API identifiers section",
+              ],
+            },
+            {
+              label: "Lifecycle (active / deprecated / retired)",
+              cells: [
+                "lifecycle.status",
+                <Link
+                  key="lc"
+                  href="/models?lifecycle=active"
+                  className="text-primary hover:underline"
+                >
+                  /models?lifecycle=active
+                </Link>,
+              ],
+            },
+            {
+              label: "Context window",
+              cells: [
+                "contextWindow",
+                <Link
+                  key="ctx"
+                  href="/research/model-context-windows"
+                  className="text-primary hover:underline"
+                >
+                  /research/model-context-windows
+                </Link>,
+              ],
+            },
+            {
+              label: "Max output tokens",
+              cells: [
+                "maxOutputTokens",
+                <Link
+                  key="out"
+                  href="/research/model-output-limits"
+                  className="text-primary hover:underline"
+                >
+                  /research/model-output-limits
+                </Link>,
+              ],
+            },
+            {
+              label: "Modality",
+              cells: [
+                "modality (text-in, image-in, audio-in, video-in, text-out, …)",
+                "Model detail page → Modality field",
+              ],
+            },
+            {
+              label: "Pricing units (input/output/cache/batch)",
+              cells: [
+                "pricing tiers + units",
+                <Link
+                  key="pr"
+                  href="/research/api-pricing-methodology"
+                  className="text-primary hover:underline"
+                >
+                  /research/api-pricing-methodology
+                </Link>,
+              ],
+            },
+            {
+              label: "Status observations",
+              cells: [
+                "Provider observers + sample threshold",
+                <Link
+                  key="st"
+                  href="/research/ai-provider-status-monitoring"
+                  className="text-primary hover:underline"
+                >
+                  /research/ai-provider-status-monitoring
+                </Link>,
+              ],
+            },
+            {
+              label: "Source coverage",
+              cells: [
+                "Per-model citations + per-provider coverage",
+                <Link
+                  key="cv"
+                  href="/coverage"
+                  className="text-primary hover:underline"
+                >
+                  /coverage
+                </Link>,
+              ],
+            },
+          ]}
+        />
+      </section>
+
+      <section id="not-to-optimise">
+        <h2>What not to optimise for</h2>
+        <ul>
+          <li>
+            <strong>Headline benchmark score on its own.</strong>{" "}
+            Without protocol / dataset / snapshot date, a score does
+            not predict your workload — see{" "}
+            <Link
+              href="/research/benchmark-limitations"
+              className="text-primary hover:underline"
+            >
+              benchmark limitations
+            </Link>
+            .
+          </li>
+          <li>
+            <strong>Unverified latency claims.</strong> The catalogue
+            does not publish a request-latency number for any model;
+            the only latency-shaped value recorded is the status
+            probe&apos;s fetch wall-clock, which is{" "}
+            <em>not</em> API latency.
+          </li>
+          <li>
+            <strong>Unsourced cost estimates.</strong> Cost depends on
+            tokenizer + cache-hit rate + workload mix; published
+            per-token rates are inputs, not totals.
+          </li>
+        </ul>
       </section>
 
       <section id="next-steps">

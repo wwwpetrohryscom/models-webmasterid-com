@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPageShell } from "@/components/ContentPageShell";
+import { ProviderCoverageMatrix } from "@/components/content/ProviderCoverageMatrix";
 import { buildMetadata } from "@/lib/seo";
 import { getContentPage } from "@/lib/content";
 
@@ -25,6 +26,7 @@ export default function Page() {
       toc={[
         { id: "shape", label: "ProviderEntity shape" },
         { id: "dimensions", label: "Coverage dimensions" },
+        { id: "live-matrix", label: "Current provider coverage matrix" },
         { id: "status-meaning", label: "What 'verified' means at the provider level" },
         { id: "partial", label: "Partial verification" },
         { id: "blocked", label: "Blocked retrieval" },
@@ -116,6 +118,14 @@ export default function Page() {
             one.
           </li>
         </ul>
+      </section>
+
+      <section id="live-matrix">
+        <h2>Current provider coverage matrix</h2>
+        <p>
+          Derived from the data layer at render time:
+        </p>
+        <ProviderCoverageMatrix />
       </section>
 
       <section id="status-meaning">

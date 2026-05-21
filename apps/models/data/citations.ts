@@ -198,3 +198,19 @@ export const mistralApiReference: SourceCitation = citation({
   notes:
     "Mistral chat completions endpoint, headers, minimal request body, and model parameter format.",
 });
+
+/**
+ * Mistral Large 3 per-model spec card. The URL pattern was previously
+ * `/getting-started/models/<slug>` (which 404'd in Sprint 8B); Mistral
+ * moved the spec cards to `/models/model-cards/<slug>`, where they are
+ * now accessible. Used to verify canonical snapshot ID, context window,
+ * and pricing for `mistral-large-2512`.
+ */
+export const mistralLarge3ModelCard: SourceCitation = citation({
+  url: "https://docs.mistral.ai/models/model-cards/mistral-large-3-25-12",
+  name: "Mistral — Large 3 (v25.12) model card",
+  type: "official-vendor-docs",
+  retrievedAt: "2026-05-21T00:00:00.000Z",
+  notes:
+    "Mistral Large 3 spec card at the new URL pattern (/models/model-cards/<slug>). Canonical pinned snapshot is mistral-large-2512; context window 256k; input $0.5 / output $1.5 per 1M tokens. Max output and explicit modality list still not stated.",
+});

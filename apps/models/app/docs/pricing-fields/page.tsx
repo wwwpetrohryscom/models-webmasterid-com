@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPageShell } from "@/components/ContentPageShell";
+import { PricingUnitTable } from "@/components/content/PricingUnitTable";
 import { buildMetadata } from "@/lib/seo";
 import { getContentPage } from "@/lib/content";
 
@@ -23,6 +24,7 @@ export default function Page() {
       page={page}
       breadcrumbParent={{ name: "Docs", href: "/docs" }}
       toc={[
+        { id: "enum-table", label: "PricingUnit enum reference" },
         { id: "shape", label: "Pricing row shape" },
         { id: "base", label: "Input / output base units" },
         { id: "cache", label: "Cache pricing units" },
@@ -50,6 +52,17 @@ export default function Page() {
         },
       ]}
     >
+      <section id="enum-table">
+        <h2>PricingUnit enum reference</h2>
+        <PricingUnitTable />
+        <p className="mt-2 text-xs text-muted-foreground">
+          The &quot;Verified for&quot; column reflects providers with at
+          least one verified pricing row at that unit today; absence
+          does not mean a provider lacks the concept, only that it has
+          not been verified into the catalogue.
+        </p>
+      </section>
+
       <section id="shape">
         <h2>Pricing row shape</h2>
         <pre className="overflow-x-auto rounded-lg border border-border bg-background/60 p-3 text-[12px] leading-relaxed">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPageShell } from "@/components/ContentPageShell";
+import { MethodologyMatrix } from "@/components/content/MethodologyMatrix";
 import { buildMetadata } from "@/lib/seo";
 import { getContentPage } from "@/lib/content";
 
@@ -28,6 +29,7 @@ export default function Page() {
         { id: "contamination", label: "Dataset contamination" },
         { id: "drift", label: "Prompt and version drift" },
         { id: "lifecycle", label: "Lifecycle changes between scores and publication" },
+        { id: "limitation-matrix", label: "Limitation matrix" },
         { id: "what-we-publish", label: "What the catalogue publishes today" },
       ]}
       verifiedToday={[
@@ -181,6 +183,64 @@ export default function Page() {
           — so a published score can be read against its model&apos;s
           current state instead of in isolation.
         </p>
+      </section>
+
+      <section id="limitation-matrix">
+        <h2>Limitation matrix — why benchmark scores warrant care</h2>
+        <MethodologyMatrix
+          caption="Common limitation patterns affecting benchmark scores"
+          columns={["Visible symptom", "Effect on interpretation"]}
+          rows={[
+            {
+              label: "Dataset contamination",
+              note: "Public benchmark in public training data",
+              cells: [
+                "Score drifts upward over time across vendors.",
+                "Memorisation + generalisation are mixed; the number is no longer a clean signal of capability.",
+              ],
+            },
+            {
+              label: "Prompt variance",
+              note: "Different system prompts / temperature / CoT conventions",
+              cells: [
+                "Same model, same dataset, different scores depending on protocol.",
+                "Single-number reports without protocol are not reproducible.",
+              ],
+            },
+            {
+              label: "Model version drift",
+              note: "Rolling aliases vs pinned snapshots",
+              cells: [
+                "Score from an alias on day X reflects whichever snapshot served then.",
+                "Without snapshot date, scores cannot be replicated.",
+              ],
+            },
+            {
+              label: "Provider-reported vs independent",
+              note: "Who ran the eval matters",
+              cells: [
+                "Provider blog post quoting their own score.",
+                "Same epistemic footing as a vendor-reported status indicator: useful as colour, not a property of the model.",
+              ],
+            },
+            {
+              label: "Task / domain mismatch",
+              note: "Benchmark domain ≠ production workload",
+              cells: [
+                "High score on MMLU; low real-world performance on internal docs.",
+                "Score signals nothing about workload-specific capability.",
+              ],
+            },
+            {
+              label: "Reproducibility gap",
+              note: "Closed eval harness, undocumented seed",
+              cells: [
+                "Two runs yield different scores; no published harness.",
+                "Cannot be re-verified independently.",
+              ],
+            },
+          ]}
+        />
       </section>
 
       <section id="what-we-publish">

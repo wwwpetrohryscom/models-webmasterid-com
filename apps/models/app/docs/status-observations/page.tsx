@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPageShell } from "@/components/ContentPageShell";
+import { StatusSignalTable } from "@/components/content/StatusSignalTable";
+import { FieldDefinitionTable } from "@/components/content/FieldDefinitionTable";
 import { buildMetadata } from "@/lib/seo";
 import { getContentPage } from "@/lib/content";
 import { MINIMUM_OBSERVATIONS_FOR_UPTIME } from "@/lib/status-store";
@@ -26,7 +28,8 @@ export default function Page() {
       toc={[
         { id: "shape", label: "StatusObservation shape" },
         { id: "source", label: "Source values" },
-        { id: "observed-status", label: "ObservedStatus values" },
+        { id: "observed-status-enum", label: "ObservedStatus enum table" },
+        { id: "observed-status", label: "ObservedStatus narrative" },
         { id: "latency", label: "latencyMs semantics" },
         { id: "gating", label: "Uptime gating policy" },
         { id: "no-sla", label: "No SLA, no availability claim" },
@@ -75,25 +78,43 @@ export default function Page() {
 
       <section id="source">
         <h2>Source values</h2>
-        <ul>
-          <li>
-            <code className="rounded bg-muted px-1">vendor_status_api</code> —
-            programmatic vendor feed (e.g. Statuspage JSON, Google
-            Cloud incidents JSON).
-          </li>
-          <li>
-            <code className="rounded bg-muted px-1">vendor_status_page</code> —
-            HTML vendor status page consumed without a structured feed
-            (rare; reserved for vendors who do not publish JSON).
-          </li>
-          <li>
-            <code className="rounded bg-muted px-1">independent_http_probe</code>{" "}
-            — an HTTP request from WebmasterID against a public,
-            non-inference vendor endpoint. The probe target is recorded
-            as a primary-source citation; the request carries no
-            authentication and does not invoke any inference endpoint.
-          </li>
-        </ul>
+        <StatusSignalTable />
+      </section>
+
+      <section id="observed-status-enum">
+        <h2>ObservedStatus enum</h2>
+        <FieldDefinitionTable
+          caption="ObservedStatus enum"
+          identifierHeader="observedStatus"
+          rows={[
+            {
+              identifier: "operational",
+              definition:
+                "No detected impact at this observation time. For probes: host responded with 2xx/3xx/4xx.",
+            },
+            {
+              identifier: "degraded",
+              definition: "Minor incident affecting the tracked product.",
+            },
+            {
+              identifier: "partial_outage",
+              definition: "Partial unavailability.",
+            },
+            {
+              identifier: "major_outage",
+              definition: "Broad unavailability.",
+            },
+            {
+              identifier: "maintenance",
+              definition: "Announced maintenance window.",
+            },
+            {
+              identifier: "unknown",
+              definition:
+                "Could not determine. Probes set this on timeout/network error; vendor observers set this when the upstream feed could not be parsed.",
+            },
+          ]}
+        />
       </section>
 
       <section id="observed-status">

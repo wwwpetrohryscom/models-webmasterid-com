@@ -108,12 +108,12 @@ export const providers: ProviderEntity[] = [
     pricingUrl: "https://mistral.ai/pricing",
     modelCatalogueUrl: "https://docs.mistral.ai/getting-started/models/models_overview",
     headquarters: "Paris, France",
-    verified: false,
-    verificationStatus: "partial",
+    verified: true,
+    verificationStatus: "verified",
     lastCheckedAt: "2026-05-21T00:00:00.000Z",
     updatedDate: "2026-05-21",
     notes:
-      "Models overview, models table, and API reference were retrieved on 2026-05-20 and re-retrieved on 2026-05-21 (Sprint 8B) — content unchanged. Used to verify mistral-large-3's API string and lifecycle, and to confirm Mistral Large 2 is in the Legacy/Deprecated table (deprecated 2024-11-30, retired 2025-03-30). Per-model spec card pages still return 404 to automated retrieval; the API pricing tab on mistral.ai/pricing is still JS-driven. Pricing, context window, max output, and modality stay unverified until a manual browser pass.",
+      "Models overview, models table, API reference, and the per-model spec card for Mistral Large 3 (v25.12) all retrievable. Sprint 16 verification pass landed the new spec-card URL pattern (/models/model-cards/<slug>), unlocking context window (256k) and pricing ($0.5/$1.5 per 1M input/output) on Mistral Large 3. Max output and explicit modality enumeration remain null because the spec card describes the model as 'multimodal' without listing channels.",
   },
   {
     id: "provider-deepseek",

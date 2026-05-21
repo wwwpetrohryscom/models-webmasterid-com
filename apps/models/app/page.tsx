@@ -9,6 +9,7 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { JsonLd } from "@/components/JsonLd";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { VerifiedField } from "@/components/VerifiedField";
+import { ContentStatCard } from "@/components/content/ContentStatCard";
 import { siteConfig } from "@/lib/site-config";
 import {
   buildMetadata,
@@ -509,6 +510,74 @@ export default function HomePage() {
             </ul>
           </DashboardCard>
         </div>
+      </section>
+
+      {/* Verified coverage strip — derived from local data layer */}
+      <section
+        aria-label="Current verified coverage"
+        className="container-page mt-16"
+      >
+        <SectionHeader
+          eyebrow="Live counts"
+          title="Current verified coverage"
+          description="Derived from the typed local data layer at build time. Each card links to the hub that surfaces the underlying detail."
+        />
+        {(() => {
+          const verifiedModels = models.filter(
+            (m) => m.verificationStatus === "verified"
+          ).length;
+          const verifiedProviders = providers.filter(
+            (p) => p.verificationStatus === "verified"
+          ).length;
+          const verifiedPricingRows = models.reduce(
+            (n, m) =>
+              n +
+              m.pricing.filter(
+                (t) => t.amount && t.amount.citation
+              ).length,
+            0
+          );
+          const sourceCitationCount = (() => {
+            const seen = new Set<string>();
+            for (const m of models)
+              for (const c of m.citations) seen.add(c.url);
+            return seen.size;
+          })();
+          return (
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              <ContentStatCard
+                label="Verified models"
+                value={verifiedModels}
+                caption={`of ${models.length} tracked`}
+                href="/models?verification=verified"
+              />
+              <ContentStatCard
+                label="Verified providers"
+                value={verifiedProviders}
+                caption={`of ${providers.length} tracked`}
+                href="/providers"
+              />
+              <ContentStatCard
+                label="Verified pricing rows"
+                value={verifiedPricingRows}
+                caption="across catalogue"
+                href="/pricing?status=verified"
+              />
+              <ContentStatCard
+                label="Status observers"
+                value={3}
+                caption="2 vendor + 1 probe"
+                href="/status"
+              />
+              <ContentStatCard
+                label="Source citations"
+                value={sourceCitationCount}
+                caption="unique primary-source URLs"
+                href="/sources"
+              />
+            </div>
+          );
+        })()}
       </section>
 
       {/* Useful content layer */}

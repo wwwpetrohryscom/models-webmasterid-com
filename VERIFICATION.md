@@ -249,6 +249,14 @@ reference):
 Verified DeepSeek models (against DeepSeek's API docs root, Models &
 Pricing page, and chat-completion API reference):
 
+- **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
+  — Sprint 16 expansion. Mistral moved per-model spec cards from
+  `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,
+  unblocking automated retrieval. Verified context window 256k; pricing
+  $0.5 input / $1.5 output per 1M tokens. Max output tokens and explicit
+  modality channel list still not stated on the spec card and remain
+  null.
+
 - **DeepSeek V4 Pro** (`deepseek-v4-pro`) — current generation
   reasoning model. The pricing table records the regular rate as the
   durable canonical value (input cache-miss $1.74, cache-hit $0.0145,
@@ -259,15 +267,12 @@ Pricing page, and chat-completion API reference):
   knowledge cutoff remain `null` (not exposed on the pages retrievable
   from this environment).
 
-Partially verified Mistral models (only API string + lifecycle):
-
-- **Mistral Large 3** (`mistral-large-3`, alias `mistral-large-latest`).
-  Listed in the Mistral models overview as v25.12, Open weights,
-  multimodal. The per-model spec card page returned 404 to automated
-  retrieval; context window, max output, explicit modalities, and
-  pricing remain `null` and render the canonical unverified-data
-  label. A manual browser pass against the individual model card is
-  the unblock.
+_(Mistral Large 3 was promoted to fully verified during Sprint 16 — see
+the entry above. Mistral's spec card moved to the new
+`/models/model-cards/<slug>` URL pattern and is now accessible to
+automated retrieval. Max output and explicit modality channels remain
+null because the spec card describes the model as 'multimodal' without
+enumerating them.)_
 
 Historical / partially-verified entries (`deepseek-r1`, `mistral-large-2`):
 historical catalogue entries with verified lifecycle status only.

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPageShell } from "@/components/ContentPageShell";
+import { MethodologyMatrix } from "@/components/content/MethodologyMatrix";
 import { buildMetadata } from "@/lib/seo";
 import { getContentPage } from "@/lib/content";
 
@@ -30,6 +31,7 @@ export default function Page() {
         { id: "retrieval-cadence", label: "Retrieval cadence" },
         { id: "blocked-attempts", label: "Blocked retrievals are recorded too" },
         { id: "jsonld-policy", label: "JSON-LD exclusion policy" },
+        { id: "source-allow-vs-rejected", label: "Allowed vs rejected source types" },
         { id: "manual-workflow", label: "Manual verification workflow" },
       ]}
       verifiedToday={[
@@ -258,6 +260,86 @@ export default function Page() {
           or uptime properties in JSON-LD. Search engines and AI
           surfaces never see an estimate from this site.
         </p>
+      </section>
+
+      <section id="source-allow-vs-rejected">
+        <h2>Allowed vs rejected source types</h2>
+        <MethodologyMatrix
+          caption="Source allow-list and rejected sources"
+          columns={["Why it qualifies / why it does not"]}
+          rows={[
+            {
+              label: "official-vendor-docs",
+              note: "ALLOWED",
+              cells: [
+                "Provider-controlled domain; structurally stable; the canonical place a metric is published.",
+              ],
+            },
+            {
+              label: "official-vendor-pricing",
+              note: "ALLOWED",
+              cells: [
+                "Provider-controlled domain; stable URL; the canonical pricing source.",
+              ],
+            },
+            {
+              label: "official-vendor-site",
+              note: "ALLOWED — limited use",
+              cells: [
+                "Marketing surface, used only where the fact is structurally bound there (HQ, status page URL).",
+              ],
+            },
+            {
+              label: "regulatory-filing",
+              note: "ALLOWED",
+              cells: [
+                "Authoritative regulator record; durable provenance.",
+              ],
+            },
+            {
+              label: "research-paper",
+              note: "ALLOWED — for architecture / training claims",
+              cells: [
+                "Peer-reviewed or recognised preprint archive; used for facts the provider has published or co-authored.",
+              ],
+            },
+            {
+              label: "public-dataset",
+              note: "ALLOWED — for benchmark references",
+              cells: [
+                "Publicly-versioned dataset, used as a benchmark reference object only.",
+              ],
+            },
+            {
+              label: "AI-generated summaries",
+              note: "REJECTED",
+              cells: [
+                "Including WebSearch tool output. AI summaries cannot be re-verified directly; they are not primary sources.",
+              ],
+            },
+            {
+              label: "Blog posts (third-party)",
+              note: "REJECTED",
+              cells: [
+                "Often well-researched, but cannot be re-verified except via the underlying primary source.",
+              ],
+            },
+            {
+              label: "Social posts",
+              note: "REJECTED",
+              cells: [
+                "Even from official accounts — content drifts, gets deleted, or is paraphrased.",
+              ],
+            },
+            {
+              label: "Aggregator sites without independent review",
+              note: "REJECTED",
+              cells: [
+                "Leaderboards, comparison sites, etc. May be useful as pointers, but not as sources.",
+              ],
+            },
+          ]}
+        />
       </section>
 
       <section id="manual-workflow">

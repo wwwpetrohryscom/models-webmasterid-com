@@ -13,6 +13,7 @@ import {
   mistralModelsOverview,
   mistralModelsTable,
   mistralApiReference,
+  mistralLarge3ModelCard,
 } from "./citations";
 
 // ---------------------------------------------------------------------------
@@ -848,39 +849,57 @@ const mistralLarge3: ModelEntity = {
   slug: "mistral-large-3",
   name: "Mistral Large 3",
   description:
-    "Mistral's current Large-tier flagship. Documented on Mistral's models overview as a state-of-the-art, open-weight, general-purpose multimodal model. Per-model spec card pages (context window, max output) were not retrievable from this environment; those fields remain unverified.",
+    "Mistral's current Large-tier flagship (v25.12). Open-weight, multimodal, state-of-the-art general-purpose model — verified end-to-end against Mistral's overview, models table, API reference, and the per-model spec card.",
   providerSlug: "mistral",
-  sourceUrl: mistralModelsOverview.url,
-  sourceName: mistralModelsOverview.name,
-  sourceType: mistralModelsOverview.type,
-  verified: false,
-  verificationStatus: "partial",
-  confidenceLevel: "medium",
+  sourceUrl: mistralLarge3ModelCard.url,
+  sourceName: mistralLarge3ModelCard.name,
+  sourceType: mistralLarge3ModelCard.type,
+  verified: true,
+  verificationStatus: "verified",
+  confidenceLevel: "high",
   lastCheckedAt: "2026-05-21T00:00:00.000Z",
   updatedDate: "2026-05-21",
   notes:
-    "Mistral's docs site exposes the models overview and the API reference; the per-model spec card pages returned 404 to automated retrieval on both 2026-05-20 and 2026-05-21. Pricing, context window, max output, and modality remain null until a manual browser pass.",
+    "Mistral's per-model spec card moved to docs.mistral.ai/models/model-cards/<slug>. Re-retrieved on 2026-05-21 — canonical snapshot `mistral-large-2512`, 256k context window, $0.5/$1.5 per-million input/output verified. Max output and explicit modality list are still not stated on the page; those fields remain null.",
 
   apiIdentifiers: verified(
     {
-      canonical: "mistral-large-3",
+      canonical: "mistral-large-2512",
       alias: "mistral-large-latest",
     },
-    mistralModelsTable,
+    mistralLarge3ModelCard,
     {
       notes:
-        "API string listed in the Mistral models table. The 'mistral-large-latest' alias is documented in the API reference as the version-agnostic example identifier.",
+        "Canonical pinned snapshot ID from the Mistral Large 3 (v25.12) spec card. The `mistral-large-latest` alias is documented in the API reference as the version-agnostic example identifier.",
     }
   ),
 
   releaseDate: null,
   snapshotDate: null,
   knowledgeCutoff: null,
-  contextWindow: null,
+
+  contextWindow: verified(256_000, mistralLarge3ModelCard, {
+    notes:
+      "Listed as '256k' on the Mistral Large 3 (v25.12) spec card.",
+  }),
+
   maxOutputTokens: null,
   modality: null,
 
-  pricing: [],
+  pricing: [
+    {
+      unit: "1M input tokens",
+      amount: verified(0.5, mistralLarge3ModelCard, {
+        notes: "Listed as '$0.5 /M Tokens' on the Mistral Large 3 (v25.12) spec card.",
+      }),
+    },
+    {
+      unit: "1M output tokens",
+      amount: verified(1.5, mistralLarge3ModelCard, {
+        notes: "Listed as '$1.5 /M Tokens' on the Mistral Large 3 (v25.12) spec card.",
+      }),
+    },
+  ],
 
   benchmarks: [],
 
@@ -902,6 +921,7 @@ const mistralLarge3: ModelEntity = {
   ),
 
   citations: mergeCitations([
+    mistralLarge3ModelCard,
     mistralModelsOverview,
     mistralModelsTable,
     mistralApiReference,

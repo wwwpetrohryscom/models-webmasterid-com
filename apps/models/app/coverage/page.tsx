@@ -25,6 +25,7 @@ import {
   ENABLED_OBSERVERS,
   findObserversForProvider,
 } from "@/lib/observers";
+import { ProviderCoverageMatrix } from "@/components/content/ProviderCoverageMatrix";
 
 export const metadata: Metadata = buildMetadata({
   title: "Coverage",
@@ -352,6 +353,17 @@ export default function CoveragePage() {
             . The /status page itself does not display this number.
           </li>
         </ul>
+      </section>
+
+      <section aria-label="Provider coverage matrix" className="space-y-3">
+        <SectionHeader
+          eyebrow="At a glance"
+          title="Provider coverage matrix"
+          description="Verified models, pricing rows, and status observers per provider. Computed from the local data layer at render time — no stale snapshots."
+          cta={{ label: "Coverage methodology", href: "/docs/provider-coverage" }}
+          as="h2"
+        />
+        <ProviderCoverageMatrix />
       </section>
 
       <section

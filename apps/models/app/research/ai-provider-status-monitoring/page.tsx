@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPageShell } from "@/components/ContentPageShell";
+import { StatusSignalTable } from "@/components/content/StatusSignalTable";
 import { buildMetadata } from "@/lib/seo";
 import { getContentPage } from "@/lib/content";
 import { MINIMUM_OBSERVATIONS_FOR_UPTIME } from "@/lib/status-store";
@@ -29,6 +30,7 @@ export default function Page() {
         { id: "independent-probes", label: "Independent HTTP probes" },
         { id: "computed-uptime", label: "Computed uptime windows" },
         { id: "sample-threshold", label: "The sample threshold" },
+        { id: "signal-taxonomy", label: "Signal taxonomy + live observers" },
         { id: "current-observers", label: "Currently observed providers" },
         { id: "what-we-do-not-claim", label: "What we do not claim" },
       ]}
@@ -224,6 +226,19 @@ export default function Page() {
           <code className="rounded bg-muted px-1">policyNote</code>{" "}
           explains the gating decision explicitly.
         </p>
+      </section>
+
+      <section id="signal-taxonomy">
+        <h2>Signal taxonomy + live observers</h2>
+        <p>
+          The two tables below document the source vocabulary and the
+          currently-registered observers. The observer table is
+          derived from{" "}
+          <code className="rounded bg-muted px-1">lib/observers/index.ts</code>{" "}
+          at render time, so it cannot drift from the production
+          pipeline.
+        </p>
+        <StatusSignalTable />
       </section>
 
       <section id="current-observers">

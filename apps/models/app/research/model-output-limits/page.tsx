@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPageShell } from "@/components/ContentPageShell";
+import { MethodologyMatrix } from "@/components/content/MethodologyMatrix";
 import { buildMetadata } from "@/lib/seo";
 import { getContentPage } from "@/lib/content";
 
@@ -28,6 +29,7 @@ export default function Page() {
         { id: "agentic", label: "Agentic loops" },
         { id: "structured", label: "Structured output" },
         { id: "cost", label: "Cost implications" },
+        { id: "use-case-matrix", label: "Output-budget pressure by use case" },
         { id: "verified-examples", label: "Verified examples" },
       ]}
       verifiedToday={[
@@ -182,6 +184,52 @@ export default function Page() {
           proportionally more from the batch tier than input-heavy
           ones.
         </p>
+      </section>
+
+      <section id="use-case-matrix">
+        <h2>Output-budget pressure by use case</h2>
+        <MethodologyMatrix
+          caption="How the output token budget interacts with common workloads"
+          columns={["Output pressure", "Failure mode", "Recommended budget"]}
+          rows={[
+            {
+              label: "Long-form generation",
+              note: "Full reports, code repositories, structured datasets",
+              cells: [
+                "High — budget consumed proportionally to deliverable length.",
+                "Truncation mid-response. Continuation prompts needed; coherence may drift.",
+                "Match to deliverable; consider batch API for longer-than-64k outputs.",
+              ],
+            },
+            {
+              label: "Structured output",
+              note: "JSON schema conformance, function-call payloads",
+              cells: [
+                "High per token of effective payload — keys, brackets, commas all count.",
+                "Mid-output truncation can leave the JSON unparseable.",
+                "Reserve 2–3× the visible payload size to cover serialization overhead.",
+              ],
+            },
+            {
+              label: "Agentic loops",
+              note: "Tool calls + reasoning across many turns",
+              cells: [
+                "Moderate; spread across many short calls rather than one long one.",
+                "Mid-turn truncation forces re-planning; extended-thinking traces eat the same budget.",
+                "Keep individual call outputs short; checkpoint state between calls.",
+              ],
+            },
+            {
+              label: "Code generation",
+              note: "Whole-file or whole-module generation",
+              cells: [
+                "High; source code tokenises densely.",
+                "File truncation produces partial/invalid syntax.",
+                "Generate in functional units; verify each before continuing.",
+              ],
+            },
+          ]}
+        />
       </section>
 
       <section id="verified-examples">

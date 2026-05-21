@@ -4,6 +4,8 @@ import { PageShell } from "@/components/PageShell";
 import { ProviderLogo } from "@/components/ProviderLogo";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { JsonLd } from "@/components/JsonLd";
+import { ProviderCoverageMatrix } from "@/components/content/ProviderCoverageMatrix";
+import { SectionHeader } from "@/components/SectionHeader";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { providers } from "@/data/providers";
 import { models } from "@/data/models";
@@ -29,6 +31,17 @@ export default function ProvidersIndexPage() {
           { name: "Providers", href: "/providers" },
         ])}
       />
+
+      <section aria-label="Provider coverage matrix" className="space-y-3">
+        <SectionHeader
+          eyebrow="At a glance"
+          title="Provider coverage matrix"
+          description="Verified models, pricing rows, and status observers per provider. Derived from the data layer; figures update as new verification lands."
+          cta={{ label: "Coverage methodology", href: "/docs/provider-coverage" }}
+          as="h2"
+        />
+        <ProviderCoverageMatrix />
+      </section>
 
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {providers.map((p) => {
