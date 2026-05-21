@@ -14,6 +14,7 @@ import {
   mistralModelsTable,
   mistralApiReference,
   mistralLarge3ModelCard,
+  metaLlama4ModelCard,
 } from "./citations";
 
 // ---------------------------------------------------------------------------
@@ -453,7 +454,7 @@ const claudeHaiku4_5: ModelEntity = {
   slug: "claude-haiku-4-5",
   name: "Claude Haiku 4.5",
   description:
-    "Anthropic's current Haiku model. Documented by Anthropic as the fastest model with near-frontier intelligence.",
+    "Anthropic's current Haiku tier. Documented by Anthropic as a low-latency model with near-frontier intelligence.",
   providerSlug: "anthropic",
   sourceUrl: anthropicModelsOverview.url,
   sourceName: anthropicModelsOverview.name,
@@ -1104,6 +1105,164 @@ const mistralLarge2Historical: ModelEntity = {
   citations: mergeCitations([mistralModelsOverview]),
 };
 
+// ---------------------------------------------------------------------------
+// Meta Llama 4 — Scout + Maverick.
+//
+// Sourced from the official model card at
+// llama.com/docs/model-cards-and-prompt-formats/llama4. Meta does NOT
+// run a hosted paid API for Llama, so pricing stays empty on both
+// records. Max output and an explicit public-release date are not
+// stated on the model card and remain null.
+// ---------------------------------------------------------------------------
+
+const llama4Scout: ModelEntity = {
+  id: "model-llama-4-scout",
+  slug: "llama-4-scout",
+  name: "Llama 4 Scout",
+  description:
+    "Meta's Llama 4 Scout — 17B active / 109B total Mixture-of-Experts (16 experts) with a 10M-token context window. Natively multimodal: text and up to 5 images as input; text-only output. Open-weight model, not a hosted paid API.",
+  providerSlug: "meta",
+  sourceUrl: metaLlama4ModelCard.url,
+  sourceName: metaLlama4ModelCard.name,
+  sourceType: metaLlama4ModelCard.type,
+  verified: true,
+  verificationStatus: "verified",
+  confidenceLevel: "high",
+  lastCheckedAt: "2026-05-21T00:00:00.000Z",
+  updatedDate: "2026-05-21",
+  notes:
+    "Open-weight model. Meta does not publish a first-party hosted API price — pricing is intentionally empty on this record. Max output tokens and a stated release date are not on the model card.",
+
+  apiIdentifiers: verified(
+    { canonical: "Llama 4 Scout" },
+    metaLlama4ModelCard,
+    {
+      notes:
+        "Model name as listed on Meta's Llama 4 model card. There is no single canonical API string; hosting providers (Groq, Together, etc.) use their own platform-specific identifiers.",
+    }
+  ),
+
+  releaseDate: null,
+  snapshotDate: null,
+
+  knowledgeCutoff: verified(
+    { reliable: "2024-08" },
+    metaLlama4ModelCard,
+    {
+      notes:
+        "Knowledge cutoff stated as 'August 2024' on the model card.",
+    }
+  ),
+
+  contextWindow: verified(10_000_000, metaLlama4ModelCard, {
+    notes:
+      "Listed as '10M tokens' on Meta's Llama 4 model card for the Scout variant.",
+  }),
+
+  maxOutputTokens: null,
+
+  modality: verified(
+    ["text-in", "image-in", "text-out"],
+    metaLlama4ModelCard,
+    {
+      notes:
+        "Inputs: 'Text + up to 5 images'. Output: 'Text-only'. Quoted from the model card.",
+    }
+  ),
+
+  pricing: [],
+  benchmarks: [],
+  infrastructure: {
+    regions: null,
+    avgLatencyMs: null,
+    uptimePercent: null,
+  },
+
+  features: null,
+
+  lifecycle: verified(
+    { status: "active" },
+    metaLlama4ModelCard,
+    {
+      notes:
+        "Llama 4 is the current Meta-released family; Scout is one of two variants documented as current on the model card.",
+    }
+  ),
+
+  citations: mergeCitations([metaLlama4ModelCard]),
+};
+
+const llama4Maverick: ModelEntity = {
+  id: "model-llama-4-maverick",
+  slug: "llama-4-maverick",
+  name: "Llama 4 Maverick",
+  description:
+    "Meta's Llama 4 Maverick — 17B active / 400B total Mixture-of-Experts (128 experts) with a 1M-token context window. Natively multimodal: text and up to 5 images as input; text-only output. Open-weight model, not a hosted paid API.",
+  providerSlug: "meta",
+  sourceUrl: metaLlama4ModelCard.url,
+  sourceName: metaLlama4ModelCard.name,
+  sourceType: metaLlama4ModelCard.type,
+  verified: true,
+  verificationStatus: "verified",
+  confidenceLevel: "high",
+  lastCheckedAt: "2026-05-21T00:00:00.000Z",
+  updatedDate: "2026-05-21",
+  notes:
+    "Open-weight model. Meta does not publish a first-party hosted API price — pricing is intentionally empty on this record. Max output tokens and a stated release date are not on the model card.",
+
+  apiIdentifiers: verified(
+    { canonical: "Llama 4 Maverick" },
+    metaLlama4ModelCard,
+    {
+      notes:
+        "Model name as listed on Meta's Llama 4 model card. There is no single canonical API string; hosting providers use their own platform-specific identifiers.",
+    }
+  ),
+
+  releaseDate: null,
+  snapshotDate: null,
+
+  knowledgeCutoff: verified(
+    { reliable: "2024-08" },
+    metaLlama4ModelCard,
+    { notes: "Stated as 'August 2024' on the model card." }
+  ),
+
+  contextWindow: verified(1_000_000, metaLlama4ModelCard, {
+    notes:
+      "Listed as '1M tokens' on Meta's Llama 4 model card for the Maverick variant.",
+  }),
+
+  maxOutputTokens: null,
+
+  modality: verified(
+    ["text-in", "image-in", "text-out"],
+    metaLlama4ModelCard,
+    {
+      notes:
+        "Inputs: 'Text + up to 5 images'. Output: 'Text-only'. Quoted from the model card.",
+    }
+  ),
+
+  pricing: [],
+  benchmarks: [],
+  infrastructure: {
+    regions: null,
+    avgLatencyMs: null,
+    uptimePercent: null,
+  },
+
+  features: null,
+
+  lifecycle: verified(
+    { status: "active" },
+    metaLlama4ModelCard,
+    { notes: "Documented as current on Meta's Llama 4 model card." }
+  ),
+
+  citations: mergeCitations([metaLlama4ModelCard]),
+};
+
 export const models: ModelEntity[] = [
   claudeOpus4_7,
   claudeSonnet4_6,
@@ -1111,6 +1270,8 @@ export const models: ModelEntity[] = [
   gemini2_5Pro,
   deepseekV4Pro,
   mistralLarge3,
+  llama4Scout,
+  llama4Maverick,
   claudeOpus4,
   deepseekR1Historical,
   mistralLarge2Historical,
@@ -1122,15 +1283,6 @@ export const models: ModelEntity[] = [
     providerHomepage: "https://openai.com",
     description:
       "OpenAI GPT-5 catalogue entry. The OpenAI documentation site (platform.openai.com) returned HTTP 403 to automated retrieval on 2026-05-20; no metric is yet verified. A manual browser-based verification pass is queued — see VERIFICATION.md.",
-  }),
-  unverifiedModel({
-    id: "model-llama-4-scout",
-    slug: "llama-4-scout",
-    name: "Llama 4 Scout",
-    providerSlug: "meta",
-    providerHomepage: "https://ai.meta.com",
-    description:
-      "Meta Llama 4 Scout catalogue entry. No metric has been verified against an official Meta AI source yet.",
   }),
 ];
 

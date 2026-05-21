@@ -322,6 +322,46 @@ export const verificationAttempts: VerificationAttempt[] = [
     notes:
       "platform.openai.com still returns HTTP 403 to automated retrieval. OpenAI verification remains blocked pending a manual browser pass.",
   },
+
+  // ---------------------------------------------------------------------
+  // Sprint 18 — Meta + Groq + Together expansion attempt; OpenAI 3rd retry.
+  // ---------------------------------------------------------------------
+  {
+    providerSlug: "meta",
+    url: "https://www.llama.com/docs/model-cards-and-prompt-formats/llama4",
+    target: "Meta Llama 4 model card (Scout + Maverick)",
+    attemptedAt: "2026-05-21T18:00:00.000Z",
+    result: "verified",
+    notes:
+      "Meta Llama 4 model card retrieved. Scout: 10M-token context, 17B active / 109B total MoE (16 experts); Maverick: 1M-token context, 17B active / 400B total MoE (128 experts). Both: input modality text + up to 5 images, output modality text only, knowledge cutoff August 2024. Max output tokens and an explicit public-release date are NOT stated on the model card and remain null on both records. Meta does not host a paid API for Llama; per-model pricing stays empty.",
+  },
+  {
+    providerSlug: "groq",
+    url: "https://console.groq.com/docs/models",
+    target: "Groq supported-models reference",
+    attemptedAt: "2026-05-21T18:00:00.000Z",
+    result: "verified",
+    notes:
+      "Groq supported-models page retrieved. Lists hosted third-party models (Llama 3.x, GPT-OSS, Qwen, Whisper, etc.) with context windows and pricing. Used only to verify the provider/platform itself — these models are NOT Groq-created, so no per-model entries are added under provider=groq.",
+  },
+  {
+    providerSlug: "together-ai",
+    url: "https://docs.together.ai/docs/serverless-models",
+    target: "Together AI serverless-models reference",
+    attemptedAt: "2026-05-21T18:00:00.000Z",
+    result: "verified",
+    notes:
+      "Together AI serverless-models page retrieved. Lists hosted third-party model families across chat, image, video, audio, and embedding categories. Used only to verify the provider/platform itself — these models are NOT Together-created, so no per-model entries are added under provider=together-ai.",
+  },
+  {
+    providerSlug: "openai",
+    url: "https://platform.openai.com/docs/models/gpt-5",
+    target: "OpenAI GPT-5 model docs (Sprint 18 retry)",
+    attemptedAt: "2026-05-21T18:00:00.000Z",
+    result: "blocked-403",
+    notes:
+      "Third automated retry. platform.openai.com still returns HTTP 403. OpenAI verification remains blocked — only a manual browser pass would unblock it.",
+  },
 ];
 
 export function attemptsByProvider(slug: string): VerificationAttempt[] {

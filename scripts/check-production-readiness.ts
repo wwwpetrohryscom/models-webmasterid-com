@@ -2173,6 +2173,110 @@ const checks: Check[] = [
     },
   },
   {
+    name: "Meta Llama 4 records cite the Meta model card (Sprint 18)",
+    run: () => {
+      const src = readRel("apps/models/data/models.ts");
+      const failures: string[] = [];
+      for (const slug of ["llama-4-scout", "llama-4-maverick"]) {
+        const block = src.split(`slug: "${slug}"`).pop() ?? "";
+        const head = block.slice(0, 6000);
+        if (!/verificationStatus:\s*"verified"/.test(head)) {
+          failures.push(
+            `${slug} must carry verificationStatus: "verified" after the Sprint 18 expansion.`
+          );
+        }
+        if (!/metaLlama4ModelCard/.test(head)) {
+          failures.push(
+            `${slug} must cite metaLlama4ModelCard from data/citations.ts.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no Meta pricing without an official Meta pricing citation",
+    run: () => {
+      const src = readRel("apps/models/data/models.ts");
+      const failures: string[] = [];
+      for (const slug of ["llama-4-scout", "llama-4-maverick"]) {
+        const block = src.split(`slug: "${slug}"`).pop() ?? "";
+        const head = block.slice(0, 6000);
+        // pricing must be empty []. Meta has no first-party hosted API
+        // price. If anyone adds a verified() pricing row to a Llama
+        // record, the entry must also reference a metaLlama*Pricing
+        // citation that currently does not exist — block the build.
+        const pricingMatch = head.match(/pricing:\s*\[([\s\S]*?)\]/);
+        if (pricingMatch && /verified\(/.test(pricingMatch[1])) {
+          failures.push(
+            `${slug} carries a verified pricing row. Meta does not run a first-party hosted API for Llama — pricing must remain empty on Llama records unless a metaLlama*Pricing citation is added to data/citations.ts.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Groq + Together verification covers provider only, not third-party model attribution",
+    run: () => {
+      const src = readRel("apps/models/data/models.ts");
+      const failures: string[] = [];
+      // No ModelEntity should declare providerSlug "groq" or "together-ai"
+      // for a model that is actually created by Meta/DeepSeek/Qwen/etc.
+      // Today we have ZERO models attributed to either platform — and
+      // that's the correct state. Block any future drift.
+      for (const slug of ["groq", "together-ai"]) {
+        const re = new RegExp(`providerSlug:\\s*"${slug}"`);
+        if (re.test(src)) {
+          failures.push(
+            `Found ModelEntity with providerSlug: "${slug}". Hosted-platform providers should not own per-model entries — those would misattribute the model's origin.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no \"fastest model\" or \"best model\" copy on data records (Sprint 18)",
+    run: () => {
+      const failures: string[] = [];
+      const dataFiles = [
+        "apps/models/data/models.ts",
+        "apps/models/data/providers.ts",
+        "apps/models/data/comparisons.ts",
+        "apps/models/data/citations.ts",
+      ];
+      const banned = /\bbest\s+(?:ai\s+)?model\b|\bfastest\s+(?:ai\s+)?model\b|\bfastest\s+inference\b/i;
+      for (const rel of dataFiles) {
+        const src = readRel(rel);
+        // Strip comments first; cautionary mentions are OK.
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        if (banned.test(stripped)) {
+          failures.push(
+            `${rel} contains "best model" / "fastest model" / "fastest inference" copy outside comments.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Mistral × Anthropic comparison is two-sided verified (Sprint 18)",
+    run: () => {
+      const src = readRel("apps/models/data/comparisons.ts");
+      const block = src
+        .split('slug: "mistral-large-3-vs-claude-sonnet-4-6"')
+        .pop() ?? "";
+      const head = block.slice(0, 3000);
+      if (!/verificationStatus:\s*"verified"/.test(head)) {
+        return "mistral-large-3-vs-claude-sonnet-4-6 must be verificationStatus: \"verified\" now that both sides are verified end-to-end.";
+      }
+      return null;
+    },
+  },
+  {
     name: "entity-graph helpers do not perform network fetches",
     run: () => {
       const src = readRel("apps/models/lib/entity-graph.ts");

@@ -249,6 +249,39 @@ reference):
 Verified DeepSeek models (against DeepSeek's API docs root, Models &
 Pricing page, and chat-completion API reference):
 
+- **Llama 4 Scout** + **Llama 4 Maverick** (Meta) — Sprint 18
+  expansion. Verified from Meta's official Llama 4 model card at
+  `llama.com/docs/model-cards-and-prompt-formats/llama4`. Scout:
+  10,000,000-token context, 17B active / 109B total MoE. Maverick:
+  1,000,000-token context, 17B active / 400B total MoE. Both:
+  modality `text + up to 5 images → text`, knowledge cutoff August
+  2024. Pricing is intentionally empty — Meta does not run a
+  first-party hosted API for Llama; the integrity guard suite blocks
+  any attempt to add a verified Meta pricing row without an explicit
+  Meta pricing citation. Max output tokens and a stated public-release
+  date are not on the model card and remain null.
+
+Hosted-platform providers (Sprint 18):
+
+- **Groq** (`groq`) — provider verified from
+  `console.groq.com/docs/models`. Hosts third-party model families
+  (Llama 3.x, GPT-OSS, Qwen, Whisper, etc.) on custom LPU hardware.
+  No per-model entries attributed to `providerSlug: "groq"` — those
+  would misrepresent model origin. Same discipline applies to any
+  inference-platform provider added later.
+- **Together AI** (`together-ai`) — provider verified from
+  `docs.together.ai/docs/serverless-models`. Same hosted-vs-creator
+  separation.
+
+Both platforms publish pricing for the hosted models, but the
+catalogue does not republish those rates as a property of the hosted
+*provider*. If a future sprint adds a hosted-pricing relationship
+type to the data model, the schema will distinguish "creator pricing"
+(which Anthropic / Google / DeepSeek / Mistral publish first-party)
+from "hosting-platform pricing" (which Groq / Together / Bedrock /
+Vertex publish). Until that schema exists, hosting pricing stays out
+of the verified pricing surface.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,

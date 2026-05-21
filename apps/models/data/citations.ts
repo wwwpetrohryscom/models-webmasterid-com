@@ -199,6 +199,65 @@ export const mistralApiReference: SourceCitation = citation({
     "Mistral chat completions endpoint, headers, minimal request body, and model parameter format.",
 });
 
+// ---------------------------------------------------------------------------
+// Meta Llama primary sources.
+// ---------------------------------------------------------------------------
+
+/**
+ * Meta Llama 4 model card (Scout + Maverick). Hosted on Meta's
+ * llama.com domain; lists context window, modality, knowledge cutoff,
+ * and parameter counts. Meta does not host these models as a paid
+ * first-party API, so the pricing fields stay null on the Llama
+ * model records — no API pricing is asserted from this source.
+ */
+export const metaLlama4ModelCard: SourceCitation = citation({
+  url: "https://www.llama.com/docs/model-cards-and-prompt-formats/llama4",
+  name: "Meta — Llama 4 model card",
+  type: "official-vendor-docs",
+  retrievedAt: "2026-05-21T00:00:00.000Z",
+  notes:
+    "Meta Llama 4 model card (Scout + Maverick). Context windows (Scout 10M, Maverick 1M), input modalities (text + up to 5 images), output modality (text only), parameter counts (17B active), knowledge cutoff (August 2024). Max output tokens and a stated release date are NOT on the page. Meta does not run a hosted paid API for Llama; pricing stays null.",
+});
+
+// ---------------------------------------------------------------------------
+// Groq primary sources.
+// ---------------------------------------------------------------------------
+
+/**
+ * Groq supported-models documentation. Used for the provider entity;
+ * the individual models listed there (Llama 3.x, GPT-OSS, Whisper,
+ * Qwen, etc.) are third-party model families hosted on Groq's
+ * platform — they are NOT Groq-created models and the catalogue
+ * intentionally does not list them under provider=groq.
+ */
+export const groqSupportedModels: SourceCitation = citation({
+  url: "https://console.groq.com/docs/models",
+  name: "Groq — Supported models",
+  type: "official-vendor-docs",
+  retrievedAt: "2026-05-21T00:00:00.000Z",
+  notes:
+    "Groq supported-models reference. Lists Llama 3.x, GPT-OSS, Whisper, Qwen and other third-party models hosted on the Groq inference platform; Groq does not create these models. Used as provider verification only.",
+});
+
+// ---------------------------------------------------------------------------
+// Together AI primary sources.
+// ---------------------------------------------------------------------------
+
+/**
+ * Together AI serverless-models documentation. Like Groq, Together
+ * is a hosting platform for third-party model families (DeepSeek,
+ * Llama, Qwen, MiniMax, Black Forest Labs FLUX, etc.). The catalogue
+ * does not list those as Together-created.
+ */
+export const togetherServerlessModels: SourceCitation = citation({
+  url: "https://docs.together.ai/docs/serverless-models",
+  name: "Together AI — Serverless models",
+  type: "official-vendor-docs",
+  retrievedAt: "2026-05-21T00:00:00.000Z",
+  notes:
+    "Together AI serverless-models reference. Lists hosted third-party model families; Together does not create these models. Used as provider verification only.",
+});
+
 /**
  * Mistral Large 3 per-model spec card. The URL pattern was previously
  * `/getting-started/models/<slug>` (which 404'd in Sprint 8B); Mistral

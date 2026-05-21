@@ -419,6 +419,22 @@ Brand-asset policy: [`BRAND_ASSETS.md`](BRAND_ASSETS.md).
   Models & Pricing page, and chat-completion API reference. A 75%
   promotional discount on v4-pro is active until 2026/05/31 15:59 UTC;
   the regular rate is recorded as the canonical durable value.
+- Meta — Llama 4 Scout (10M-token context) and Llama 4 Maverick
+  (1M-token context). Verified from Meta's official Llama 4 model
+  card at `llama.com/docs/model-cards-and-prompt-formats/llama4`.
+  Input modality `text + up to 5 images`, output modality `text`,
+  knowledge cutoff August 2024. Pricing is intentionally empty —
+  Meta does not run a first-party hosted API for Llama; integrity
+  guard `no Meta pricing without an official Meta pricing citation`
+  enforces this.
+- Groq — provider/platform only. Hosts third-party model families
+  (Llama, GPT-OSS, Qwen, Whisper); the catalogue does not carry
+  per-model entries under `providerSlug: "groq"` because attributing
+  a hosted model to its hosting platform would misrepresent its
+  origin. Integrity guard `Groq + Together verification covers
+  provider only` enforces this.
+- Together AI — provider/platform only. Same hosted-vs-creator
+  discipline as Groq.
 - Mistral — Mistral Large 3 (canonical snapshot `mistral-large-2512`).
   Verified from Mistral's models overview, models table, API reference,
   and the per-model spec card at
