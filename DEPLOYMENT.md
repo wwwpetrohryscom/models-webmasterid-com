@@ -315,6 +315,80 @@ curl -H "Authorization: Bearer $CRON_SECRET" \
 
 ---
 
+## Vercel deployment recovery checklist
+
+Use this when production is serving a stale bundle (signs: `/api/site`
+missing the `statusEndpoints` field; `/api/cron/status` returning HTML
+404; `/coverage` or `/sources` 404; `/api/debug/deployment`
+`routeSetVersion` older than the one in
+[`apps/models/lib/route-contract.ts`](apps/models/lib/route-contract.ts)).
+
+1. **Confirm the Git integration is connected.**
+   - Project Settings → Git.
+   - Repository: `wwwpetrohryscom/models-webmasterid-com`.
+   - Production branch: `main`.
+   - If "Disconnected", reconnect the integration; that usually replays
+     missing deployment webhooks.
+
+2. **Confirm project root and framework.**
+   - Project Settings → General → Root Directory: `apps/models`.
+   - Framework Preset: Next.js.
+   - Install Command: `npm install` (from the workspace root).
+
+3. **Confirm the latest production deployment matches `main`.**
+   - Vercel dashboard → Deployments → Production environment.
+   - Top deployment's commit SHA must match `git rev-parse origin/main`.
+   - If older, that is the stale-deployment symptom.
+
+4. **Trigger a manual redeploy.**
+   - From the most recent successful deployment, click Redeploy.
+   - Uncheck "Use existing build cache".
+   - Pick the latest commit on `main`.
+   - Watch the build logs in the dashboard for failures.
+
+5. **Confirm required environment variables.**
+   - `CRON_SECRET` (Production + Preview) — required by
+     `/api/cron/status` in production; the endpoint returns HTTP 503
+     when it is unset on a Vercel production deployment.
+   - `KV_REST_API_URL` + `KV_REST_API_TOKEN` (Production + Preview) —
+     required for durable status storage. When unset, cron writes
+     return `outcome: "skipped_no_store"`. Both must be set together
+     to enable storage; setting only one is treated as unconfigured.
+
+6. **Run the production smoke test.**
+   ```bash
+   npm run smoke:production
+   # or, with bearer-auth for the cron endpoint:
+   CRON_SECRET=… npm run smoke:production
+   ```
+   The script prints a `PATH | HTTP | CONTENT-TYPE | RESULT | NOTE`
+   table and exits non-zero on any failure. Status / debug / site
+   endpoints must respond JSON; an HTML response on any API endpoint
+   means the bundle is still stale.
+
+7. **Expected post-deploy outcomes.**
+   - `/api/site` JSON includes `statusEndpoints`, `debugEndpoints`,
+     `routeSetVersion`, and the routes list includes `/coverage` and
+     `/sources`.
+   - `/api/debug/deployment` JSON has `build.routeSetVersion ===
+     "status-api-v2"` (or newer) and `deployment.vercelGitCommitSha`
+     matches the commit you redeployed.
+   - `/coverage` and `/sources` pages return HTML 200.
+   - Every `/api/status/*` URL returns `application/json`.
+   - `/api/cron/status` returns 401 / 200 / 503 — never HTML 404.
+
+8. **If the deployment is still stale after redeploy.**
+   - Check the deployment's Build Logs in the Vercel dashboard.
+   - Inspect Project Settings → Domains: confirm `models.webmasterid.com`
+     is assigned to the project, not pinned to a specific old
+     deployment.
+   - Inspect Production Branch → Production Alias: confirm it points at
+     the latest deployment, not a manually-pinned one.
+   - As a last resort, disconnect and reconnect the Git integration so
+     Vercel re-syncs the commit history.
+
+---
+
 ## Status Monitoring Policy
 
 Sprint 9 wires the foundation for status observations. The discipline:

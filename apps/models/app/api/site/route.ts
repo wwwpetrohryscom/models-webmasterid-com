@@ -1,42 +1,32 @@
+/**
+ * /api/site
+ *
+ * Public site metadata. This endpoint is the external contract for
+ * partner integrations and smoke tests, so its shape is stable. The
+ * route lists, status endpoints, debug endpoints, and route-set version
+ * all flow from `lib/route-contract.ts` so the lists cannot drift apart
+ * from `/api/debug/deployment` or from the smoke scripts.
+ */
+
 import { NextResponse } from "next/server";
+import pkg from "../../../package.json";
 import { siteConfig } from "@/lib/site-config";
+import {
+  DEBUG_ENDPOINTS,
+  REQUIRED_PAGE_ROUTES,
+  ROUTE_SET_VERSION,
+  STATUS_ENDPOINTS,
+} from "@/lib/route-contract";
 
 export const dynamic = "force-static";
 
-const ROUTES = [
-  "/",
-  "/models",
-  "/providers",
-  "/compare",
-  "/benchmarks",
-  "/pricing",
-  "/infrastructure",
-  "/status",
-  "/coverage",
-  "/sources",
-  "/news",
-  "/research",
-  "/docs",
-];
-
-/**
- * Status API surface, listed so partner integrations can discover every
- * status endpoint without scraping the codebase. Each entry is a stable
- * literal URL; the dynamic `/api/status/[provider]/*` route serves the
- * same payloads when the slug is recognised but is not enumerated here
- * because there is no canonical list of "all possible providers".
- */
-const STATUS_ENDPOINTS = [
-  "/api/cron/status",
-  "/api/status/anthropic",
-  "/api/status/anthropic/latest",
-  "/api/status/anthropic/window",
-  "/api/status/google",
-  "/api/status/google/latest",
-  "/api/status/google/window",
-];
+function readSafeEnv(name: string): string | null {
+  const v = process.env[name];
+  return typeof v === "string" && v.length > 0 ? v : null;
+}
 
 export function GET() {
+  const absolute = (path: string) => `${siteConfig.url}${path}`;
   return NextResponse.json(
     {
       name: siteConfig.name,
@@ -45,13 +35,20 @@ export function GET() {
       domain: siteConfig.domain,
       ecosystem: siteConfig.ecosystem,
       positioning: siteConfig.positioning,
-      routes: ROUTES,
+      appVersion: pkg.version,
+      routeSetVersion: ROUTE_SET_VERSION,
+      // `deployedCommit` is taken from Vercel's automatic env var when
+      // present. It's documented as public by Vercel (the same SHA is
+      // visible on every preview URL).
+      deployedCommit: readSafeEnv("VERCEL_GIT_COMMIT_SHA"),
+      routes: [...REQUIRED_PAGE_ROUTES],
       sitemap: `${siteConfig.url}/sitemap.xml`,
       robots: `${siteConfig.url}/robots.txt`,
       llms: `${siteConfig.url}/llms.txt`,
       rss: `${siteConfig.url}/rss.xml`,
-      health: `${siteConfig.url}/api/health`,
-      statusEndpoints: STATUS_ENDPOINTS.map((p) => `${siteConfig.url}${p}`),
+      health: absolute("/api/health"),
+      statusEndpoints: STATUS_ENDPOINTS.map(absolute),
+      debugEndpoints: DEBUG_ENDPOINTS.map(absolute),
       updatedDate: siteConfig.buildDate,
       verificationPolicy:
         "Data not verified unless backed by primary source citation.",

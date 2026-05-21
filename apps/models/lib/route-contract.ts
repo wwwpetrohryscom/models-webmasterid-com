@@ -1,0 +1,76 @@
+/**
+ * Production route contract.
+ *
+ * Single source of truth for the routes every external consumer
+ * (`/api/site`, `/api/debug/deployment`, the smoke scripts, the
+ * integrity guards) needs to know about. Everything that talks about
+ * "the production surface" imports from here so the lists cannot drift
+ * apart.
+ *
+ * `ROUTE_SET_VERSION` is bumped whenever the API contract changes in a
+ * way that external smoke tests should detect. Smoke scripts can read
+ * `/api/debug/deployment` and compare the deployed version against the
+ * expected one to detect a stale deployment in seconds.
+ *
+ * `EXPECTED_DEPLOYED_COMMIT_PREFIX` is the latest commit hash prefix the
+ * smoke script considers "current". Bump it any time you ship a sprint
+ * that adds new routes. The smoke script warns when the deployed
+ * commit (from VERCEL_GIT_COMMIT_SHA) does not start with this prefix.
+ */
+
+export const ROUTE_SET_VERSION = "status-api-v2";
+
+/**
+ * Short prefix of the latest commit on `main` that this version of the
+ * route contract was authored against. Smoke tests can compare against
+ * `process.env.VERCEL_GIT_COMMIT_SHA` to flag stale deployments.
+ */
+export const EXPECTED_DEPLOYED_COMMIT_PREFIX = "1fbf002";
+
+/** Indexable + noindex hub / detail pages a smoke test should reach. */
+export const REQUIRED_PAGE_ROUTES = [
+  "/",
+  "/models",
+  "/providers",
+  "/compare",
+  "/pricing",
+  "/status",
+  "/coverage",
+  "/sources",
+] as const;
+export type RequiredPageRoute = (typeof REQUIRED_PAGE_ROUTES)[number];
+
+/** Every JSON / plain-text API route the deployment must serve. */
+export const REQUIRED_API_ROUTES = [
+  "/api/health",
+  "/api/site",
+  "/api/debug/deployment",
+  "/api/cron/status",
+  "/api/status/anthropic",
+  "/api/status/google",
+  "/api/status/anthropic/latest",
+  "/api/status/google/latest",
+  "/api/status/anthropic/window",
+  "/api/status/google/window",
+] as const;
+export type RequiredApiRoute = (typeof REQUIRED_API_ROUTES)[number];
+
+/**
+ * Subset of API routes specifically related to the status pipeline.
+ * Listed separately so `/api/site` can advertise them as a discoverable
+ * group for partner integrations and smoke tests.
+ */
+export const STATUS_ENDPOINTS = [
+  "/api/cron/status",
+  "/api/status/anthropic",
+  "/api/status/anthropic/latest",
+  "/api/status/anthropic/window",
+  "/api/status/google",
+  "/api/status/google/latest",
+  "/api/status/google/window",
+] as const;
+export type StatusEndpoint = (typeof STATUS_ENDPOINTS)[number];
+
+/** Read-only inspection endpoints. Secrets-free by construction. */
+export const DEBUG_ENDPOINTS = ["/api/debug/deployment"] as const;
+export type DebugEndpoint = (typeof DEBUG_ENDPOINTS)[number];

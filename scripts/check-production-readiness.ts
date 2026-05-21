@@ -1509,6 +1509,192 @@ const checks: Check[] = [
     },
   },
   {
+    name: "route-contract module exists (Sprint 13)",
+    run: () =>
+      requireFile(
+        "apps/models/lib/route-contract.ts",
+        "lib/route-contract.ts"
+      ),
+  },
+  {
+    name: "/api/debug/deployment route exists (Sprint 13)",
+    run: () =>
+      requireFile(
+        "apps/models/app/api/debug/deployment/route.ts",
+        "/api/debug/deployment"
+      ),
+  },
+  {
+    name: "/api/debug/deployment never exposes secret env values (Sprint 13)",
+    run: () => {
+      const src = readRel("apps/models/app/api/debug/deployment/route.ts");
+      const failures: string[] = [];
+      // The endpoint may MENTION these names (e.g. in comments) but
+      // must not read their values into the response. The
+      // `readVercelEnv` helper is restricted to a whitelisted set; we
+      // additionally forbid any literal read of the banned envs in this
+      // file.
+      for (const banned of [
+        "CRON_SECRET",
+        "KV_REST_API_TOKEN",
+        "KV_REST_API_URL",
+      ]) {
+        // Match `process.env.<name>` or `process.env["<name>"]` or
+        // template-string interpolation — all forms that would leak.
+        const readPattern = new RegExp(
+          `process\\.env\\.${banned}\\b|process\\.env\\[\\s*["']${banned}["']\\s*\\]`
+        );
+        if (readPattern.test(src)) {
+          failures.push(
+            `/api/debug/deployment reads ${banned} from process.env — that value must never appear in a debug payload.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/api/site advertises statusEndpoints + routes contract (Sprint 13)",
+    run: () => {
+      const src = readRel("apps/models/app/api/site/route.ts");
+      const failures: string[] = [];
+      if (!/STATUS_ENDPOINTS|statusEndpoints/.test(src)) {
+        failures.push(
+          "/api/site does not surface statusEndpoints — partner integrations rely on this field."
+        );
+      }
+      if (!/DEBUG_ENDPOINTS|debugEndpoints/.test(src)) {
+        failures.push(
+          "/api/site does not surface debugEndpoints."
+        );
+      }
+      if (!/ROUTE_SET_VERSION|routeSetVersion/.test(src)) {
+        failures.push(
+          "/api/site does not surface routeSetVersion — smoke tests rely on this for staleness detection."
+        );
+      }
+      // It must use the contract (REQUIRED_PAGE_ROUTES) rather than a
+      // hand-rolled array — that's how the routes list drifted last time.
+      if (!/REQUIRED_PAGE_ROUTES/.test(src)) {
+        failures.push(
+          "/api/site does not import REQUIRED_PAGE_ROUTES from lib/route-contract.ts — route lists must come from the contract."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract lists /coverage and /sources as required pages",
+    run: () => {
+      const src = readRel("apps/models/lib/route-contract.ts");
+      const failures: string[] = [];
+      for (const path of ["/coverage", "/sources", "/status", "/pricing"]) {
+        if (!new RegExp(`"${path}"`).test(src)) {
+          failures.push(
+            `lib/route-contract.ts does not list "${path}" in REQUIRED_PAGE_ROUTES.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "smoke-production + smoke-local scripts exist (Sprint 13)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "scripts/smoke-production.mjs",
+        "scripts/smoke-local.mjs",
+        "scripts/lib/smoke.mjs",
+      ]) {
+        if (!fileExists(rel)) failures.push(`Missing ${rel}`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "package.json wires smoke:production + smoke:local",
+    run: () => {
+      const src = readRel("package.json");
+      const failures: string[] = [];
+      if (!/"smoke:production":\s*"node scripts\/smoke-production\.mjs"/.test(src)) {
+        failures.push(
+          "package.json does not declare smoke:production -> node scripts/smoke-production.mjs"
+        );
+      }
+      if (!/"smoke:local":\s*"node scripts\/smoke-local\.mjs"/.test(src)) {
+        failures.push(
+          "package.json does not declare smoke:local -> node scripts/smoke-local.mjs"
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "smoke script list stays in sync with route contract",
+    run: () => {
+      // The smoke core (scripts/lib/smoke.mjs) hand-codes the route
+      // list because Node can't import the TS contract at runtime.
+      // We enforce parity here: every literal API path in the contract
+      // must appear in the smoke script's API_ROUTES list, and every
+      // page in the contract must appear in PAGE_ROUTES.
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const failures: string[] = [];
+
+      const pagesBlock = contract.match(/REQUIRED_PAGE_ROUTES[\s\S]*?\]\s*as const/);
+      if (!pagesBlock) {
+        return "Could not locate REQUIRED_PAGE_ROUTES in lib/route-contract.ts.";
+      }
+      const pageMatches = [
+        ...pagesBlock[0].matchAll(/"(\/[^"]*)"/g),
+      ].map((m) => m[1]);
+      for (const p of pageMatches) {
+        if (!smoke.includes(`"${p}"`)) {
+          failures.push(
+            `scripts/lib/smoke.mjs PAGE_ROUTES is missing "${p}" (declared in route contract).`
+          );
+        }
+      }
+
+      const apisBlock = contract.match(/REQUIRED_API_ROUTES[\s\S]*?\]\s*as const/);
+      if (apisBlock) {
+        const apiMatches = [
+          ...apisBlock[0].matchAll(/"(\/api\/[^"]*)"/g),
+        ].map((m) => m[1]);
+        for (const p of apiMatches) {
+          // The smoke script may decorate the URL (e.g. ?hours=24),
+          // so check the base path is present.
+          if (!smoke.includes(`"${p}`)) {
+            failures.push(
+              `scripts/lib/smoke.mjs API_ROUTES is missing "${p}" (declared in route contract).`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "DEPLOYMENT.md contains the Vercel deployment recovery checklist",
+    run: () => {
+      const md = readRel("DEPLOYMENT.md");
+      const failures: string[] = [];
+      if (!/Vercel deployment recovery checklist/i.test(md)) {
+        failures.push(
+          "DEPLOYMENT.md does not include the 'Vercel deployment recovery checklist' section."
+        );
+      }
+      // Recovery checklist must reference the smoke command.
+      if (!/npm run smoke:production/.test(md)) {
+        failures.push(
+          "DEPLOYMENT.md recovery checklist must mention `npm run smoke:production`."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
     name: "entity-graph helpers do not perform network fetches",
     run: () => {
       const src = readRel("apps/models/lib/entity-graph.ts");

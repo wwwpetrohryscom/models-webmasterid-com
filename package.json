@@ -15,6 +15,8 @@
     "typecheck": "npm run typecheck --workspace=apps/models",
     "check:integrity": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/check-data-not-verified-usage.ts",
     "check:production": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/check-production-readiness.ts",
+    "smoke:local": "node scripts/smoke-local.mjs",
+    "smoke:production": "node scripts/smoke-production.mjs",
     "validate": "npm run lint && npm run typecheck && npm run check:integrity && npm run check:production && npm run build"
   }
 }

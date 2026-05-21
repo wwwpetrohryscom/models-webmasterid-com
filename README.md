@@ -129,6 +129,58 @@ page (model, provider, comparison) and on the hub pages. The rendered
 trail and the structured-data trail use the same source of truth
 (`breadcrumbJsonLd()` in `lib/seo.ts`), so they cannot drift apart.
 
+## Route contract and smoke tests
+
+The set of routes the deployment is contractually required to serve
+lives in [`lib/route-contract.ts`](apps/models/lib/route-contract.ts).
+Every consumer of "what routes exist" — `/api/site`,
+`/api/debug/deployment`, the smoke scripts, and the integrity guards —
+imports from this module so the lists cannot drift.
+
+| Constant | Used by |
+| --- | --- |
+| `REQUIRED_PAGE_ROUTES` | `/api/site`, `/api/debug/deployment`, smoke scripts |
+| `REQUIRED_API_ROUTES` | `/api/debug/deployment`, smoke scripts |
+| `STATUS_ENDPOINTS` | `/api/site`, `/api/debug/deployment` |
+| `DEBUG_ENDPOINTS` | `/api/site`, `/api/debug/deployment` |
+| `ROUTE_SET_VERSION` | `/api/site`, `/api/debug/deployment`, smoke staleness checks |
+| `EXPECTED_DEPLOYED_COMMIT_PREFIX` | smoke scripts (informational) |
+
+[`/api/debug/deployment`](apps/models/app/api/debug/deployment/route.ts)
+is a read-only deployment-introspection endpoint. It returns safe
+metadata (commit SHA, branch, repo owner/slug, environment, route
+contract version, KV-configured boolean) and nothing else. It MUST
+NEVER read `CRON_SECRET`, `KV_REST_API_TOKEN`, or `KV_REST_API_URL`;
+the integrity guard "/api/debug/deployment never exposes secret env
+values" enforces this.
+
+Smoke tests:
+
+```bash
+# Production — base URL defaults to https://models.webmasterid.com.
+npm run smoke:production
+CRON_SECRET=… npm run smoke:production
+
+# Local — boot the app first.
+npm run build
+npm run start          # in another shell
+npm run smoke:local
+```
+
+Each script prints a compact `PATH | HTTP | CONTENT-TYPE | RESULT |
+NOTE` table and exits non-zero on any failure. Failure modes the
+scripts catch:
+- API endpoint returns `text/html` → stale deployment.
+- `/api/site` missing `statusEndpoints` / `routes` entries → stale
+  deployment.
+- `/api/debug/deployment` missing `build.routeSetVersion` or leaking a
+  secret env name in the payload.
+- `/api/cron/status` returning any HTTP status other than 200 / 401 /
+  503.
+
+When production is stale, see the **Vercel deployment recovery
+checklist** in [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ## Status observers
 
 Observers live in [`apps/models/lib/observers/`](apps/models/lib/observers/)
