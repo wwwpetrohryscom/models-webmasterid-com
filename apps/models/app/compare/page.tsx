@@ -168,6 +168,58 @@ export default async function CompareIndexPage({ searchParams }: PageProps) {
         ])}
       />
 
+      <aside
+        role="note"
+        aria-label="Start from a use case"
+        className="card-surface space-y-2 p-4 text-sm text-muted-foreground"
+      >
+        <p className="font-medium text-foreground">
+          Start from a use case
+        </p>
+        <p>
+          Comparisons are most useful after a use case narrows which
+          verified fields matter. Pick a workflow first, then return
+          with a focused candidate pair.
+        </p>
+        <p className="text-xs">
+          <Link
+            href="/use-cases/long-context-analysis"
+            className="text-primary hover:underline"
+          >
+            long-context analysis
+          </Link>
+          {" · "}
+          <Link
+            href="/use-cases/multimodal-input"
+            className="text-primary hover:underline"
+          >
+            multimodal input
+          </Link>
+          {" · "}
+          <Link
+            href="/use-cases/hosted-inference"
+            className="text-primary hover:underline"
+          >
+            hosted inference
+          </Link>
+          {" · "}
+          <Link
+            href="/use-cases/governance-review"
+            className="text-primary hover:underline"
+          >
+            governance review
+          </Link>
+          {" · "}
+          <Link href="/use-cases" className="text-primary hover:underline">
+            all use cases
+          </Link>
+          {" · "}
+          <Link href="/select" className="text-primary hover:underline">
+            /select
+          </Link>
+        </p>
+      </aside>
+
       {(() => {
         const coverage = getComparisonCoverageSummary();
         const hostedSet = new Set(

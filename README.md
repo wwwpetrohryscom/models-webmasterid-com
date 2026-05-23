@@ -474,6 +474,39 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+13. **Model selection workspace + use-case intelligence (Sprint
+    23).** The new
+    [`/select`](apps/models/app/select/page.tsx) workspace builds a
+    source-backed shortlist using server-rendered GET filters
+    (`?useCase`, `?provider`, `?lifecycle`, `?minContext`,
+    `?modality`, `?pricingCoverage`, `?hostedAvailability`,
+    `?verification`, `?freshness`). Shortlist order is documented —
+    verified field count → active lifecycle → source count → name —
+    and is never described as a ranking.
+    [`lib/use-cases.ts`](apps/models/lib/use-cases.ts) defines eight
+    source-safe selection workflows (long-context, multimodal,
+    structured output, hosted inference, cost review, governance
+    review, status-aware selection, comparison research) — each
+    naming the *verified fields a reader should weight*, never
+    asserting a model is "best for" anything.
+    [`lib/model-shortlists.ts`](apps/models/lib/model-shortlists.ts)
+    derives shortlists from the typed local data layer with no
+    scoring or ranking function. The [`/use-cases`](apps/models/app/use-cases/page.tsx)
+    hub plus four detail pages
+    ([long-context-analysis](apps/models/app/use-cases/long-context-analysis/page.tsx),
+    [multimodal-input](apps/models/app/use-cases/multimodal-input/page.tsx),
+    [hosted-inference](apps/models/app/use-cases/hosted-inference/page.tsx),
+    [governance-review](apps/models/app/use-cases/governance-review/page.tsx))
+    each carry the use-case caution, the verified-fields-used
+    list, a use-case-filtered shortlist, and methodology links.
+    The homepage gained a "Start with a use case" section;
+    `/models` carries a selection-workspace CTA and quick-start
+    use-case links; `/compare` gained a "Start from a use case"
+    intro. `ROUTE_SET_VERSION` bumped to `content-v6`. Eleven new
+    integrity guards ban recommendation language ("best model",
+    "winner", "cheapest", "fastest", "guaranteed", "certified"),
+    enforce the no-scoring rule on the shortlist helper, and
+    re-check the OpenAI no-metrics policy on every new surface.
 
 Entity model: [`apps/models/lib/types.ts`](apps/models/lib/types.ts).
 Citation registry: [`apps/models/data/citations.ts`](apps/models/data/citations.ts).

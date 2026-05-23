@@ -97,6 +97,11 @@ const FILTERED_KEYS = new Set<string>([
   "freshness",
   // Sprint 22: /models discovery filter
   "role",
+  // Sprint 23: /select model-selection workspace filters
+  "useCase",
+  "minContext",
+  "pricingCoverage",
+  "hostedAvailability",
 ]);
 
 export function isFilteredRoute(

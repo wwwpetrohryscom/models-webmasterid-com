@@ -92,6 +92,24 @@ export function GET() {
     { label: "Sources", path: "/sources" },
     { label: "Reverification queue", path: "/reverification" },
     { label: "Intelligence workspace", path: "/intelligence" },
+    { label: "Model selection workspace", path: "/select" },
+    { label: "Use cases", path: "/use-cases" },
+    {
+      label: "Use case — long-context analysis",
+      path: "/use-cases/long-context-analysis",
+    },
+    {
+      label: "Use case — multimodal input",
+      path: "/use-cases/multimodal-input",
+    },
+    {
+      label: "Use case — hosted inference",
+      path: "/use-cases/hosted-inference",
+    },
+    {
+      label: "Use case — governance review",
+      path: "/use-cases/governance-review",
+    },
     { label: "Docs", path: "/docs" },
   ]) {
     buf.push(line(`- [${item.label}](${siteConfig.url}${item.path})`));

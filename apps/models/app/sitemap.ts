@@ -28,6 +28,28 @@ const STATIC_ROUTES: StaticRoute[] = [
   { path: "/sources", changeFrequency: "weekly", priority: 0.7 },
   { path: "/reverification", changeFrequency: "weekly", priority: 0.6 },
   { path: "/intelligence", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/select", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/use-cases", changeFrequency: "weekly", priority: 0.7 },
+  {
+    path: "/use-cases/long-context-analysis",
+    changeFrequency: "weekly",
+    priority: 0.6,
+  },
+  {
+    path: "/use-cases/multimodal-input",
+    changeFrequency: "weekly",
+    priority: 0.6,
+  },
+  {
+    path: "/use-cases/hosted-inference",
+    changeFrequency: "weekly",
+    priority: 0.6,
+  },
+  {
+    path: "/use-cases/governance-review",
+    changeFrequency: "weekly",
+    priority: 0.6,
+  },
   { path: "/research", changeFrequency: "weekly", priority: 0.7 },
   { path: "/docs", changeFrequency: "monthly", priority: 0.5 },
 ];

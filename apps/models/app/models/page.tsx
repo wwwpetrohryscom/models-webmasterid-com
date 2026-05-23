@@ -260,6 +260,55 @@ export default async function ModelsIndexPage({
               </Link>
               .
             </p>
+            <div className="card-surface flex flex-wrap items-center justify-between gap-3 p-4">
+              <div className="text-sm">
+                <p className="font-medium text-foreground">
+                  Build a source-backed shortlist
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Start from a use case and narrow which verified
+                  fields matter — then return here with a focused
+                  candidate set.
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Quick starts:{" "}
+                  <Link
+                    href="/use-cases/long-context-analysis"
+                    className="text-primary hover:underline"
+                  >
+                    long-context analysis
+                  </Link>
+                  {" · "}
+                  <Link
+                    href="/use-cases/multimodal-input"
+                    className="text-primary hover:underline"
+                  >
+                    multimodal input
+                  </Link>
+                  {" · "}
+                  <Link
+                    href="/use-cases/hosted-inference"
+                    className="text-primary hover:underline"
+                  >
+                    hosted inference
+                  </Link>
+                  {" · "}
+                  <Link
+                    href="/use-cases/governance-review"
+                    className="text-primary hover:underline"
+                  >
+                    governance review
+                  </Link>
+                  .
+                </p>
+              </div>
+              <Link
+                href="/select"
+                className="inline-flex h-9 items-center rounded-lg border border-primary/30 bg-primary/10 px-3 text-xs font-medium text-primary hover:bg-primary/15"
+              >
+                Open selection workspace →
+              </Link>
+            </div>
           </section>
         );
       })()}

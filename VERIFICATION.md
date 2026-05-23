@@ -434,6 +434,57 @@ guards enforce the no-admin-auth + no-auto-mutation invariants
 across every Sprint-22 surface, including a defence-in-depth
 re-check that `/status` never carries a numeric uptime percentage.
 
+**Sprint 23 — model selection workspace + use-case intelligence.**
+Sprint 23 turns the verified data + intelligence workspace into a
+practical product surface for browser visitors. Use cases are
+introduced as *selection workflows* — never recommendations.
+[`lib/use-cases.ts`](apps/models/lib/use-cases.ts) defines eight
+source-safe slugs; each carries `title`, `description`,
+`verifiedFieldsUsed`, `caution`, `route`, and `relatedRoutes`. Four
+ship a dedicated detail page this sprint:
+`/use-cases/long-context-analysis`, `/use-cases/multimodal-input`,
+`/use-cases/hosted-inference`, `/use-cases/governance-review`. The
+remaining four (structured output, cost review, status-aware
+selection, comparison research) are reserved on the
+`/use-cases` hub and available as filter values on `/select`.
+
+[`lib/model-shortlists.ts`](apps/models/lib/model-shortlists.ts) is
+the source-backed shortlist builder. Pure local read, no fetch, no
+process.env, no Date.now. **No score and no rank function** — an
+integrity guard refuses any identifier matching
+`score|rank|ranking|rankBy|ranked|weightedScore|fitnessScore`.
+Shortlist order is deterministic and documented:
+1. verified field count desc
+2. active lifecycle first
+3. source count desc
+4. name asc
+
+The [`/select`](apps/models/app/select/page.tsx) workspace renders
+the shortlist with server-rendered GET filters (`useCase`,
+`provider`, `lifecycle`, `minContext`, `modality`,
+`pricingCoverage`, `hostedAvailability`, `verification`,
+`freshness`). Base `/select` is indexable; every filtered URL is
+`noindex, follow`. The new filter keys are added to
+`should-index.ts` `FILTERED_KEYS`. Filtered indexing-QA coverage
+includes `/select?useCase=long-context-analysis` to validate the
+noindex policy on production.
+
+The homepage gained a "Start with a use case" section with four
+cards. `/models` carries a selection-workspace CTA + quick-start
+use-case links above the existing filter form. `/compare` gained a
+"Start from a use case" intro aside.
+
+`ROUTE_SET_VERSION` bumps to `content-v6`. Eleven new integrity
+guards enforce the policy across every Sprint-23 surface:
+recommendation language is banned (best/recommended/winner/
+cheapest/fastest/guaranteed/certified), the shortlist helper is
+score-free, every detail page renders via
+`<UseCaseDetailLayout>` so the /coverage + /sources links are
+always present, sitemap + llms.txt + smoke + indexing scripts all
+advertise the new routes, and no OpenAI numeric metric may appear
+on a Sprint-23 surface (re-check of the Sprint-18 unverified-GPT-5
+policy).
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,

@@ -61,6 +61,13 @@ const INDEXABLE_PAGES = [
   { path: "/docs/pricing-fields", expectJsonLd: true, kind: "detail" },
   { path: "/reverification", expectJsonLd: true, kind: "hub" },
   { path: "/intelligence", expectJsonLd: true, kind: "hub" },
+  { path: "/select", expectJsonLd: true, kind: "hub" },
+  { path: "/use-cases", expectJsonLd: true, kind: "hub" },
+  {
+    path: "/use-cases/long-context-analysis",
+    expectJsonLd: true,
+    kind: "detail",
+  },
 ];
 
 const FILTERED_NOINDEX_PAGES = [
@@ -69,6 +76,7 @@ const FILTERED_NOINDEX_PAGES = [
   "/compare?verification=verified",
   "/sources?provider=anthropic",
   "/reverification?priority=high",
+  "/select?useCase=long-context-analysis",
 ];
 
 const MACHINE_ENDPOINTS = [

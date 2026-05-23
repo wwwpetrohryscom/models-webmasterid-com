@@ -4019,9 +4019,12 @@ const checks: Check[] = [
           "route-contract must export INTELLIGENCE_ENDPOINTS so /api/site can advertise the group."
         );
       }
-      if (!/ROUTE_SET_VERSION\s*=\s*"content-v5"/.test(src)) {
+      // Sprint 22 introduced content-v5. Later sprints may bump
+      // further; accept any content-vN with N >= 5.
+      const m = src.match(/ROUTE_SET_VERSION\s*=\s*"content-v(\d+)"/);
+      if (!m || Number(m[1]) < 5) {
         failures.push(
-          "ROUTE_SET_VERSION must be bumped to \"content-v5\" for Sprint 22."
+          "ROUTE_SET_VERSION must be \"content-v5\" or later (Sprint 22 introduced content-v5)."
         );
       }
       return failures.length ? failures.join("\n") : null;
@@ -4195,6 +4198,424 @@ const checks: Check[] = [
           .join(", ")}.`;
       }
       return null;
+    },
+  },
+  // ---------------------------------------------------------------------
+  // Sprint 23 — model selection workspace, use-case intelligence,
+  // product value layer. Use cases are selection workflows, not
+  // recommendations: no "best", no "winner", no "cheapest", no
+  // scoring, no certification claims.
+  // ---------------------------------------------------------------------
+  {
+    name: "lib/use-cases.ts exists and exports the typed catalogue (Sprint 23)",
+    run: () => {
+      const rel = "apps/models/lib/use-cases.ts";
+      if (!fileExists(rel)) {
+        return "Missing lib/use-cases.ts (Sprint 23).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const token of [
+        "ModelUseCaseSlug",
+        "modelUseCases",
+        "getUseCaseBySlug",
+        "useCasesWithDetailPage",
+      ]) {
+        if (!new RegExp(`\\b${token}\\b`).test(src)) {
+          failures.push(`lib/use-cases.ts must export \`${token}\`.`);
+        }
+      }
+      for (const slug of [
+        "long-context-analysis",
+        "multimodal-input",
+        "hosted-inference",
+        "governance-review",
+      ]) {
+        if (!new RegExp(`"${slug}"`).test(src)) {
+          failures.push(
+            `lib/use-cases.ts must declare the "${slug}" use case slug.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lib/model-shortlists.ts has no scoring or ranking function (Sprint 23)",
+    run: () => {
+      const rel = "apps/models/lib/model-shortlists.ts";
+      if (!fileExists(rel)) {
+        return "Missing lib/model-shortlists.ts (Sprint 23).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const token of [
+        "getModelShortlist",
+        "getUseCaseShortlist",
+        "getShortlistSummary",
+        "getModelSelectionSignals",
+      ]) {
+        if (!new RegExp(`\\b${token}\\b`).test(src)) {
+          failures.push(
+            `lib/model-shortlists.ts must export \`${token}\`.`
+          );
+        }
+      }
+      // No scoring / ranking semantics — bans both in identifiers
+      // and in user-facing string literals. Allowed in comments
+      // because the file documents the policy.
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      const bannedIdentifiers =
+        /\b(score|rank|ranking|rankBy|ranked|weightedScore|fitnessScore)\b/;
+      if (bannedIdentifiers.test(stripped)) {
+        failures.push(
+          "lib/model-shortlists.ts must not contain score/rank identifiers — shortlist order is documented, not derived."
+        );
+      }
+      const stringRanking =
+        /"[^"]*\b(best model|winner|cheapest|score:|rank:)[^"]*"/i;
+      if (stringRanking.test(stripped)) {
+        failures.push(
+          "lib/model-shortlists.ts must not contain user-facing ranking phrases in string literals."
+        );
+      }
+      if (/\bfetch\s*\(/.test(stripped) || /\bprocess\.env\b/.test(stripped)) {
+        failures.push(
+          "lib/model-shortlists.ts must be a pure local read."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/select model-selection workspace page exists (Sprint 23)",
+    run: () => {
+      const rel = "apps/models/app/select/page.tsx";
+      if (!fileExists(rel)) {
+        return "Missing /select page (Sprint 23).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      if (!/Model Selection Workspace/i.test(src)) {
+        failures.push(
+          "/select must render the 'Model Selection Workspace' title."
+        );
+      }
+      if (!/Shortlist, not ranking/i.test(src)) {
+        failures.push(
+          "/select must include the 'Shortlist, not ranking' framing."
+        );
+      }
+      if (!/getModelShortlist/.test(src)) {
+        failures.push(
+          "/select must call getModelShortlist() to render the shortlist."
+        );
+      }
+      if (!/isFilteredRoute/.test(src) || !/robotsMetadata/.test(src)) {
+        failures.push(
+          "/select must apply the filtered-noindex policy via isFilteredRoute + robotsMetadata."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/use-cases hub + four detail pages exist (Sprint 23)",
+    run: () => {
+      const required = [
+        "apps/models/app/use-cases/page.tsx",
+        "apps/models/app/use-cases/long-context-analysis/page.tsx",
+        "apps/models/app/use-cases/multimodal-input/page.tsx",
+        "apps/models/app/use-cases/hosted-inference/page.tsx",
+        "apps/models/app/use-cases/governance-review/page.tsx",
+      ];
+      const missing = required.filter((r) => !fileExists(r));
+      if (missing.length) {
+        return `Missing use-case page(s): ${missing.join(", ")}.`;
+      }
+      return null;
+    },
+  },
+  {
+    name: "use-case detail pages link to /coverage and /sources (Sprint 23)",
+    run: () => {
+      const targets = [
+        "apps/models/app/use-cases/long-context-analysis/page.tsx",
+        "apps/models/app/use-cases/multimodal-input/page.tsx",
+        "apps/models/app/use-cases/hosted-inference/page.tsx",
+        "apps/models/app/use-cases/governance-review/page.tsx",
+      ];
+      // The shared UseCaseDetailLayout always renders /coverage and
+      // /sources in the related-routes block; this guard confirms
+      // the layout component is present and the pages render it.
+      const layoutSrc = readRel(
+        "apps/models/components/UseCaseDetailLayout.tsx"
+      );
+      const failures: string[] = [];
+      if (
+        !/\/coverage/.test(layoutSrc) ||
+        !/\/sources/.test(layoutSrc)
+      ) {
+        failures.push(
+          "components/UseCaseDetailLayout.tsx must link to /coverage and /sources."
+        );
+      }
+      for (const rel of targets) {
+        const src = readRel(rel);
+        if (!/UseCaseDetailLayout/.test(src)) {
+          failures.push(
+            `${rel} must render via <UseCaseDetailLayout> so /coverage + /sources links are present.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "use-case + select surfaces ban recommendation language (Sprint 23)",
+    run: () => {
+      const targets = [
+        "apps/models/app/select/page.tsx",
+        "apps/models/app/use-cases/page.tsx",
+        "apps/models/app/use-cases/long-context-analysis/page.tsx",
+        "apps/models/app/use-cases/multimodal-input/page.tsx",
+        "apps/models/app/use-cases/hosted-inference/page.tsx",
+        "apps/models/app/use-cases/governance-review/page.tsx",
+        "apps/models/components/UseCaseDetailLayout.tsx",
+        "apps/models/lib/use-cases.ts",
+        "apps/models/lib/model-shortlists.ts",
+      ];
+      // Patterns are scoped to POSITIVE assertions only — disclaimer
+      // copy ("does not declare a winner", "is not a certification",
+      // "no guarantee") is allowed because every catalogue surface
+      // restates the no-recommendation policy.
+      const banned: { pattern: RegExp; label: string }[] = [
+        { pattern: /\brecommended model\b/i, label: "recommended model" },
+        { pattern: /\bwe recommend\b/i, label: "we recommend" },
+        { pattern: /\bbest model\b/i, label: "best model" },
+        { pattern: /\bbest model for\b/i, label: "best model for" },
+        // Positive winner assertions only.
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        { pattern: /\bwinner is\b/i, label: "winner is" },
+        // Positive "cheapest" / "fastest" assertions only (Sprint 20
+        // / Sprint 18 already cover the per-noun bans).
+        {
+          pattern: /\bcheapest\s+(?:model|provider|platform|inference)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:model|provider|inference)\b/i,
+          label: "fastest <noun>",
+        },
+        // Positive guarantee / certification assertions only.
+        { pattern: /\bis\s+guaranteed\b/i, label: "is guaranteed" },
+        { pattern: /\bare\s+guaranteed\b/i, label: "are guaranteed" },
+        {
+          pattern: /\bguaranteed\s+(?:to|for)\b/i,
+          label: "guaranteed to / for",
+        },
+        { pattern: /\bis\s+certified\b/i, label: "is certified" },
+        { pattern: /\bare\s+certified\b/i, label: "are certified" },
+        {
+          pattern: /\bcertified\s+(?:for|by|to)\b/i,
+          label: "certified for / by / to",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned recommendation phrasing: "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "homepage + /models + /compare link to use cases (Sprint 23)",
+    run: () => {
+      const homepage = readRel("apps/models/app/page.tsx");
+      const modelsPage = readRel("apps/models/app/models/page.tsx");
+      const comparePage = readRel("apps/models/app/compare/page.tsx");
+      const failures: string[] = [];
+      if (!/\/use-cases\b/.test(homepage)) {
+        failures.push(
+          "Homepage must link to /use-cases (start-with-a-use-case section)."
+        );
+      }
+      if (!/Start with a use case/i.test(homepage)) {
+        failures.push(
+          "Homepage must include the 'Start with a use case' section."
+        );
+      }
+      if (!/\/select\b/.test(modelsPage)) {
+        failures.push(
+          "/models must link to /select (selection workspace CTA)."
+        );
+      }
+      if (!/\/use-cases\b/.test(modelsPage)) {
+        failures.push(
+          "/models must link to at least one /use-cases route."
+        );
+      }
+      if (!/Start from a use case/i.test(comparePage)) {
+        failures.push(
+          "/compare must include the 'Start from a use case' intro."
+        );
+      }
+      if (!/\/use-cases\b/.test(comparePage)) {
+        failures.push("/compare must link to /use-cases.");
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract + sitemap + llms.txt advertise Sprint 23 routes",
+    run: () => {
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const failures: string[] = [];
+      if (!/ROUTE_SET_VERSION\s*=\s*"content-v6"/.test(contract)) {
+        failures.push(
+          "ROUTE_SET_VERSION must be bumped to \"content-v6\" for Sprint 23."
+        );
+      }
+      for (const r of ['"/select"', '"/use-cases"']) {
+        if (!contract.includes(r)) {
+          failures.push(`route-contract REQUIRED_PAGE_ROUTES must include ${r}.`);
+        }
+        if (!sitemap.includes(r)) {
+          failures.push(`sitemap must include ${r}.`);
+        }
+        if (!llms.includes(r)) {
+          failures.push(`llms.txt must list ${r}.`);
+        }
+      }
+      const detailPaths = [
+        '"/use-cases/long-context-analysis"',
+        '"/use-cases/multimodal-input"',
+        '"/use-cases/hosted-inference"',
+        '"/use-cases/governance-review"',
+      ];
+      for (const path of detailPaths) {
+        if (!sitemap.includes(path)) {
+          failures.push(`sitemap must include ${path}.`);
+        }
+        if (!llms.includes(path)) {
+          failures.push(`llms.txt must list ${path}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "should-index allow-list covers Sprint 23 filter keys",
+    run: () => {
+      const src = readRel("apps/models/lib/should-index.ts");
+      const failures: string[] = [];
+      for (const key of [
+        "useCase",
+        "minContext",
+        "pricingCoverage",
+        "hostedAvailability",
+      ]) {
+        if (!new RegExp(`"${key}"`).test(src)) {
+          failures.push(
+            `should-index FILTERED_KEYS must include "${key}" so /select?${key}=... is noindex.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "smoke + indexing scripts include Sprint 23 routes",
+    run: () => {
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+      const requiredSmoke = [
+        '"/select"',
+        '"/use-cases"',
+        '"/use-cases/long-context-analysis"',
+        '"/use-cases/multimodal-input"',
+        '"/use-cases/hosted-inference"',
+        '"/use-cases/governance-review"',
+      ];
+      for (const r of requiredSmoke) {
+        if (!smoke.includes(r)) {
+          failures.push(`scripts/lib/smoke.mjs PAGE_ROUTES must include ${r}.`);
+        }
+      }
+      if (!/"\/select"/.test(indexing)) {
+        failures.push(
+          "scripts/indexing-qa.mjs must include /select as an indexable page."
+        );
+      }
+      if (!/"\/use-cases"/.test(indexing)) {
+        failures.push(
+          "scripts/indexing-qa.mjs must include /use-cases as an indexable page."
+        );
+      }
+      if (!/"\/use-cases\/long-context-analysis"/.test(indexing)) {
+        failures.push(
+          "scripts/indexing-qa.mjs must include /use-cases/long-context-analysis as a detail page."
+        );
+      }
+      if (!/"\/select\?useCase=long-context-analysis"/.test(indexing)) {
+        failures.push(
+          "scripts/indexing-qa.mjs must spot-check one filtered /select URL for the noindex policy."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI metric appears on use-case or select surfaces (Sprint 23 re-check)",
+    run: () => {
+      // The Sprint 18 guard already forbids verified OpenAI metrics
+      // without a citation. Re-state for Sprint 23 surfaces — they
+      // must not display GPT-5 numbers (context window, output limit,
+      // pricing reference) because the model record is wrapped in
+      // unverifiedModel().
+      const targets = [
+        "apps/models/app/select/page.tsx",
+        "apps/models/app/use-cases/page.tsx",
+        "apps/models/app/use-cases/long-context-analysis/page.tsx",
+        "apps/models/app/use-cases/multimodal-input/page.tsx",
+        "apps/models/app/use-cases/hosted-inference/page.tsx",
+        "apps/models/app/use-cases/governance-review/page.tsx",
+      ];
+      // These pages render GENERIC counts; they do not hand-write
+      // an OpenAI numeric metric. Verify no GPT-5 / OpenAI numeric
+      // literal sneaks into user-facing strings.
+      const banned =
+        /"[^"]*\bgpt-5\b[^"]*"[\s\S]{0,200}?\b\d{4,}\b/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} mentions GPT-5 alongside a numeric literal — no OpenAI metrics are verified yet.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
     },
   },
   {

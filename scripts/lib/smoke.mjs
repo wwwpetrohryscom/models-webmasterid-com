@@ -25,6 +25,12 @@ const PAGE_ROUTES = [
   "/docs",
   "/reverification",
   "/intelligence",
+  "/select",
+  "/use-cases",
+  "/use-cases/long-context-analysis",
+  "/use-cases/multimodal-input",
+  "/use-cases/hosted-inference",
+  "/use-cases/governance-review",
 ];
 
 const API_ROUTES = [

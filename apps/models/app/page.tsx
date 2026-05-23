@@ -103,6 +103,61 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Start with a use case */}
+      <section
+        aria-label="Start with a use case"
+        className="container-page mt-12"
+      >
+        <SectionHeader
+          eyebrow="Use cases"
+          title="Start with a use case"
+          description="Each use case names the verified fields a reader should weight. WebmasterID Models does not rank or recommend models — it surfaces source-backed signals."
+          cta={{ label: "All use cases", href: "/use-cases" }}
+        />
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              href: "/use-cases/long-context-analysis",
+              title: "Long-context analysis",
+              detail:
+                "Verified context window, max output, pricing tier references.",
+            },
+            {
+              href: "/use-cases/multimodal-input",
+              title: "Multimodal input",
+              detail:
+                "Verified input modality channels — image, audio, video, text.",
+            },
+            {
+              href: "/use-cases/hosted-inference",
+              title: "Hosted inference",
+              detail:
+                "Hosted availability + hosted pricing references. Not creator pricing.",
+            },
+            {
+              href: "/use-cases/governance-review",
+              title: "Governance review",
+              detail:
+                "Verification status, source freshness, reverification queue.",
+            },
+          ].map((card) => (
+            <li key={card.href}>
+              <Link
+                href={card.href}
+                className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-sm font-semibold text-foreground">
+                  {card.title}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {card.detail}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* Tracked providers strip */}
       <section
         aria-label="Tracked providers"
