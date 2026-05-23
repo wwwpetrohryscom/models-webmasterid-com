@@ -60,6 +60,7 @@ const INDEXABLE_PAGES = [
   { path: "/research/model-selection", expectJsonLd: true, kind: "detail" },
   { path: "/docs/pricing-fields", expectJsonLd: true, kind: "detail" },
   { path: "/reverification", expectJsonLd: true, kind: "hub" },
+  { path: "/intelligence", expectJsonLd: true, kind: "hub" },
 ];
 
 const FILTERED_NOINDEX_PAGES = [
@@ -67,6 +68,7 @@ const FILTERED_NOINDEX_PAGES = [
   "/pricing?provider=anthropic",
   "/compare?verification=verified",
   "/sources?provider=anthropic",
+  "/reverification?priority=high",
 ];
 
 const MACHINE_ENDPOINTS = [

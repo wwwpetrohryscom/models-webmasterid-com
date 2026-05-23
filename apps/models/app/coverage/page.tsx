@@ -152,6 +152,38 @@ export default function CoveragePage() {
 
       <aside
         role="note"
+        aria-label="Intelligence workspace"
+        className="card-surface flex flex-wrap items-center justify-between gap-3 p-4 text-sm text-muted-foreground"
+      >
+        <div>
+          <p className="text-foreground font-medium">
+            Intelligence workspace
+          </p>
+          <p className="mt-1">
+            For a unified operator view across models, providers,
+            pricing, comparisons, sources, status, and the
+            reverification queue, see{" "}
+            <Link
+              href="/intelligence"
+              className="text-primary hover:underline"
+            >
+              /intelligence
+            </Link>
+            . Machine-readable counterpart:{" "}
+            <code className="rounded bg-muted px-1">/api/intelligence</code>
+            .
+          </p>
+        </div>
+        <Link
+          href="/intelligence"
+          className="inline-flex h-8 items-center rounded-lg border border-primary/30 bg-primary/10 px-3 text-xs font-medium text-primary hover:bg-primary/15"
+        >
+          Open workspace →
+        </Link>
+      </aside>
+
+      <aside
+        role="note"
         aria-label="Pricing freshness policy"
         className="card-surface p-4 text-sm text-muted-foreground"
       >

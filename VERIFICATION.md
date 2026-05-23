@@ -386,7 +386,53 @@ reverification layers, refuses any filesystem mutation in those
 helpers, refuses /api/reverification to surface secret env values,
 and refuses to ship `/reverification` if its copy promises
 auto-scraping or auto-updates. `ROUTE_SET_VERSION` is bumped to
-`content-v4` for this sprint.
+`content-v4` for Sprint 21.
+
+**Sprint 22 — intelligence workspace + review operations.** Sprint
+22 lifts the entity-graph, freshness, and reverification layers
+into an operator workspace at
+[`/intelligence`](apps/models/app/intelligence/page.tsx) (JSON at
+`/api/intelligence`). The page renders workspace destinations, a
+current intelligence snapshot of verified counts, a review
+operations panel with quick-jump links into the reverification
+queue, a coverage health matrix that shows verified vs review-due
+vs blocked across every entity domain, and a methodology block.
+
+New helpers introduced:
+- [`lib/intelligence-summary.ts`](apps/models/lib/intelligence-summary.ts):
+  `getIntelligenceSummary`, `getCoverageHealthMatrix`,
+  `getReviewOperationsSummary`, `getWorkspaceLinks`.
+- [`lib/comparison-clusters.ts`](apps/models/lib/comparison-clusters.ts):
+  `getComparisonClusters`, `getTwoSidedVerifiedComparisons`,
+  `getComparisonsByProvider`, `getComparisonCoverageSummary`.
+- [`lib/source-usage.ts`](apps/models/lib/source-usage.ts):
+  `getSourceUsageMap`, `getEntitiesUsingCitation`,
+  `getSourcesByProvider`, `getCitationImpactSummary`.
+
+All three are pure local reads — no `fetch()`, no `process.env`, no
+`Date.now()`. State derives from `siteConfig.buildDate` where
+freshness is relevant.
+
+`/reverification` was upgraded with server-rendered GET filters
+(`?priority`, `?reason`, `?provider`, `?entityType`, `?freshness`).
+The unfiltered page stays indexable; every filtered URL is
+`noindex, follow`. A new
+[`/api/reverification/checklist`](apps/models/app/api/reverification/checklist/route.ts)
+endpoint exports the queue as Markdown (default) or JSON
+(`?format=json`) so a reviewer can paste a checklist into a PR or
+notebook. The endpoint sets `X-Robots-Tag: noindex` and accepts the
+same filter params as the page.
+
+`/models` and `/compare` gained discovery summary cards. `/models`
+also accepts a Sprint-22 `role` query param (`creator`,
+`hosted-platform`, `both`) for provider-role filtering — filtered
+URLs are `noindex, follow`. `/coverage` surfaces a prominent
+intelligence-workspace callout.
+
+`ROUTE_SET_VERSION` bumps to `content-v5`. Sixteen new integrity
+guards enforce the no-admin-auth + no-auto-mutation invariants
+across every Sprint-22 surface, including a defence-in-depth
+re-check that `/status` never carries a numeric uptime percentage.
 
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from

@@ -90,6 +90,13 @@ const FILTERED_KEYS = new Set<string>([
   "unit",
   "indexable",
   "sourceType",
+  // Sprint 22: /reverification filters
+  "priority",
+  "reason",
+  "entityType",
+  "freshness",
+  // Sprint 22: /models discovery filter
+  "role",
 ]);
 
 export function isFilteredRoute(

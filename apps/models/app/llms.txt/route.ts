@@ -91,6 +91,7 @@ export function GET() {
     { label: "Coverage", path: "/coverage" },
     { label: "Sources", path: "/sources" },
     { label: "Reverification queue", path: "/reverification" },
+    { label: "Intelligence workspace", path: "/intelligence" },
     { label: "Docs", path: "/docs" },
   ]) {
     buf.push(line(`- [${item.label}](${siteConfig.url}${item.path})`));

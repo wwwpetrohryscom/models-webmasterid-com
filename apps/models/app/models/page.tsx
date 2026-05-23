@@ -13,6 +13,8 @@ import { isFilteredRoute, robotsMetadata } from "@/lib/should-index";
 import { siteConfig } from "@/lib/site-config";
 import { models } from "@/data/models";
 import { providers, getProviderBySlug } from "@/data/providers";
+import { hostedPricing } from "@/data/hosted-pricing";
+import { getReverificationQueue } from "@/lib/reverification";
 import { isVerified } from "@/lib/verified";
 import type {
   LifecycleStatus,
@@ -84,14 +86,35 @@ export default async function ModelsIndexPage({
     | LifecycleStatus
     | undefined;
   const modalityFilter = readParam(params, "modality")?.toLowerCase();
+  // Sprint 22: role filter — creator vs hosted-platform vs both
+  const roleFilter = readParam(params, "role") as
+    | "creator"
+    | "hosted-platform"
+    | "both"
+    | undefined;
 
   const filtered = isFilteredRoute(params);
+
+  // Pre-compute the set of provider slugs that bill at least one
+  // hosted-pricing row (hosted platforms).
+  const hostedPlatformSlugs = new Set(
+    hostedPricing.map((r) => r.billingProviderSlug)
+  );
+  // Provider slugs that create at least one tracked model.
+  const creatorSlugs = new Set(models.map((m) => m.providerSlug));
 
   const results = models.filter((m) => {
     if (q) {
       const haystack =
         `${m.name} ${m.slug} ${m.description ?? ""}`.toLowerCase();
       if (!haystack.includes(q)) return false;
+    }
+    if (roleFilter) {
+      const isCreator = creatorSlugs.has(m.providerSlug);
+      const isHosted = hostedPlatformSlugs.has(m.providerSlug);
+      if (roleFilter === "creator" && !(isCreator && !isHosted)) return false;
+      if (roleFilter === "hosted-platform" && !isHosted) return false;
+      if (roleFilter === "both" && !(isCreator && isHosted)) return false;
     }
     if (providerFilter && m.providerSlug !== providerFilter) return false;
     if (
@@ -126,6 +149,120 @@ export default async function ModelsIndexPage({
           { name: "Models", href: "/models" },
         ]}
       />
+
+      {(() => {
+        const verifiedCount = models.filter(
+          (m) => m.verificationStatus === "verified"
+        ).length;
+        const partialCount = models.filter(
+          (m) => m.verificationStatus === "partial"
+        ).length;
+        const activeCount = models.filter((m) => {
+          if (!isVerified(m.lifecycle)) return true;
+          return m.lifecycle.value.status === "active";
+        }).length;
+        const historicalCount = models.filter((m) => {
+          if (!isVerified(m.lifecycle)) return false;
+          return (
+            m.lifecycle.value.status === "retired" ||
+            m.lifecycle.value.status === "deprecated"
+          );
+        }).length;
+        const hostedSlugs = new Set(hostedPricing.map((r) => r.modelSlug));
+        const modelsWithHosted = models.filter((m) =>
+          hostedSlugs.has(m.slug)
+        ).length;
+        const reviewQueue = getReverificationQueue();
+        const reviewModelSlugs = new Set(
+          reviewQueue
+            .filter(
+              (q) =>
+                q.entityType === "model" ||
+                q.entityType === "pricing" ||
+                q.entityType === "hosted_pricing"
+            )
+            .map((q) => q.entitySlug)
+            .filter((s): s is string => Boolean(s))
+        );
+        const dueForReview = models.filter((m) =>
+          reviewModelSlugs.has(m.slug)
+        ).length;
+        const cards: { label: string; value: number; href: string }[] = [
+          { label: "Verified", value: verifiedCount, href: "/models?verification=verified" },
+          { label: "Partially verified", value: partialCount, href: "/models?verification=partial" },
+          { label: "Active", value: activeCount, href: "/models?lifecycle=active" },
+          {
+            label: "Historical / retired",
+            value: historicalCount,
+            href: "/models?lifecycle=retired",
+          },
+          {
+            label: "With hosted availability",
+            value: modelsWithHosted,
+            href: "/pricing",
+          },
+          {
+            label: "Due for review",
+            value: dueForReview,
+            href: "/reverification?entityType=pricing",
+          },
+        ];
+        return (
+          <section
+            aria-label="Models discovery summary"
+            className="space-y-3"
+          >
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+              {cards.map((card) => (
+                <li key={card.label}>
+                  <Link
+                    href={card.href}
+                    className="card-surface block p-3 transition hover:border-primary/30 hover:shadow-elevated"
+                  >
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {card.label}
+                    </p>
+                    <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">
+                      {card.value}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-muted-foreground">
+              Cross-references:{" "}
+              <Link
+                href="/intelligence"
+                className="text-primary hover:underline"
+              >
+                /intelligence
+              </Link>
+              {" · "}
+              <Link
+                href="/coverage"
+                className="text-primary hover:underline"
+              >
+                /coverage
+              </Link>
+              {" · "}
+              <Link
+                href="/sources"
+                className="text-primary hover:underline"
+              >
+                /sources
+              </Link>
+              {" · "}
+              <Link
+                href="/reverification?entityType=model"
+                className="text-primary hover:underline"
+              >
+                /reverification (models)
+              </Link>
+              .
+            </p>
+          </section>
+        );
+      })()}
 
       <JsonLd
         data={[

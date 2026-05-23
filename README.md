@@ -451,6 +451,29 @@ These rules are non-negotiable. The full workflow lives in
     unreviewed fetched data.** The queue is informational — every
     item points a human reviewer at a source URL with a suggested
     manual action. Stale ≠ false.
+12. **Intelligence workspace + review operations (Sprint 22).** A
+    unified operator surface at
+    [`/intelligence`](apps/models/app/intelligence/page.tsx) renders
+    the workspace destinations, current verified counts, the review
+    operations panel, and a coverage health matrix. The
+    machine-readable counterpart at
+    [`/api/intelligence`](apps/models/app/api/intelligence/route.ts)
+    exposes the same counts plus canonical destination URLs for
+    partner dashboards. The reverification queue now supports
+    server-rendered GET filters
+    (`?priority`, `?reason`, `?provider`, `?entityType`,
+    `?freshness`) and exports a Markdown / JSON checklist at
+    [`/api/reverification/checklist`](apps/models/app/api/reverification/checklist/route.ts).
+    Three new helpers —
+    [`lib/intelligence-summary.ts`](apps/models/lib/intelligence-summary.ts),
+    [`lib/comparison-clusters.ts`](apps/models/lib/comparison-clusters.ts),
+    [`lib/source-usage.ts`](apps/models/lib/source-usage.ts) —
+    derive discovery counters across the entity graph. `/models`
+    and `/compare` now render discovery summaries linked to the
+    intelligence workspace; `/models` accepts a `role` query param
+    for creator-vs-hosted-platform filtering. Filtered URLs across
+    `/reverification` and `/models?role=...` are `noindex, follow`.
+    `ROUTE_SET_VERSION` bumped to `content-v5`.
 
 Entity model: [`apps/models/lib/types.ts`](apps/models/lib/types.ts).
 Citation registry: [`apps/models/data/citations.ts`](apps/models/data/citations.ts).

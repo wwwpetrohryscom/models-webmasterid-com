@@ -5,7 +5,9 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
 import { SectionHeader } from "@/components/SectionHeader";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
+import { isFilteredRoute, robotsMetadata } from "@/lib/should-index";
 import { siteConfig } from "@/lib/site-config";
+import { providers } from "@/data/providers";
 import {
   getReverificationQueue,
   getReverificationSummary,
@@ -18,16 +20,65 @@ import {
   priorityLabel,
   reasonLabel,
   REVERIFICATION_POLICY_NOTE,
+  type FreshnessPriority,
+  type FreshnessState,
   type ReverificationReason,
 } from "@/lib/source-freshness";
 import { formatDateISO } from "@/lib/utils";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Reverification Queue",
-  description:
-    "Source-freshness queue: which verified facts on WebmasterID Models are due for manual re-verification, why, and what to re-check first. The queue is informational — no automatic scraping, no auto-mutation of values.",
-  path: "/reverification",
-});
+type SearchParams = Record<string, string | string[] | undefined>;
+
+interface PageProps {
+  searchParams: Promise<SearchParams>;
+}
+
+function readParam(
+  searchParams: SearchParams,
+  key: string
+): string | undefined {
+  const v = searchParams[key];
+  if (typeof v === "string" && v.trim().length > 0) return v.trim();
+  return undefined;
+}
+
+const PRIORITY_OPTIONS: { value: FreshnessPriority; label: string }[] = [
+  { value: "critical", label: "Critical" },
+  { value: "high", label: "High" },
+  { value: "medium", label: "Medium" },
+  { value: "low", label: "Low" },
+];
+
+const FRESHNESS_OPTIONS: { value: FreshnessState; label: string }[] = [
+  { value: "fresh", label: "Fresh" },
+  { value: "review_due", label: "Review due" },
+  { value: "stale", label: "Stale" },
+  { value: "blocked", label: "Blocked" },
+  { value: "unknown", label: "Unknown" },
+];
+
+const ENTITY_TYPE_OPTIONS: { value: string; label: string }[] = [
+  { value: "pricing", label: "Pricing" },
+  { value: "hosted_pricing", label: "Hosted pricing" },
+  { value: "citation", label: "Citation" },
+  { value: "verification_attempt", label: "Verification attempt" },
+  { value: "provider", label: "Provider" },
+  { value: "model", label: "Model" },
+  { value: "status_observer", label: "Status observer" },
+];
+
+const REASON_OPTIONS: { value: ReverificationReason; label: string }[] = [
+  { value: "pricing_review_due", label: "Pricing review due" },
+  {
+    value: "hosted_pricing_review_due",
+    label: "Hosted pricing review due",
+  },
+  { value: "source_review_due", label: "Source review due" },
+  { value: "blocked_vendor_docs", label: "Vendor docs blocked" },
+  { value: "partial_provider_coverage", label: "Provider partial" },
+  { value: "unverified_model_metric", label: "Model metric unverified" },
+  { value: "status_observer_missing", label: "Status observer missing" },
+  { value: "stale_citation", label: "Stale citation" },
+];
 
 const REASON_GROUPS: {
   id: string;
@@ -85,6 +136,22 @@ const REASON_GROUPS: {
       "Verified model records that nonetheless carry multiple null metric fields (max output, modality, context window, knowledge cutoff, release date). Worth a documentation re-walk.",
   },
 ];
+
+export async function generateMetadata({
+  searchParams,
+}: PageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const filtered = isFilteredRoute(params);
+  return {
+    ...buildMetadata({
+      title: "Reverification Queue",
+      description:
+        "Source-freshness queue: which verified facts on WebmasterID Models are due for manual re-verification, why, and what to re-check first. The queue is informational — no automatic scraping, no auto-mutation of values.",
+      path: "/reverification",
+    }),
+    robots: robotsMetadata(!filtered),
+  };
+}
 
 function PriorityChip({ item }: { item: ReverificationQueueItem }) {
   return (
@@ -228,17 +295,40 @@ function QueueTable({ items }: { items: ReverificationQueueItem[] }) {
   );
 }
 
-export default function ReverificationPage() {
-  const queue = getReverificationQueue();
+export default async function ReverificationPage({
+  searchParams,
+}: PageProps) {
+  const params = await searchParams;
+  const priorityFilter = readParam(params, "priority") as
+    | FreshnessPriority
+    | undefined;
+  const reasonFilter = readParam(params, "reason") as
+    | ReverificationReason
+    | undefined;
+  const providerFilter = readParam(params, "provider");
+  const entityTypeFilter = readParam(params, "entityType");
+  const freshnessFilter = readParam(params, "freshness") as
+    | FreshnessState
+    | undefined;
+  const filtered = isFilteredRoute(params);
+
+  const queueAll = getReverificationQueue();
   const summary = getReverificationSummary();
+
+  const queue = queueAll.filter((item) => {
+    if (priorityFilter && item.priority !== priorityFilter) return false;
+    if (reasonFilter && item.reason !== reasonFilter) return false;
+    if (providerFilter && item.providerSlug !== providerFilter) return false;
+    if (entityTypeFilter && item.entityType !== entityTypeFilter)
+      return false;
+    if (freshnessFilter && item.freshnessState !== freshnessFilter)
+      return false;
+    return true;
+  });
 
   const cards: { label: string; value: number; href?: string }[] = [
     { label: "Total items", value: summary.total, href: "#full-queue" },
-    {
-      label: "Critical",
-      value: summary.critical,
-      href: "#full-queue",
-    },
+    { label: "Critical", value: summary.critical, href: "#full-queue" },
     { label: "High", value: summary.high, href: "#full-queue" },
     {
       label: "Pricing review due",
@@ -257,7 +347,7 @@ export default function ReverificationPage() {
     },
     {
       label: "Stale citations",
-      value: queue.filter((i) => i.entityType === "citation").length,
+      value: queueAll.filter((i) => i.entityType === "citation").length,
       href: "#stale-citations",
     },
     {
@@ -309,9 +399,12 @@ export default function ReverificationPage() {
         </p>
         <p>{REVERIFICATION_POLICY_NOTE}</p>
         <p>
-          Build date: <code className="rounded bg-muted px-1">{formatDateISO(siteConfig.buildDate)}</code>.
-          Freshness states are computed deterministically against this
-          date — they only transition on the next deploy, never
+          Build date:{" "}
+          <code className="rounded bg-muted px-1">
+            {formatDateISO(siteConfig.buildDate)}
+          </code>
+          . Freshness states are computed deterministically against
+          this date — they only transition on the next deploy, never
           mid-render.
         </p>
       </aside>
@@ -357,6 +450,126 @@ export default function ReverificationPage() {
         </ul>
       </section>
 
+      <form
+        method="get"
+        action="/reverification"
+        aria-label="Filter the reverification queue"
+        className="card-surface p-4"
+      >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <label className="text-xs text-muted-foreground">
+            <span className="block font-medium text-foreground">
+              Priority
+            </span>
+            <select
+              name="priority"
+              defaultValue={priorityFilter ?? ""}
+              aria-label="Filter by priority"
+              className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            >
+              <option value="">All priorities</option>
+              {PRIORITY_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-muted-foreground">
+            <span className="block font-medium text-foreground">
+              Reason
+            </span>
+            <select
+              name="reason"
+              defaultValue={reasonFilter ?? ""}
+              aria-label="Filter by reason"
+              className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            >
+              <option value="">All reasons</option>
+              {REASON_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-muted-foreground">
+            <span className="block font-medium text-foreground">
+              Provider
+            </span>
+            <select
+              name="provider"
+              defaultValue={providerFilter ?? ""}
+              aria-label="Filter by provider"
+              className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            >
+              <option value="">All providers</option>
+              {providers.map((p) => (
+                <option key={p.slug} value={p.slug}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-muted-foreground">
+            <span className="block font-medium text-foreground">
+              Entity type
+            </span>
+            <select
+              name="entityType"
+              defaultValue={entityTypeFilter ?? ""}
+              aria-label="Filter by entity type"
+              className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            >
+              <option value="">All entities</option>
+              {ENTITY_TYPE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-muted-foreground">
+            <span className="block font-medium text-foreground">
+              Freshness
+            </span>
+            <select
+              name="freshness"
+              defaultValue={freshnessFilter ?? ""}
+              aria-label="Filter by freshness state"
+              className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            >
+              <option value="">All states</option>
+              {FRESHNESS_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          <button
+            type="submit"
+            className="inline-flex h-8 items-center rounded-lg border border-primary/30 bg-primary/10 px-3 font-medium text-primary hover:bg-primary/15"
+          >
+            Apply filters
+          </button>
+          {filtered ? (
+            <Link
+              href="/reverification"
+              className="text-primary hover:underline"
+            >
+              Reset
+            </Link>
+          ) : null}
+          <span>
+            {queue.length} of {queueAll.length} queue item
+            {queueAll.length === 1 ? "" : "s"} match.
+          </span>
+        </div>
+      </form>
+
       <section
         id="full-queue"
         aria-label="Full reverification queue"
@@ -364,42 +577,44 @@ export default function ReverificationPage() {
       >
         <SectionHeader
           eyebrow="Queue"
-          title={`Full review queue (${queue.length})`}
+          title={`Review queue (${queue.length})`}
           description="Ordered by priority (critical → high → medium → low). Every row points at a source URL and a suggested manual action. The catalogue does not change any verified value until a reviewer confirms the source."
           as="h2"
         />
         <QueueTable items={queue} />
       </section>
 
-      {REASON_GROUPS.map((group) => {
-        const items = queue.filter((q) =>
-          group.reasons.includes(q.reason)
-        );
-        if (!items.length) return null;
-        return (
-          <section
-            key={group.id}
-            id={group.id}
-            aria-label={group.label}
-            className="space-y-3"
-          >
-            <SectionHeader
-              eyebrow="Category"
-              title={`${group.label} (${items.length})`}
-              description={group.description}
-              as="h2"
-            />
-            <QueueTable items={items} />
-          </section>
-        );
-      })}
+      {!filtered
+        ? REASON_GROUPS.map((group) => {
+            const items = queueAll.filter((q) =>
+              group.reasons.includes(q.reason)
+            );
+            if (!items.length) return null;
+            return (
+              <section
+                key={group.id}
+                id={group.id}
+                aria-label={group.label}
+                className="space-y-3"
+              >
+                <SectionHeader
+                  eyebrow="Category"
+                  title={`${group.label} (${items.length})`}
+                  description={group.description}
+                  as="h2"
+                />
+                <QueueTable items={items} />
+              </section>
+            );
+          })
+        : null}
 
       <aside
         className="card-surface space-y-2 p-5 text-sm text-muted-foreground"
         aria-label="Workflow"
       >
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-          Workflow
+          Suggested review workflow
         </p>
         <ol className="ml-5 list-decimal space-y-1">
           <li>Pick a queue item (highest priority first).</li>
@@ -408,33 +623,55 @@ export default function ReverificationPage() {
             on the vendor&apos;s own page.
           </li>
           <li>
+            Compare the on-page value against the current catalogue
+            record (linked in <em>Affected routes</em>).
+          </li>
+          <li>
             Update the relevant record in{" "}
-            <code className="rounded bg-muted px-1">data/</code> — pricing
-            in <code className="rounded bg-muted px-1">data/pricing.ts</code>{" "}
+            <code className="rounded bg-muted px-1">data/</code> —
+            pricing in{" "}
+            <code className="rounded bg-muted px-1">data/pricing.ts</code>{" "}
             or{" "}
-            <code className="rounded bg-muted px-1">data/hosted-pricing.ts</code>
+            <code className="rounded bg-muted px-1">
+              data/hosted-pricing.ts
+            </code>
             ; citations in{" "}
-            <code className="rounded bg-muted px-1">data/citations.ts</code>;
-            verification attempts in{" "}
+            <code className="rounded bg-muted px-1">data/citations.ts</code>
+            ; verification attempts in{" "}
             <code className="rounded bg-muted px-1">
               data/verification-attempts.ts
             </code>
-            .
+            . Only update the verified field if the vendor source
+            confirms the new value; otherwise update the citation
+            timestamp alone.
           </li>
           <li>
             Stamp the new{" "}
             <code className="rounded bg-muted px-1">retrievedAt</code> or{" "}
-            <code className="rounded bg-muted px-1">lastCheckedAt</code> with
-            the date of the manual review. Do not back-date.
+            <code className="rounded bg-muted px-1">lastCheckedAt</code>{" "}
+            with the date of the manual review. Do not back-date.
           </li>
           <li>
             Re-run{" "}
-            <code className="rounded bg-muted px-1">npm run check:production</code>{" "}
+            <code className="rounded bg-muted px-1">
+              npm run check:production
+            </code>{" "}
             and{" "}
             <code className="rounded bg-muted px-1">npm run build</code>{" "}
             before pushing. The queue refreshes on the next build.
           </li>
         </ol>
+        <p className="text-xs">
+          Need a printable checklist?{" "}
+          <Link
+            href="/api/reverification/checklist"
+            className="text-primary hover:underline"
+          >
+            /api/reverification/checklist
+          </Link>{" "}
+          returns Markdown (or JSON with{" "}
+          <code className="rounded bg-muted px-1">?format=json</code>).
+        </p>
       </aside>
 
       <aside
@@ -445,6 +682,15 @@ export default function ReverificationPage() {
           Related references
         </p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
+          <li>
+            <Link
+              href="/intelligence"
+              className="text-primary hover:underline"
+            >
+              /intelligence
+            </Link>{" "}
+            — workspace summary across the entity graph.
+          </li>
           <li>
             <Link href="/coverage" className="text-primary hover:underline">
               /coverage
@@ -476,26 +722,14 @@ export default function ReverificationPage() {
             — how citations are accepted, recorded, and reused.
           </li>
           <li>
-            <Link
-              href="/docs/pricing-fields"
-              className="text-primary hover:underline"
-            >
-              /docs/pricing-fields
-            </Link>{" "}
-            — pricing freshness + volatility schema.
-          </li>
-          <li>
-            <Link
-              href="/research/api-pricing-methodology"
-              className="text-primary hover:underline"
-            >
-              /research/api-pricing-methodology
-            </Link>{" "}
-            — references-not-quotes policy.
-          </li>
-          <li>
             <code className="rounded bg-muted px-1">/api/reverification</code>{" "}
             — machine-readable JSON of this queue.
+          </li>
+          <li>
+            <code className="rounded bg-muted px-1">
+              /api/reverification/checklist
+            </code>{" "}
+            — Markdown / JSON checklist export.
           </li>
         </ul>
       </aside>

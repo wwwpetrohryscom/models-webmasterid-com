@@ -13,6 +13,7 @@ import pkg from "../../../package.json";
 import { siteConfig } from "@/lib/site-config";
 import {
   DEBUG_ENDPOINTS,
+  INTELLIGENCE_ENDPOINTS,
   REQUIRED_PAGE_ROUTES,
   ROUTE_SET_VERSION,
   STATUS_ENDPOINTS,
@@ -61,6 +62,10 @@ export function GET() {
         "Data not verified unless backed by primary source citation. Verified facts age; the reverification queue at /reverification (machine-readable at /api/reverification) lists sources due for manual re-check. The catalogue never auto-fetches or auto-mutates verified values.",
       reverificationQueue: absolute("/reverification"),
       reverificationApi: absolute("/api/reverification"),
+      reverificationChecklistApi: absolute("/api/reverification/checklist"),
+      intelligenceWorkspace: absolute("/intelligence"),
+      intelligenceApi: absolute("/api/intelligence"),
+      intelligenceEndpoints: INTELLIGENCE_ENDPOINTS.map(absolute),
     },
     {
       status: 200,

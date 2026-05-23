@@ -24,6 +24,7 @@ const PAGE_ROUTES = [
   "/research",
   "/docs",
   "/reverification",
+  "/intelligence",
 ];
 
 const API_ROUTES = [
@@ -38,6 +39,8 @@ const API_ROUTES = [
   "/api/status/google/window?hours=24",
   "/api/cron/status",
   "/api/reverification",
+  "/api/reverification/checklist?format=json",
+  "/api/intelligence",
 ];
 
 const FETCH_TIMEOUT_MS = 8_000;

@@ -3708,6 +3708,495 @@ const checks: Check[] = [
       return null;
     },
   },
+  // ---------------------------------------------------------------------
+  // Sprint 22 — intelligence workspace + review operations + entity
+  // discovery. Helpers stay network-free and deterministic. The
+  // workspace, the checklist endpoint, and the discovery counters all
+  // derive from local data only — no auto-mutation, no admin/auth,
+  // no fake metrics.
+  // ---------------------------------------------------------------------
+  {
+    name: "lib/intelligence-summary.ts exists and is deterministic (Sprint 22)",
+    run: () => {
+      const rel = "apps/models/lib/intelligence-summary.ts";
+      if (!fileExists(rel)) {
+        return "Missing lib/intelligence-summary.ts (Sprint 22).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const token of [
+        "getIntelligenceSummary",
+        "getCoverageHealthMatrix",
+        "getReviewOperationsSummary",
+        "getWorkspaceLinks",
+      ]) {
+        if (!new RegExp(`\\b${token}\\b`).test(src)) {
+          failures.push(
+            `lib/intelligence-summary.ts must export \`${token}\`.`
+          );
+        }
+      }
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      if (/\bfetch\s*\(/.test(stripped)) {
+        failures.push("lib/intelligence-summary.ts must not call fetch().");
+      }
+      if (/\bprocess\.env\b/.test(stripped)) {
+        failures.push(
+          "lib/intelligence-summary.ts must not read process.env."
+        );
+      }
+      if (/Date\.now\s*\(/.test(stripped)) {
+        failures.push(
+          "lib/intelligence-summary.ts must not call Date.now() — derive from siteConfig.buildDate."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lib/comparison-clusters.ts exists and is network-free (Sprint 22)",
+    run: () => {
+      const rel = "apps/models/lib/comparison-clusters.ts";
+      if (!fileExists(rel)) {
+        return "Missing lib/comparison-clusters.ts (Sprint 22).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const token of [
+        "getComparisonClusters",
+        "getTwoSidedVerifiedComparisons",
+        "getComparisonsByProvider",
+        "getComparisonCoverageSummary",
+      ]) {
+        if (!new RegExp(`\\b${token}\\b`).test(src)) {
+          failures.push(
+            `lib/comparison-clusters.ts must export \`${token}\`.`
+          );
+        }
+      }
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      if (/\bfetch\s*\(/.test(stripped) || /\bprocess\.env\b/.test(stripped)) {
+        failures.push(
+          "lib/comparison-clusters.ts must be a pure local read."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lib/source-usage.ts exists and is network-free (Sprint 22)",
+    run: () => {
+      const rel = "apps/models/lib/source-usage.ts";
+      if (!fileExists(rel)) {
+        return "Missing lib/source-usage.ts (Sprint 22).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const token of [
+        "getSourceUsageMap",
+        "getEntitiesUsingCitation",
+        "getSourcesByProvider",
+        "getCitationImpactSummary",
+      ]) {
+        if (!new RegExp(`\\b${token}\\b`).test(src)) {
+          failures.push(
+            `lib/source-usage.ts must export \`${token}\`.`
+          );
+        }
+      }
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      if (/\bfetch\s*\(/.test(stripped) || /\bprocess\.env\b/.test(stripped)) {
+        failures.push(
+          "lib/source-usage.ts must be a pure local read."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/intelligence workspace page exists (Sprint 22)",
+    run: () => {
+      const rel = "apps/models/app/intelligence/page.tsx";
+      if (!fileExists(rel)) {
+        return "Missing /intelligence page (Sprint 22).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      if (!/AI Model Infrastructure Intelligence Workspace/i.test(src)) {
+        failures.push(
+          "/intelligence must render the canonical workspace title."
+        );
+      }
+      if (!/getIntelligenceSummary/.test(src)) {
+        failures.push(
+          "/intelligence must call getIntelligenceSummary() to render counts."
+        );
+      }
+      if (!/getCoverageHealthMatrix/.test(src)) {
+        failures.push(
+          "/intelligence must call getCoverageHealthMatrix() to render the health matrix."
+        );
+      }
+      if (!/getReviewOperationsSummary/.test(src)) {
+        failures.push(
+          "/intelligence must call getReviewOperationsSummary()."
+        );
+      }
+      if (!/getWorkspaceLinks/.test(src)) {
+        failures.push(
+          "/intelligence must call getWorkspaceLinks() to render navigation cards."
+        );
+      }
+      // No admin/auth promises, no auto-update language.
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      if (/\bsign in\b|\blogin\b|\badmin panel\b/i.test(stripped)) {
+        failures.push(
+          "/intelligence must not promise admin / login UI."
+        );
+      }
+      if (
+        /auto[- ]?(?:fetch|update|sync|scrape)\s+(?:verified|values)/i.test(
+          stripped
+        )
+      ) {
+        failures.push(
+          "/intelligence must not promise auto-fetch/update/sync of verified values."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/api/intelligence endpoint exists and is secrets-free (Sprint 22)",
+    run: () => {
+      const rel = "apps/models/app/api/intelligence/route.ts";
+      if (!fileExists(rel)) {
+        return "Missing /api/intelligence endpoint (Sprint 22).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      if (!/getIntelligenceSummary/.test(src)) {
+        failures.push(
+          "/api/intelligence must call getIntelligenceSummary()."
+        );
+      }
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      const bannedEnv =
+        /process\.env\.(?:CRON_SECRET|KV_REST_API_TOKEN|VERCEL_OIDC_TOKEN|REDIS|SUPABASE|OPENAI|ANTHROPIC|GROQ|TOGETHER|GOOGLE|MISTRAL|DEEPSEEK)[A-Z_0-9]*\b/;
+      if (bannedEnv.test(stripped)) {
+        failures.push(
+          "/api/intelligence must not reference any secret env var."
+        );
+      }
+      if (/\bfetch\s*\(/.test(stripped)) {
+        failures.push("/api/intelligence must not call fetch().");
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/api/reverification/checklist exists and is secrets-free (Sprint 22)",
+    run: () => {
+      const rel =
+        "apps/models/app/api/reverification/checklist/route.ts";
+      if (!fileExists(rel)) {
+        return "Missing /api/reverification/checklist (Sprint 22).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      if (!/getReverificationQueue/.test(src)) {
+        failures.push(
+          "/api/reverification/checklist must call getReverificationQueue()."
+        );
+      }
+      if (!/text\/markdown/.test(src)) {
+        failures.push(
+          "/api/reverification/checklist must default to text/markdown output."
+        );
+      }
+      if (!/X-Robots-Tag/.test(src)) {
+        failures.push(
+          "/api/reverification/checklist must set X-Robots-Tag: noindex."
+        );
+      }
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      if (/\bfetch\s*\(/.test(stripped)) {
+        failures.push(
+          "/api/reverification/checklist must not call fetch()."
+        );
+      }
+      const bannedEnv =
+        /process\.env\.(?:CRON_SECRET|KV_REST_API_TOKEN|VERCEL_OIDC_TOKEN|REDIS|SUPABASE|OPENAI|ANTHROPIC|GROQ|TOGETHER|GOOGLE|MISTRAL|DEEPSEEK)[A-Z_0-9]*\b/;
+      if (bannedEnv.test(stripped)) {
+        failures.push(
+          "/api/reverification/checklist must not reference any secret env var."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/reverification supports server filters (Sprint 22)",
+    run: () => {
+      const src = readRel("apps/models/app/reverification/page.tsx");
+      const failures: string[] = [];
+      const required = [
+        "priorityFilter",
+        "reasonFilter",
+        "providerFilter",
+        "entityTypeFilter",
+        "freshnessFilter",
+      ];
+      for (const t of required) {
+        if (!new RegExp(`\\b${t}\\b`).test(src)) {
+          failures.push(
+            `reverification page must read the \`${t}\` query param.`
+          );
+        }
+      }
+      if (!/isFilteredRoute/.test(src)) {
+        failures.push(
+          "reverification page must call isFilteredRoute() to apply the filtered-noindex policy."
+        );
+      }
+      if (!/robotsMetadata/.test(src)) {
+        failures.push(
+          "reverification page must call robotsMetadata() so filtered URLs are noindex."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "should-index allow-list covers Sprint 22 filter keys",
+    run: () => {
+      const src = readRel("apps/models/lib/should-index.ts");
+      const failures: string[] = [];
+      for (const key of [
+        "priority",
+        "reason",
+        "entityType",
+        "freshness",
+        "role",
+      ]) {
+        if (!new RegExp(`"${key}"`).test(src)) {
+          failures.push(
+            `should-index FILTERED_KEYS must include "${key}" so filtered URLs are noindex.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract advertises Sprint 22 routes",
+    run: () => {
+      const src = readRel("apps/models/lib/route-contract.ts");
+      const failures: string[] = [];
+      for (const r of [
+        '"/intelligence"',
+        '"/api/intelligence"',
+        '"/api/reverification/checklist"',
+      ]) {
+        if (!src.includes(r)) {
+          failures.push(`route-contract must include ${r}.`);
+        }
+      }
+      if (!/INTELLIGENCE_ENDPOINTS/.test(src)) {
+        failures.push(
+          "route-contract must export INTELLIGENCE_ENDPOINTS so /api/site can advertise the group."
+        );
+      }
+      if (!/ROUTE_SET_VERSION\s*=\s*"content-v5"/.test(src)) {
+        failures.push(
+          "ROUTE_SET_VERSION must be bumped to \"content-v5\" for Sprint 22."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "sitemap + llms.txt + footer advertise /intelligence (Sprint 22)",
+    run: () => {
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const footer = readRel("apps/models/components/SiteFooter.tsx");
+      const failures: string[] = [];
+      if (!/\/intelligence/.test(sitemap)) {
+        failures.push("sitemap must include /intelligence.");
+      }
+      if (!/\/intelligence/.test(llms)) {
+        failures.push("llms.txt must list /intelligence.");
+      }
+      if (!/\/intelligence/.test(footer)) {
+        failures.push("SiteFooter must link to /intelligence.");
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/api/site advertises intelligence + checklist endpoints (Sprint 22)",
+    run: () => {
+      const src = readRel("apps/models/app/api/site/route.ts");
+      const failures: string[] = [];
+      for (const t of [
+        "intelligenceWorkspace",
+        "intelligenceApi",
+        "intelligenceEndpoints",
+        "reverificationChecklistApi",
+      ]) {
+        if (!new RegExp(`\\b${t}\\b`).test(src)) {
+          failures.push(`/api/site response must include \`${t}\`.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "smoke + indexing scripts include Sprint 22 routes",
+    run: () => {
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+      if (!/"\/intelligence"/.test(smoke)) {
+        failures.push("smoke PAGE_ROUTES must include /intelligence.");
+      }
+      if (!/"\/api\/intelligence"/.test(smoke)) {
+        failures.push(
+          "smoke API_ROUTES must include /api/intelligence."
+        );
+      }
+      if (!/"\/api\/reverification\/checklist\?format=json"/.test(smoke)) {
+        failures.push(
+          "smoke API_ROUTES must include /api/reverification/checklist?format=json."
+        );
+      }
+      if (!/"\/intelligence"/.test(indexing)) {
+        failures.push(
+          "indexing-qa must include /intelligence as an indexable page."
+        );
+      }
+      if (!/"\/reverification\?priority=high"/.test(indexing)) {
+        failures.push(
+          "indexing-qa must spot-check one filtered reverification URL for the noindex policy."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/coverage links to /intelligence (Sprint 22)",
+    run: () => {
+      const src = readRel("apps/models/app/coverage/page.tsx");
+      if (!/\/intelligence/.test(src)) {
+        return "/coverage must surface a link to /intelligence.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/models renders discovery summary (Sprint 22)",
+    run: () => {
+      const src = readRel("apps/models/app/models/page.tsx");
+      const failures: string[] = [];
+      if (!/Models discovery summary/i.test(src)) {
+        failures.push(
+          "/models must render the 'Models discovery summary' section."
+        );
+      }
+      if (!/With hosted availability/.test(src)) {
+        failures.push(
+          "/models must include a 'With hosted availability' discovery card."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/compare renders cluster summary (Sprint 22)",
+    run: () => {
+      const src = readRel("apps/models/app/compare/page.tsx");
+      const failures: string[] = [];
+      if (!/Comparison cluster summary/i.test(src)) {
+        failures.push(
+          "/compare must render the 'Comparison cluster summary' section."
+        );
+      }
+      if (!/Comparisons by provider/i.test(src)) {
+        failures.push(
+          "/compare must render the 'Comparisons by provider' cluster grid."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no Sprint 22 surface promises admin/auth/auto-mutation",
+    run: () => {
+      const targets = [
+        "apps/models/app/intelligence/page.tsx",
+        "apps/models/app/api/intelligence/route.ts",
+        "apps/models/app/api/reverification/checklist/route.ts",
+        "apps/models/lib/intelligence-summary.ts",
+        "apps/models/lib/comparison-clusters.ts",
+        "apps/models/lib/source-usage.ts",
+      ];
+      const banned = [
+        /\bsign in\b/i,
+        /\bsign-in\b/i,
+        /\blogin\b/i,
+        /\badmin panel\b/i,
+        /auto[- ]?(?:fetches|fetching|updates|writes|mutates|scrapes)\s+(?:and|then|verified|sources|the)/i,
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.test(stripped)) {
+            failures.push(
+              `${rel} contains banned admin/auth/auto-mutation phrasing matching ${b}.`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/status does not claim a numeric uptime percentage (Sprint 22 re-check)",
+    run: () => {
+      const src = readRel("apps/models/app/status/page.tsx");
+      // /status renders observations + freshness, never an aggregate
+      // uptime number. Re-state the invariant for Sprint 22 so future
+      // edits do not introduce a fabricated percentage.
+      const offending = [
+        ...src.matchAll(/\b\d{1,3}\.\d+\s*%/g),
+        ...src.matchAll(/\b(99|100)\s*%/g),
+      ];
+      if (offending.length) {
+        return `/status contains a numeric percentage literal — uptime is intentionally not asserted. Found: ${offending
+          .map((m) => m[0])
+          .join(", ")}.`;
+      }
+      return null;
+    },
+  },
   {
     name: "WebmasterID tracker is loaded once, not duplicated",
     run: () => {

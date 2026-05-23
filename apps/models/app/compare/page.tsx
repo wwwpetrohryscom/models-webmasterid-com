@@ -14,6 +14,12 @@ import {
 import { comparisons } from "@/data/comparisons";
 import { getModelBySlug } from "@/data/models";
 import { providers } from "@/data/providers";
+import { hostedPricingForModel } from "@/data/hosted-pricing";
+import { getReverificationQueue } from "@/lib/reverification";
+import {
+  getComparisonClusters,
+  getComparisonCoverageSummary,
+} from "@/lib/comparison-clusters";
 import type { ComparisonEntity, VerificationStatus } from "@/lib/types";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -161,6 +167,156 @@ export default async function CompareIndexPage({ searchParams }: PageProps) {
           { name: "Compare", href: "/compare" },
         ])}
       />
+
+      {(() => {
+        const coverage = getComparisonCoverageSummary();
+        const hostedSet = new Set(
+          comparisons
+            .filter(
+              (c) =>
+                hostedPricingForModel(c.modelA).length > 0 ||
+                hostedPricingForModel(c.modelB).length > 0
+            )
+            .map((c) => c.slug)
+        );
+        const reviewQueue = getReverificationQueue();
+        const reviewModels = new Set(
+          reviewQueue
+            .map((q) => q.entitySlug)
+            .filter((s): s is string => Boolean(s))
+        );
+        const affectedByReview = comparisons.filter(
+          (c) =>
+            reviewModels.has(c.modelA) || reviewModels.has(c.modelB)
+        ).length;
+        const cards: { label: string; value: number; href: string }[] = [
+          {
+            label: "Two-sided verified",
+            value: coverage.twoSidedVerified,
+            href: "/compare?verification=verified",
+          },
+          {
+            label: "One-sided verified",
+            value: coverage.oneSidedVerified,
+            href: "/compare?verification=partial",
+          },
+          {
+            label: "Pending",
+            value: coverage.pending,
+            href: "/compare?verification=unverified",
+          },
+          {
+            label: "With hosted pricing references",
+            value: hostedSet.size,
+            href: "/pricing",
+          },
+          {
+            label: "Affected by review queue",
+            value: affectedByReview,
+            href: "/reverification",
+          },
+        ];
+        return (
+          <section
+            aria-label="Comparison cluster summary"
+            className="space-y-3"
+          >
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              {cards.map((card) => (
+                <li key={card.label}>
+                  <Link
+                    href={card.href}
+                    className="card-surface block p-3 transition hover:border-primary/30 hover:shadow-elevated"
+                  >
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {card.label}
+                    </p>
+                    <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">
+                      {card.value}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })()}
+
+      {(() => {
+        const clusters = getComparisonClusters();
+        if (!clusters.length) return null;
+        return (
+          <section
+            aria-label="Comparison clusters"
+            className="space-y-3"
+          >
+            <SectionHeader
+              eyebrow="Clusters"
+              title="Comparisons by provider"
+              description="Each comparison appears in every cluster it touches — Mistral × Anthropic shows under both sides. Verified counts on the right tell you how complete each cluster is. Comparisons are reference views, not winner rankings."
+              as="h2"
+            />
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {clusters.map((cluster) => (
+                <li
+                  key={cluster.providerSlug}
+                  className="card-surface space-y-2 p-4 text-sm"
+                >
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <Link
+                      href={`/providers/${cluster.providerSlug}`}
+                      className="text-base font-semibold text-foreground hover:underline"
+                    >
+                      {cluster.providerName}
+                    </Link>
+                    <span className="text-xs text-muted-foreground">
+                      {cluster.comparisons.length} comparison
+                      {cluster.comparisons.length === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                  <ul className="text-xs text-muted-foreground">
+                    <li>
+                      Two-sided verified:{" "}
+                      <strong className="text-foreground">
+                        {cluster.twoSidedVerified}
+                      </strong>
+                    </li>
+                    <li>
+                      One-sided verified:{" "}
+                      <strong className="text-foreground">
+                        {cluster.oneSidedVerified}
+                      </strong>
+                    </li>
+                    <li>
+                      Pending:{" "}
+                      <strong className="text-foreground">
+                        {cluster.pending}
+                      </strong>
+                    </li>
+                  </ul>
+                  <ul className="space-y-1 pt-1 text-xs">
+                    {cluster.comparisons.slice(0, 6).map((c) => (
+                      <li key={c.slug}>
+                        <Link
+                          href={`/compare/${c.slug}`}
+                          className="text-primary hover:underline"
+                        >
+                          {c.name}
+                        </Link>
+                      </li>
+                    ))}
+                    {cluster.comparisons.length > 6 ? (
+                      <li className="text-muted-foreground">
+                        + {cluster.comparisons.length - 6} more
+                      </li>
+                    ) : null}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })()}
 
       <aside
         role="note"
