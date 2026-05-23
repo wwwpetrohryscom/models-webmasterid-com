@@ -70,6 +70,8 @@ export const hostedPricing: PricingRecord[] = [
     lastCheckedAt: "2026-05-23T00:00:00.000Z",
     verified: true,
     verificationStatus: "verified",
+    volatility: "high",
+    reviewCadenceDays: 14,
     notes:
       "Groq advertises additional features alongside the per-token rate (50% cache-hit discount on uncached input tokens, 50%-off Batch API with a 24h–7d window). Those are documented on the pricing page but the catalogue keeps each platform's promo modifiers in record notes rather than synthesising derived rows.",
   },
@@ -123,8 +125,10 @@ export const hostedPricing: PricingRecord[] = [
     lastCheckedAt: "2026-05-23T00:00:00.000Z",
     verified: true,
     verificationStatus: "verified",
+    volatility: "high",
+    reviewCadenceDays: 14,
     notes:
-      "Comparison readers should not assume DeepSeek V4 Pro's Together rate equals DeepSeek's first-party rate — the two billing providers price independently. See /pricing for the side-by-side first-party + hosted view.",
+      "DeepSeek V4 Pro's Together rate is set by Together AI, not DeepSeek. The two billing providers price independently — this row is a source-backed reference, not a comparison datapoint.",
   },
 ];
 

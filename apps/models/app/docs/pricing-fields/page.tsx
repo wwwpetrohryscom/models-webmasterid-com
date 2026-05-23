@@ -27,6 +27,7 @@ export default function Page() {
         { id: "enum-table", label: "PricingUnit enum reference" },
         { id: "shape", label: "Pricing row shape" },
         { id: "pricing-context", label: "PricingContext: creator vs host" },
+        { id: "freshness-volatility", label: "Pricing freshness + volatility" },
         { id: "base", label: "Input / output base units" },
         { id: "cache", label: "Cache pricing units" },
         { id: "prompt-size", label: "Prompt-size tier units" },
@@ -160,6 +161,82 @@ interface PricingRecord {
           single claim — emitting Groq&apos;s rate under Meta&apos;s{" "}
           <code className="rounded bg-muted px-1">creator</code> block
           would falsely imply Meta charges that rate.
+        </p>
+      </section>
+
+      <section id="freshness-volatility">
+        <h2>Pricing freshness + volatility</h2>
+        <p>
+          Sprint 20 added two fields that pair with every pricing record
+          to make staleness visible. Pricing values are <em>references</em>,
+          not live quotes — the freshness field tells you how recently a
+          row was confirmed; the volatility field tells you how often
+          the rate is expected to change.
+        </p>
+        <pre className="overflow-x-auto rounded-lg border border-border bg-background/60 p-3 text-[12px] leading-relaxed">
+          {`type PricingVolatility = "high" | "medium" | "low" | "unknown";
+
+interface PricingRecord {
+  // ...
+  volatility: PricingVolatility;
+  reviewCadenceDays?: number;
+  lastCheckedAt: string | null;
+}
+
+// Freshness is computed (lib/pricing-freshness.ts):
+type PricingFreshnessState =
+  | "fresh"         // checked within 14 days
+  | "review_due"    // 15–30 days
+  | "stale"         // 31+ days
+  | "unknown";      // no timestamp
+`}
+        </pre>
+        <ul>
+          <li>
+            <strong>Hosted-provider rows</strong> default to volatility{" "}
+            <code className="rounded bg-muted px-1">&quot;high&quot;</code>{" "}
+            and review cadence{" "}
+            <code className="rounded bg-muted px-1">14</code> days —
+            hosting platforms re-price frequently.
+          </li>
+          <li>
+            <strong>First-party rows</strong> default to{" "}
+            <code className="rounded bg-muted px-1">&quot;medium&quot;</code>{" "}
+            and review cadence{" "}
+            <code className="rounded bg-muted px-1">30</code> days —
+            first-party rates move slower but still move (promotional
+            windows, retirements, regional adjustments).
+          </li>
+          <li>
+            No row ever defaults to{" "}
+            <code className="rounded bg-muted px-1">&quot;low&quot;</code>{" "}
+            volatility. A reader who treats any pricing record as stable
+            should be corrected by every surface that renders it.
+          </li>
+        </ul>
+        <p>
+          Freshness is computed against{" "}
+          <code className="rounded bg-muted px-1">siteConfig.buildDate</code>{" "}
+          rather than wall-clock <em>now</em> so the same build renders
+          the same state on every page. Transitions happen at deploy
+          time, not mid-render. The thresholds (14 / 30 / 45 days) are
+          encoded in{" "}
+          <code className="rounded bg-muted px-1">
+            PRICING_FRESHNESS_DAYS
+          </code>{" "}
+          in{" "}
+          <code className="rounded bg-muted px-1">
+            lib/pricing-freshness.ts
+          </code>
+          .
+        </p>
+        <p className="text-xs text-muted-foreground">
+          <strong>Not a live-quote policy:</strong> Pricing is a
+          source-backed reference, not a real-time API. Every surface
+          that shows a price also shows the source URL and{" "}
+          <code className="rounded bg-muted px-1">lastCheckedAt</code> so
+          a reader can audit the row before projecting cost. WebmasterID
+          Models does not rank models or billing providers by price.
         </p>
       </section>
 

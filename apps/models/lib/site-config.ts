@@ -35,7 +35,7 @@ export const siteConfig = {
     { label: "News", href: "/news" },
     { label: "Research", href: "/research" },
   ],
-  buildDate: new Date("2026-05-20T00:00:00.000Z").toISOString(),
+  buildDate: new Date("2026-05-23T00:00:00.000Z").toISOString(),
 } as const;
 
 export type SiteConfig = typeof siteConfig;

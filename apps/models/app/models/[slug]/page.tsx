@@ -29,6 +29,12 @@ import { models, getModelBySlug } from "@/data/models";
 import { getProviderBySlug } from "@/data/providers";
 import { hostedPricingForModel } from "@/data/hosted-pricing";
 import { isVerified } from "@/lib/verified";
+import {
+  getPricingFreshness,
+  pricingFreshnessClasses,
+  pricingFreshnessLabel,
+  PRICING_VOLATILITY_NOTE,
+} from "@/lib/pricing-freshness";
 import { buildModelJsonLd } from "@/lib/model-jsonld";
 import {
   getRelatedModels,
@@ -377,20 +383,23 @@ export default async function ModelPage({
         </section>
       ) : null}
 
-      <section aria-label="Pricing" className="space-y-4">
+      <section aria-label="Pricing references" className="space-y-4">
         <SectionHeader
           eyebrow="API pricing"
-          title="First-party pricing"
+          title="First-party API pricing references"
           description={
             provider
-              ? `Per-unit rates published by ${provider.name} for its own first-party API. Each row links back to its primary source. Where ${provider.name} does not run a paid first-party API for this model, the table renders the unverified-data label and any hosted-provider rates appear below.`
+              ? `Per-unit rates published by ${provider.name} for its own first-party API. Each row is a source-backed reference, not a live quote. Where ${provider.name} does not run a paid first-party API for this model, the table renders the unverified-data label and any hosted-provider rates appear below.`
               : "Per-unit rates from the model creator's own first-party API. Where no first-party API exists, hosted-provider rates appear below."
           }
           as="h2"
         />
+        <p className="text-xs text-muted-foreground">
+          {PRICING_VOLATILITY_NOTE}
+        </p>
         <PricingTable
           tiers={model.pricing}
-          caption={`${model.name} first-party pricing`}
+          caption={`${model.name} first-party pricing references`}
         />
         {(() => {
           const hostedRows = hostedPricingForModel(model.slug);
@@ -399,12 +408,14 @@ export default async function ModelPage({
             <div className="space-y-3">
               <div>
                 <h3 className="text-base font-semibold text-foreground">
-                  Hosted-provider pricing
+                  Hosted provider pricing references
                 </h3>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Third-party platforms that host this model and bill at
-                  their own rate. Not the same as the model creator&apos;s
-                  pricing — see{" "}
+                  their own rate. Hosted pricing is
+                  billing-provider-specific and may change. It is not
+                  model-creator pricing unless the creator is also the
+                  billing provider. See{" "}
                   <Link
                     href="/research/api-pricing-methodology#creator-vs-host"
                     className="text-primary hover:underline"
@@ -416,6 +427,7 @@ export default async function ModelPage({
               </div>
               {hostedRows.map((r) => {
                 const billing = getProviderBySlug(r.billingProviderSlug);
+                const freshness = getPricingFreshness(r.lastCheckedAt);
                 return (
                   <div key={r.id} className="card-surface space-y-2 p-4">
                     <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
@@ -436,6 +448,21 @@ export default async function ModelPage({
                         <code className="rounded bg-muted px-1 text-xs">
                           {r.hostedModelId}
                         </code>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-[10px]">
+                      <span className="inline-flex items-center rounded-full border border-red-600/30 bg-red-600/10 px-2 py-0.5 font-medium text-red-700">
+                        Volatility: {r.volatility}
+                      </span>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 font-medium ${pricingFreshnessClasses(freshness)}`}
+                      >
+                        Freshness: {pricingFreshnessLabel(freshness)}
+                      </span>
+                      {r.reviewCadenceDays ? (
+                        <span className="text-muted-foreground">
+                          review every {r.reviewCadenceDays}d
+                        </span>
                       ) : null}
                     </div>
                     <PricingTable

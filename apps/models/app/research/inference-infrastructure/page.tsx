@@ -219,18 +219,34 @@ export default function Page() {
           </li>
         </ul>
         <p>
-          Sprint 19 (2026-05-23) seeded the first hosted rows: Groq
-          → Llama 4 Scout (Meta creator) and Together AI → DeepSeek V4
-          Pro (DeepSeek creator). Pricing decisions on those rows are
-          made by the hosting platform — not by the model creator. We
-          do NOT publish vendor latency / throughput / uptime claims
-          from hosted platforms; the catalogue records only documented
-          per-token rates, the hosted model ID, and the citation. See{" "}
+          Sprint 19 seeded the first hosted rows: Groq → Llama 4 Scout
+          (Meta creator) and Together AI → DeepSeek V4 Pro (DeepSeek
+          creator). Pricing decisions on those rows are made by the
+          hosting platform — not by the model creator. We do NOT
+          publish vendor latency / throughput / uptime claims from
+          hosted platforms; the catalogue records only documented
+          per-token rates, the hosted model ID, and the citation.
+        </p>
+        <p>
+          Sprint 20 added two further safeguards: a freshness state
+          (Fresh / Review due / Stale / Unknown) and a volatility tag
+          (high / medium / low / unknown) on every pricing record, and
+          a separate <em>hosted availability catalogue</em> that records
+          the stable identity claim (host × model × hosted model ID)
+          independently from the volatile rate. WebmasterID Models does
+          not rank hosting platforms by price. See{" "}
           <Link
             href="/research/api-pricing-methodology#creator-vs-host"
             className="text-primary hover:underline"
           >
             /research/api-pricing-methodology
+          </Link>{" "}
+          and{" "}
+          <Link
+            href="/research/api-pricing-methodology#no-price-ranking"
+            className="text-primary hover:underline"
+          >
+            no-price-ranking
           </Link>
           .
         </p>

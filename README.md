@@ -413,6 +413,28 @@ These rules are non-negotiable. The full workflow lives in
    own pricing page; integrity guards refuse a Groq row that cites
    anything other than Groq&apos;s pricing page (and likewise for
    Together).
+9. **Pricing is a reference, not a live quote (Sprint 20).** Every
+   pricing record carries a `volatility` tag (high / medium / low /
+   unknown) and a `lastCheckedAt` timestamp; the renderer pairs each
+   row with a freshness chip (`fresh` ≤14d, `review_due` 15–30d,
+   `stale` 31+d) computed deterministically against
+   `siteConfig.buildDate`. Helpers live in
+   [`lib/pricing-freshness.ts`](apps/models/lib/pricing-freshness.ts).
+   Hosted-platform rates default to high volatility, first-party
+   rates to medium — **no row ever defaults to low**. Surfaces never
+   imply pricing is stable, and the canonical volatility note
+   appears on every pricing surface.
+10. **No price-ranking policy (Sprint 20).** Pricing surfaces render
+    rows side-by-side as source-backed references, never as a
+    comparison or ranking engine. The phrases "cheapest", "lower
+    cost", "lowest price", "best value", "price winner", "save
+    money", and "cheaper than" are banned in data + content sources
+    (allowed only inside the doc section that explains the ban).
+    Comparison pages do not declare a price winner and do not
+    compute deltas. Hosted-availability information lives in
+    [`lib/hosted-availability.ts`](apps/models/lib/hosted-availability.ts)
+    as a *separate* surface from pricing — availability is stable;
+    pricing is volatile.
 
 Entity model: [`apps/models/lib/types.ts`](apps/models/lib/types.ts).
 Citation registry: [`apps/models/data/citations.ts`](apps/models/data/citations.ts).

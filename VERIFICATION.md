@@ -307,6 +307,35 @@ runs no paid first-party Llama API, and the Sprint 18 integrity guard
 that requires a `metaLlama*Pricing` citation before any verified
 Llama pricing row is allowed has been re-checked under Sprint 19.
 
+**Sprint 20 — pricing safety refactor.** Pricing was reframed as a
+source-backed *reference* surface rather than a comparison engine. No
+new hosted rows were added; the existing rows now carry an explicit
+`volatility` tag (high for hosted, medium for first-party) and an
+optional `reviewCadenceDays`. A new
+[`lib/pricing-freshness.ts`](apps/models/lib/pricing-freshness.ts)
+computes a freshness state (`fresh` ≤14d, `review_due` 15–30d,
+`stale` 31+d, `unknown`) deterministically against
+`siteConfig.buildDate`, and every pricing-rendering surface now pairs
+the rate with a freshness chip and a volatility tag.
+
+A separate [hosted availability
+catalogue](apps/models/lib/hosted-availability.ts) was introduced so
+the *stable* identity claim (host × model × hosted model ID) can be
+recorded and rendered independently from the *volatile* rate. Provider
+pages render availability above the pricing table; the Meta provider
+page now explicitly surfaces a "Creator pricing unavailable" banner
+when no first-party pricing exists, rather than letting absence read
+as silence.
+
+Sprint 20 also banned price-ranking language across data + content
+sources ("cheapest", "lower cost", "lowest price", "best value",
+"price winner", "save money", "cheaper than"), allowed only in the
+dedicated `/research/api-pricing-methodology#no-price-ranking`
+section that explains the ban. Comparison pages render hosted
+pricing as references, never as a ranking. No new indexable route
+was added — the spec's optional `/hosted-models` route was rejected
+as thin with only two availability records.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,

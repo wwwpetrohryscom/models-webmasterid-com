@@ -13,6 +13,13 @@ import { providers, getProviderBySlug } from "@/data/providers";
 import { hostedPricing } from "@/data/hosted-pricing";
 import { formatDateISO, formatUsd, unknownLabel } from "@/lib/utils";
 import { isVerified } from "@/lib/verified";
+import {
+  getPricingFreshness,
+  pricingFreshnessClasses,
+  pricingFreshnessLabel,
+  PRICING_VOLATILITY_NOTE,
+  PRICING_NO_RANKING_NOTE,
+} from "@/lib/pricing-freshness";
 import type { ModelEntity, PricingUnit } from "@/lib/types";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -173,14 +180,21 @@ export default async function PricingPage({ searchParams }: PageProps) {
 
       <aside
         role="note"
-        aria-label="Pricing caveat"
-        className="card-surface p-4 text-sm text-muted-foreground"
+        aria-label="Pricing volatility policy"
+        className="card-surface space-y-2 p-4 text-sm text-muted-foreground"
       >
+        <p className="text-foreground font-medium">
+          Reference, not live quotes.
+        </p>
+        <p>{PRICING_VOLATILITY_NOTE}</p>
+        <p>{PRICING_NO_RANKING_NOTE}</p>
         <p>
-          Pricing changes frequently. Each verified row links back to the
-          vendor&apos;s official pricing page and records when the value was
-          last retrieved. Always confirm against the live source before
-          making cost projections.
+          Every row carries a <em>freshness</em> chip (Fresh, Review due,
+          Stale) computed from the row&apos;s{" "}
+          <code className="rounded bg-muted px-1">lastCheckedAt</code>{" "}
+          and a <em>volatility</em> tag (High / Medium / Low) set by the
+          row&apos;s pricing context. Both are decision aids, not
+          guarantees.
         </p>
       </aside>
 
@@ -214,11 +228,13 @@ export default async function PricingPage({ searchParams }: PageProps) {
           A hosted platform (Groq, Together AI, Bedrock, Vertex, …) may
           expose a model created by another organisation under a
           platform-specific model ID, and bill for it at a rate set by
-          the platform — not by the model&apos;s creator. Sprint 19
-          splits these into two sections: <em>first-party model API
-          pricing</em> (where the billing provider IS the model creator)
-          and <em>hosted provider API pricing</em> (where they differ).
-          See{" "}
+          the platform — not by the model&apos;s creator. /pricing
+          surfaces these as two reference sections: <em>first-party API
+          pricing references</em> (where the billing provider IS the
+          model creator) and <em>hosted provider pricing references</em>{" "}
+          (where they differ). Hosted rows are reference values, not a
+          comparison engine — there is no &quot;cheaper&quot; column and
+          no winner. See{" "}
           <Link
             href="/research/api-pricing-methodology"
             className="text-primary hover:underline"
@@ -327,14 +343,21 @@ export default async function PricingPage({ searchParams }: PageProps) {
       </form>
 
       {showVerified ? (
-        <section aria-label="First-party model API pricing" className="space-y-3">
+        <section
+          aria-label="First-party API pricing references"
+          className="space-y-3"
+        >
           <h2 className="text-lg font-semibold text-foreground">
-            First-party model API pricing ({verifiedRows.length})
+            First-party API pricing references ({verifiedRows.length})
           </h2>
           <p className="text-sm text-muted-foreground">
             Rows where the billing provider is the same organisation that
-            created the model. Pricing values come from each provider&apos;s
-            own official pricing documentation.
+            created the model. Volatility on these rows defaults to{" "}
+            <strong className="text-foreground">medium</strong> — first-party
+            rates move less than hosted-platform rates but still change
+            (promotional discount windows, regional adjustments, model
+            retirements). Treat each row as a source-backed reference and
+            re-verify against the linked source before projecting cost.
           </p>
           {verifiedRows.length ? (
             <div className="overflow-hidden rounded-2xl border border-border">
@@ -358,6 +381,15 @@ export default async function PricingPage({ searchParams }: PageProps) {
                     </th>
                     <th scope="col" className="px-4 py-2 text-right">
                       Batch in / 1M
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-left">
+                      Pricing context
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-left">
+                      Volatility
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-left">
+                      Freshness
                     </th>
                     <th scope="col" className="px-4 py-2 text-left">
                       Source
@@ -443,6 +475,28 @@ export default async function PricingPage({ searchParams }: PageProps) {
                             inlineCitation={false}
                           />
                         </td>
+                        <td className="px-4 py-2 text-left text-xs text-muted-foreground">
+                          First-party API
+                        </td>
+                        <td className="px-4 py-2 text-left text-xs">
+                          <span className="inline-flex items-center rounded-full border border-amber-600/30 bg-amber-600/10 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                            Medium
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-left text-xs">
+                          {(() => {
+                            const state = getPricingFreshness(
+                              m.lastCheckedAt
+                            );
+                            return (
+                              <span
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${pricingFreshnessClasses(state)}`}
+                              >
+                                {pricingFreshnessLabel(state)}
+                              </span>
+                            );
+                          })()}
+                        </td>
                         <td className="px-4 py-2 text-left">
                           {sourceCitation ? (
                             <Link
@@ -477,18 +531,22 @@ export default async function PricingPage({ searchParams }: PageProps) {
 
       {showHosted ? (
         <section
-          aria-label="Hosted provider API pricing"
+          aria-label="Hosted provider pricing references"
           className="space-y-3"
         >
           <h2 className="text-lg font-semibold text-foreground">
-            Hosted provider API pricing ({hostedRows.length})
+            Hosted provider pricing references ({hostedRows.length})
           </h2>
           <p className="text-sm text-muted-foreground">
             Rows where a third-party platform hosts a model created by
             another organisation. The <em>Model creator</em> column is the
             organisation that built the model; the <em>Billing provider</em>{" "}
             is the platform that invoices for inference. The two are
-            different — and the billing provider sets the rate.
+            different — and the billing provider sets the rate. Hosted
+            rates carry{" "}
+            <strong className="text-foreground">high</strong> volatility
+            by default; re-verify against the platform&apos;s own pricing
+            page before any cost projection.
           </p>
           {hostedRows.length ? (
             <div className="overflow-hidden rounded-2xl border border-border">
@@ -515,6 +573,15 @@ export default async function PricingPage({ searchParams }: PageProps) {
                     </th>
                     <th scope="col" className="px-4 py-2 text-right">
                       Cache hit / 1M
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-left">
+                      Pricing context
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-left">
+                      Volatility
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-left">
+                      Freshness
                     </th>
                     <th scope="col" className="px-4 py-2 text-left">
                       Source
@@ -613,6 +680,37 @@ export default async function PricingPage({ searchParams }: PageProps) {
                             label="hosted cache hit"
                             inlineCitation={false}
                           />
+                        </td>
+                        <td className="px-4 py-2 text-left text-xs text-muted-foreground">
+                          Hosted provider
+                        </td>
+                        <td className="px-4 py-2 text-left text-xs">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                              r.volatility === "high"
+                                ? "border border-red-600/30 bg-red-600/10 text-red-700"
+                                : r.volatility === "medium"
+                                  ? "border border-amber-600/30 bg-amber-600/10 text-amber-700"
+                                  : "border border-border bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            {r.volatility.charAt(0).toUpperCase() +
+                              r.volatility.slice(1)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-left text-xs">
+                          {(() => {
+                            const state = getPricingFreshness(
+                              r.lastCheckedAt
+                            );
+                            return (
+                              <span
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${pricingFreshnessClasses(state)}`}
+                              >
+                                {pricingFreshnessLabel(state)}
+                              </span>
+                            );
+                          })()}
                         </td>
                         <td className="px-4 py-2 text-left">
                           {r.citation ? (

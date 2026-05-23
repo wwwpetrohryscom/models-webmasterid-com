@@ -2237,29 +2237,319 @@ const checks: Check[] = [
     },
   },
   {
-    name: "no \"fastest model\" / \"best model\" / \"cheapest\" copy on data records (Sprint 18 / 19)",
+    name: "no price-ranking language on data records or content surfaces (Sprint 20)",
     run: () => {
-      const failures: string[] = [];
-      const dataFiles = [
+      // The full ban: cheapest, lower cost, lowest price, best value,
+      // price winner, save money, cheaper than. Applies to both data
+      // files and rendered page sources. Allowed locations: inside
+      // comments, and inside the dedicated "no-price-ranking" doc
+      // section that EXPLAINS the ban.
+      const targets = [
         "apps/models/data/models.ts",
         "apps/models/data/providers.ts",
         "apps/models/data/comparisons.ts",
         "apps/models/data/citations.ts",
         "apps/models/data/hosted-pricing.ts",
+        "apps/models/app/pricing/page.tsx",
+        "apps/models/app/models/[slug]/page.tsx",
+        "apps/models/app/providers/[slug]/page.tsx",
+        "apps/models/app/compare/[slug]/page.tsx",
       ];
-      const banned =
-        /\bbest\s+(?:ai\s+)?model\b|\bfastest\s+(?:ai\s+)?model\b|\bfastest\s+inference\b|\bcheapest\s+(?:ai\s+)?(?:model|provider|platform|inference)\b/i;
-      for (const rel of dataFiles) {
+      const banned: { pattern: RegExp; label: string }[] = [
+        { pattern: /\bcheapest\b/i, label: "cheapest" },
+        { pattern: /\blower cost\b/i, label: "lower cost" },
+        { pattern: /\blowest price\b/i, label: "lowest price" },
+        { pattern: /\bbest value\b/i, label: "best value" },
+        { pattern: /\bprice winner\b/i, label: "price winner" },
+        { pattern: /\bsave money\b/i, label: "save money" },
+        { pattern: /\bcheaper than\b/i, label: "cheaper than" },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
         if (!fileExists(rel)) continue;
         const src = readRel(rel);
-        // Strip comments first; cautionary mentions are OK.
+        // Strip comments so cautionary mentions in maintainer notes
+        // do not trip the guard.
         const stripped = src
           .replace(/\/\*[\s\S]*?\*\//g, "")
           .replace(/(^|[^:])\/\/.*$/gm, "$1");
-        if (banned.test(stripped)) {
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned price-ranking phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no price-ranking language in research/docs (Sprint 20)",
+    run: () => {
+      // Same ban applied to research / docs pages — EXCEPT the
+      // explicit "no-price-ranking" section in
+      // research/api-pricing-methodology, which EXPLAINS the ban.
+      const targets = [
+        "apps/models/app/research/api-pricing-methodology/page.tsx",
+        "apps/models/app/research/inference-infrastructure/page.tsx",
+        "apps/models/app/docs/pricing-fields/page.tsx",
+        "apps/models/app/docs/provider-coverage/page.tsx",
+      ];
+      const banned: { pattern: RegExp; label: string }[] = [
+        { pattern: /\bbest value\b/i, label: "best value" },
+        { pattern: /\bprice winner\b/i, label: "price winner" },
+        { pattern: /\bsave money\b/i, label: "save money" },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        // Strip the explicit no-price-ranking section in
+        // api-pricing-methodology where the banned words are listed
+        // as examples of what we DON'T do.
+        const cleaned = stripped.replace(
+          /<section id="no-price-ranking"[\s\S]*?<\/section>/g,
+          ""
+        );
+        for (const b of banned) {
+          if (b.pattern.test(cleaned)) {
+            failures.push(
+              `${rel} contains banned price-ranking phrase "${b.label}" outside the no-price-ranking explainer.`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/pricing renders the volatility + reference policy (Sprint 20)",
+    run: () => {
+      const src = readRel("apps/models/app/pricing/page.tsx");
+      const failures: string[] = [];
+      if (!/PRICING_VOLATILITY_NOTE/.test(src)) {
+        failures.push(
+          "/pricing must render the canonical PRICING_VOLATILITY_NOTE so the volatility policy is unmissable."
+        );
+      }
+      if (!/PRICING_NO_RANKING_NOTE/.test(src)) {
+        failures.push(
+          "/pricing must render the canonical PRICING_NO_RANKING_NOTE so readers see the no-ranking policy."
+        );
+      }
+      if (!/pricing references/i.test(src)) {
+        failures.push(
+          "/pricing must use 'pricing references' framing in the section headings (Sprint 20)."
+        );
+      }
+      if (!/Reference, not live quotes/i.test(src)) {
+        failures.push(
+          "/pricing must show the 'Reference, not live quotes' framing in its top callout."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "comparison page renders hosted pricing as references (Sprint 20)",
+    run: () => {
+      const src = readRel("apps/models/app/compare/[slug]/page.tsx");
+      const failures: string[] = [];
+      if (!/Hosted pricing references/i.test(src)) {
+        failures.push(
+          "compare/[slug]/page.tsx must render hosted pricing under a 'Hosted pricing references' header (not '... pricing' comparison language)."
+        );
+      }
+      if (!/PRICING_NO_RANKING_NOTE/.test(src)) {
+        failures.push(
+          "compare/[slug]/page.tsx must reference PRICING_NO_RANKING_NOTE so the no-ranking policy renders on every comparison."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "every hosted-pricing record has lastCheckedAt + volatility (Sprint 20)",
+    run: () => {
+      const src = readRel("apps/models/data/hosted-pricing.ts");
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      const recordRe =
+        /id:\s*"hosted-pricing-[^"]+"[\s\S]*?(?=id:\s*"hosted-pricing-|\];|\n\];)/g;
+      const blocks = Array.from(stripped.matchAll(recordRe)).map((m) => m[0]);
+      const failures: string[] = [];
+      for (const block of blocks) {
+        const id =
+          block.match(/id:\s*"([^"]+)"/)?.[1] ?? "<unknown row>";
+        if (!/lastCheckedAt:\s*"[^"]+"/.test(block)) {
+          failures.push(`${id}: missing or empty lastCheckedAt.`);
+        }
+        const volMatch = block.match(/volatility:\s*"([^"]+)"/);
+        if (!volMatch) {
+          failures.push(`${id}: missing volatility field.`);
+        } else if (!["high", "medium", "low", "unknown"].includes(volMatch[1])) {
           failures.push(
-            `${rel} contains "best model" / "fastest model" / "fastest inference" / "cheapest …" copy outside comments.`
+            `${id}: invalid volatility value "${volMatch[1]}".`
           );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "pricing-freshness helper exists and exposes documented thresholds (Sprint 20)",
+    run: () => {
+      const rel = "apps/models/lib/pricing-freshness.ts";
+      if (!fileExists(rel)) {
+        return "Missing lib/pricing-freshness.ts — Sprint 20 introduced this helper.";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const token of [
+        "PricingFreshnessState",
+        "PRICING_FRESHNESS_DAYS",
+        "getPricingFreshness",
+        "PRICING_VOLATILITY_NOTE",
+        "PRICING_NO_RANKING_NOTE",
+      ]) {
+        if (!new RegExp(`\\b${token}\\b`).test(src)) {
+          failures.push(
+            `lib/pricing-freshness.ts must export \`${token}\`.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "hosted-availability helper exists and exposes documented record shape (Sprint 20)",
+    run: () => {
+      const rel = "apps/models/lib/hosted-availability.ts";
+      if (!fileExists(rel)) {
+        return "Missing lib/hosted-availability.ts — Sprint 20 introduced the availability catalogue layer.";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const token of [
+        "HostedAvailabilityRecord",
+        "getHostedAvailability",
+        "getHostedAvailabilityForBillingProvider",
+        "getHostedAvailabilityForCreator",
+        "isHostedPlatformProvider",
+      ]) {
+        if (!new RegExp(`\\b${token}\\b`).test(src)) {
+          failures.push(
+            `lib/hosted-availability.ts must export \`${token}\`.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "docs/pricing-fields documents pricing freshness + volatility (Sprint 20)",
+    run: () => {
+      const src = readRel("apps/models/app/docs/pricing-fields/page.tsx");
+      if (!/Pricing freshness \+ volatility/i.test(src)) {
+        return "docs/pricing-fields must document the Sprint 20 'Pricing freshness + volatility' section.";
+      }
+      if (!/PricingFreshnessState/.test(src)) {
+        return "docs/pricing-fields must mention the PricingFreshnessState union literal.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "research/api-pricing-methodology documents no-price-ranking policy (Sprint 20)",
+    run: () => {
+      const src = readRel(
+        "apps/models/app/research/api-pricing-methodology/page.tsx"
+      );
+      const failures: string[] = [];
+      if (!/No price-ranking policy/i.test(src)) {
+        failures.push(
+          "research/api-pricing-methodology must include a 'No price-ranking policy' section."
+        );
+      }
+      if (!/References, not live quotes/i.test(src)) {
+        failures.push(
+          "research/api-pricing-methodology must include a 'References, not live quotes' section."
+        );
+      }
+      if (!/Hosted availability vs hosted pricing/i.test(src)) {
+        failures.push(
+          "research/api-pricing-methodology must include a 'Hosted availability vs hosted pricing' section."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "model + provider pages reference Sprint 20 freshness helpers",
+    run: () => {
+      const failures: string[] = [];
+      const modelSrc = readRel("apps/models/app/models/[slug]/page.tsx");
+      const providerSrc = readRel(
+        "apps/models/app/providers/[slug]/page.tsx"
+      );
+      if (!/getPricingFreshness/.test(modelSrc)) {
+        failures.push(
+          "models/[slug]/page.tsx must call getPricingFreshness on hosted-pricing rows so each row carries a freshness chip."
+        );
+      }
+      if (!/getPricingFreshness/.test(providerSrc)) {
+        failures.push(
+          "providers/[slug]/page.tsx must call getPricingFreshness on hosted-pricing rows so each row carries a freshness chip."
+        );
+      }
+      if (!/getHostedAvailabilityForBillingProvider/.test(providerSrc)) {
+        failures.push(
+          "providers/[slug]/page.tsx must render the hosted availability list (getHostedAvailabilityForBillingProvider)."
+        );
+      }
+      if (!/Creator pricing unavailable/i.test(providerSrc)) {
+        failures.push(
+          "providers/[slug]/page.tsx must include the 'Creator pricing unavailable' banner so Meta-style providers explicitly call out the gap rather than letting absence read as silence."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "old comparison-oriented pricing headings are gone (Sprint 20)",
+    run: () => {
+      const failures: string[] = [];
+      // Only target the explicit pre-Sprint-20 heading literals — the
+      // ones that ended in "API pricing" without a "references"
+      // qualifier. Prose phrases like "No hosted-provider pricing
+      // recorded" or "Hosted-provider pricing is not the same as
+      // model-creator pricing" are valid English and are not bans.
+      const banned = [
+        "First-party model API pricing",
+        "Hosted provider API pricing",
+      ];
+      const surfaces = [
+        "apps/models/app/pricing/page.tsx",
+        "apps/models/app/models/[slug]/page.tsx",
+        "apps/models/app/compare/[slug]/page.tsx",
+      ];
+      for (const rel of surfaces) {
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          const re = new RegExp(`${b}(?!\\s*references)`, "i");
+          if (re.test(stripped)) {
+            failures.push(
+              `${rel} still contains the pre-Sprint-20 heading "${b}". Use "... references" framing instead.`
+            );
+          }
         }
       }
       return failures.length ? failures.join("\n") : null;
@@ -2726,21 +3016,35 @@ const checks: Check[] = [
     },
   },
   {
-    name: "/pricing renders a hosted-provider section and explanatory note (Sprint 19)",
+    name: "/pricing renders a hosted-provider section and explanatory note (Sprint 19 / Sprint 20)",
     run: () => {
       const src = readRel("apps/models/app/pricing/page.tsx");
       const failures: string[] = [];
-      if (!/Hosted provider API pricing/.test(src)) {
+      // Sprint 20 renamed the section headings to "... pricing
+      // references". Accept either the Sprint-19 name or the Sprint-20
+      // rename — both express the same invariant (the section is
+      // rendered and is distinct from first-party).
+      if (
+        !/Hosted provider API pricing/.test(src) &&
+        !/Hosted provider pricing references/.test(src)
+      ) {
         failures.push(
-          "/pricing must render a 'Hosted provider API pricing' section header."
+          "/pricing must render a hosted-provider section (heading 'Hosted provider pricing references')."
         );
       }
-      if (!/First-party model API pricing/.test(src)) {
+      if (
+        !/First-party model API pricing/.test(src) &&
+        !/First-party API pricing references/.test(src)
+      ) {
         failures.push(
-          "/pricing must rename the verified section to 'First-party model API pricing' so the two contexts are explicit."
+          "/pricing must render a first-party section (heading 'First-party API pricing references')."
         );
       }
-      if (!/Hosted-provider pricing is not the same as model-creator pricing/i.test(src)) {
+      if (
+        !/Hosted-provider pricing is not the same as model-creator pricing/i.test(
+          src
+        )
+      ) {
         failures.push(
           "/pricing must include the explanatory note distinguishing hosted-provider pricing from model-creator pricing."
         );
@@ -2847,7 +3151,7 @@ const checks: Check[] = [
     },
   },
   {
-    name: "model page renders hosted-pricing block when rows exist (Sprint 19)",
+    name: "model page renders hosted-pricing block when rows exist (Sprint 19 / Sprint 20)",
     run: () => {
       const src = readRel("apps/models/app/models/[slug]/page.tsx");
       const failures: string[] = [];
@@ -2856,9 +3160,12 @@ const checks: Check[] = [
           "models/[slug]/page.tsx must call hostedPricingForModel(model.slug) so hosted rows render alongside first-party pricing."
         );
       }
-      if (!/Hosted-provider pricing/.test(src)) {
+      if (
+        !/Hosted-provider pricing/.test(src) &&
+        !/Hosted provider pricing references/.test(src)
+      ) {
         failures.push(
-          "models/[slug]/page.tsx must render a 'Hosted-provider pricing' subsection so hosted rates are visually separated from first-party rates."
+          "models/[slug]/page.tsx must render a hosted-pricing subsection ('Hosted provider pricing references') so hosted rates are visually separated from first-party rates."
         );
       }
       return failures.length ? failures.join("\n") : null;

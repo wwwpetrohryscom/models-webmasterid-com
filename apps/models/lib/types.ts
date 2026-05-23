@@ -159,6 +159,18 @@ export type PricingContext =
   | "unknown";
 
 /**
+ * Pricing volatility — how often the rate is expected to change.
+ *
+ * Hosted-platform rates on Groq, Together, Bedrock, Vertex can move
+ * weekly; first-party rates move less often but still move
+ * (promotional windows, regional adjustments, model retirements).
+ * Sprint 20 records the expected volatility on every pricing record
+ * so the UI can pair the rate with a freshness signal — never with
+ * "live quote" framing.
+ */
+export type PricingVolatility = "high" | "medium" | "low" | "unknown";
+
+/**
  * A single pricing record, ready for /pricing rendering. Always carries
  * an explicit pricing context; the billing provider is the entity that
  * actually invoices the developer, and the model-creator provider is
@@ -184,6 +196,19 @@ export interface PricingRecord {
   verified: boolean;
   verificationStatus: VerificationStatus;
   notes?: string | null;
+  /**
+   * Sprint 20: expected volatility of the rate. Required on every
+   * pricing record so the renderer can pair the value with a
+   * freshness signal. Default for hosted_provider_api rows is
+   * "high"; first-party rows default to "medium".
+   */
+  volatility: PricingVolatility;
+  /**
+   * Sprint 20: how often this row should be re-verified, in days.
+   * Optional; if absent the renderer falls back to the default
+   * freshness thresholds in `lib/pricing-freshness.ts`.
+   */
+  reviewCadenceDays?: number;
 }
 
 export type BenchmarkCategory =

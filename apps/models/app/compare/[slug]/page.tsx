@@ -19,6 +19,10 @@ import { comparisons, getComparisonBySlug } from "@/data/comparisons";
 import { getModelBySlug } from "@/data/models";
 import { getProviderBySlug } from "@/data/providers";
 import { hostedPricingForModel } from "@/data/hosted-pricing";
+import {
+  PRICING_NO_RANKING_NOTE,
+  PRICING_VOLATILITY_NOTE,
+} from "@/lib/pricing-freshness";
 import { mergeCitations, isVerified } from "@/lib/verified";
 
 interface RouteParams {
@@ -164,13 +168,16 @@ export default async function ComparisonPage({
         />
       </section>
 
-      <section aria-label="Pricing" className="space-y-3">
+      <section aria-label="Pricing references" className="space-y-3">
         <SectionHeader
-          eyebrow="Cost"
-          title="First-party pricing"
-          description="Per-unit rates published by each model's creator on their own first-party API. Hosted-provider pricing (Groq, Together) is rendered separately below where available."
+          eyebrow="Reference"
+          title="First-party pricing references"
+          description="Per-unit rates published by each model's creator on their own first-party API. Rows are source-backed references, not live quotes. Hosted-provider references (Groq, Together) render separately below where available."
           as="h2"
         />
+        <p className="text-xs text-muted-foreground">
+          {PRICING_VOLATILITY_NOTE} {PRICING_NO_RANKING_NOTE}
+        </p>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <p className="mb-2 text-sm font-medium text-foreground">
@@ -193,15 +200,18 @@ export default async function ComparisonPage({
         if (!hostedA.length && !hostedB.length) return null;
         return (
           <section
-            aria-label="Hosted-provider pricing"
+            aria-label="Hosted pricing references"
             className="space-y-3"
           >
             <SectionHeader
               eyebrow="Hosted pricing context"
-              title="Hosted-provider pricing"
-              description="Where a third-party platform hosts the model and bills at its own rate. These rows do NOT reflect the model creator's pricing. Hosted pricing is informational only — it is not used to declare a winner."
+              title="Hosted pricing references"
+              description="Where a third-party platform hosts the model and bills at its own rate. These rows do NOT reflect the model creator's pricing. Reference values only — not a comparison or ranking engine."
               as="h2"
             />
+            <p className="text-xs text-muted-foreground">
+              {PRICING_NO_RANKING_NOTE}
+            </p>
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <p className="mb-2 text-sm font-medium text-foreground">

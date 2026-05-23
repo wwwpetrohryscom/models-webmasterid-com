@@ -25,6 +25,16 @@ import {
   hostedPricingForBillingProvider,
   hostedPricingForModel,
 } from "@/data/hosted-pricing";
+import {
+  getHostedAvailabilityForBillingProvider,
+  getHostedAvailabilityForCreator,
+} from "@/lib/hosted-availability";
+import {
+  getPricingFreshness,
+  pricingFreshnessClasses,
+  pricingFreshnessLabel,
+  PRICING_VOLATILITY_NOTE,
+} from "@/lib/pricing-freshness";
 import { isVerified } from "@/lib/verified";
 import { formatUsd } from "@/lib/utils";
 import { formatDateISO } from "@/lib/utils";
@@ -152,6 +162,18 @@ export default async function ProviderPage({
     hostedPricingForModel(m.slug)
   );
   const isHostedPlatform = billedHostedRows.length > 0;
+  // Creator pricing is "unavailable" when this provider creates models
+  // but has zero verified first-party pricing rows on any of them. Meta
+  // (Llama 4) is the canonical example today.
+  const creatorPricingUnavailable =
+    trackedModels.length > 0 &&
+    trackedModels.every(
+      (m) => !m.pricing.some((t) => isVerified(t.amount))
+    );
+  const billedAvailability = getHostedAvailabilityForBillingProvider(
+    provider.slug
+  );
+  const creatorAvailability = getHostedAvailabilityForCreator(provider.slug);
 
   const relatedComparisons = getComparisonsForProvider(provider.slug);
   const relatedProviders = getRelatedProviders(provider.slug);
@@ -319,17 +341,61 @@ export default async function ProviderPage({
         )}
       </section>
 
+      {creatorPricingUnavailable && !isHostedPlatform ? (
+        <aside
+          role="note"
+          aria-label="Creator pricing unavailable"
+          className="card-surface p-4 text-sm text-muted-foreground"
+        >
+          <p className="font-medium text-foreground">
+            Creator pricing unavailable
+          </p>
+          <p className="mt-1">
+            {provider.name} does not publish a verified first-party
+            API pricing surface for any of its tracked models. Where
+            third-party platforms host {provider.name}-created models
+            (see &quot;Third-party hosting&quot; below), those rates are
+            set by the hosting platform — not by {provider.name}.
+          </p>
+        </aside>
+      ) : null}
+
       {isHostedPlatform ? (
         <section
-          aria-label="Hosted models pricing"
+          aria-label="Hosted models pricing references"
           className="space-y-3"
         >
           <SectionHeader
             eyebrow="Hosted platform"
             title={`${provider.name} hosts third-party models`}
-            description={`${provider.name} is a hosting/inference platform — it bills for models created by other organisations. The rows below are pricing decisions made by ${provider.name}, not by the model creators.`}
+            description={`${provider.name} is a hosting/inference platform — it bills for models created by other organisations. The rows below are pricing references sourced from ${provider.name}'s own pricing page, not live quotes. ${PRICING_VOLATILITY_NOTE}`}
             as="h2"
           />
+          {billedAvailability.length ? (
+            <aside className="card-surface p-3 text-xs text-muted-foreground">
+              <p className="font-medium text-foreground">
+                Hosted model availability ({billedAvailability.length})
+              </p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                {billedAvailability.map((a) => (
+                  <li key={a.id}>
+                    {a.modelName ?? a.modelSlug}
+                    {a.hostedModelId ? (
+                      <>
+                        {" — "}
+                        <code className="rounded bg-muted px-1 text-[10px]">
+                          {a.hostedModelId}
+                        </code>
+                      </>
+                    ) : null}{" "}
+                    · pricing reference{" "}
+                    {a.pricingAvailable ? "available" : "not verified"}{" "}
+                    · {pricingFreshnessLabel(a.pricingFreshness).toLowerCase()}
+                  </li>
+                ))}
+              </ul>
+            </aside>
+          ) : null}
           <div className="overflow-hidden rounded-2xl border border-border">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-xs uppercase tracking-wider text-muted-foreground">
@@ -348,6 +414,9 @@ export default async function ProviderPage({
                   </th>
                   <th scope="col" className="px-4 py-2 text-right">
                     Output / 1M
+                  </th>
+                  <th scope="col" className="px-4 py-2 text-left">
+                    Freshness
                   </th>
                   <th scope="col" className="px-4 py-2 text-left">
                     Source
@@ -414,6 +483,18 @@ export default async function ProviderPage({
                           ? formatUsd(output.amount.value)
                           : "—"}
                       </td>
+                      <td className="px-4 py-2 text-left text-xs">
+                        {(() => {
+                          const state = getPricingFreshness(r.lastCheckedAt);
+                          return (
+                            <span
+                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${pricingFreshnessClasses(state)}`}
+                            >
+                              {pricingFreshnessLabel(state)}
+                            </span>
+                          );
+                        })()}
+                      </td>
                       <td className="px-4 py-2 text-left">
                         {r.citation ? (
                           <Link
@@ -436,7 +517,9 @@ export default async function ProviderPage({
           </div>
           <p className="text-xs text-muted-foreground">
             Hosted pricing is set by {provider.name} — not by the
-            model&apos;s creator. See{" "}
+            model&apos;s creator. Rows are source-backed references,
+            not live quotes; WebmasterID Models does not rank hosting
+            platforms by price. See{" "}
             <Link
               href="/research/api-pricing-methodology#creator-vs-host"
               className="text-primary hover:underline"
@@ -456,9 +539,34 @@ export default async function ProviderPage({
           <SectionHeader
             eyebrow="Hosted elsewhere"
             title={`Third-party hosting of ${provider.name} models`}
-            description={`Pricing offered by other platforms that host ${provider.name}-created models. ${provider.name} does not set these rates; the hosting platform does.`}
+            description={`Pricing references offered by other platforms that host ${provider.name}-created models. ${provider.name} does not set these rates; the hosting platform does. Rows are source-backed references, not live quotes.`}
             as="h2"
           />
+          {creatorAvailability.length ? (
+            <aside className="card-surface p-3 text-xs text-muted-foreground">
+              <p className="font-medium text-foreground">
+                Availability across hosting platforms (
+                {creatorAvailability.length})
+              </p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                {creatorAvailability.map((a) => (
+                  <li key={a.id}>
+                    {a.modelName ?? a.modelSlug} on {a.billingProviderSlug}
+                    {a.hostedModelId ? (
+                      <>
+                        {" — "}
+                        <code className="rounded bg-muted px-1 text-[10px]">
+                          {a.hostedModelId}
+                        </code>
+                      </>
+                    ) : null}{" "}
+                    ·{" "}
+                    {pricingFreshnessLabel(a.pricingFreshness).toLowerCase()}
+                  </li>
+                ))}
+              </ul>
+            </aside>
+          ) : null}
           <ul className="space-y-2">
             {creatorHostedRows.map((r) => {
               const m = getModelBySlug(r.modelSlug);

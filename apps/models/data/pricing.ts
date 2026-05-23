@@ -41,6 +41,14 @@ export const firstPartyPricing: PricingRecord[] = models
     verified: m.verified,
     verificationStatus: m.verificationStatus,
     notes: null,
+    // First-party rates move less than hosted-platform rates but
+    // still move — promotional discount windows (DeepSeek V4 Pro's
+    // 75% window), model retirements, and regional adjustments all
+    // happen on first-party APIs. Sprint 20 defaults first-party
+    // volatility to "medium"; consumers must never read this as
+    // "stable".
+    volatility: "medium" as const,
+    reviewCadenceDays: 30,
   }));
 
 /**

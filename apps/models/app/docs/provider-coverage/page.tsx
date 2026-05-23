@@ -27,6 +27,7 @@ export default function Page() {
         { id: "shape", label: "ProviderEntity shape" },
         { id: "dimensions", label: "Coverage dimensions" },
         { id: "roles", label: "Model creator vs hosted platform" },
+        { id: "availability-vs-pricing", label: "Hosted availability vs hosted pricing" },
         { id: "live-matrix", label: "Current provider coverage matrix" },
         { id: "status-meaning", label: "What 'verified' means at the provider level" },
         { id: "partial", label: "Partial verification" },
@@ -165,6 +166,36 @@ export default function Page() {
           documentation is reachable and has been used to populate the
           records that depend on it, not about whether the platform
           creates models.
+        </p>
+      </section>
+
+      <section id="availability-vs-pricing">
+        <h2>Hosted availability vs hosted pricing</h2>
+        <p>
+          For hosted-platform providers, the catalogue separates two
+          claims: (1) <em>availability</em> — the platform exposes the
+          model under a specific hosted model ID, and (2){" "}
+          <em>pricing</em> — the per-token rate the platform charges.
+          Availability is stable; pricing is volatile and reference-
+          only. The provider page renders both, but they are not
+          coupled: an availability row can render even if its
+          associated pricing row goes stale.
+        </p>
+        <p>
+          The reverse also holds — a model creator&apos;s provider page
+          surfaces &quot;third-party hosting of our models&quot; from
+          the availability catalogue, distinct from any first-party
+          pricing the creator may publish. Meta&apos;s provider page is
+          the worked example: Llama 4 Scout has no Meta first-party
+          API pricing, but availability on Groq is recorded and
+          rendered. See{" "}
+          <Link
+            href="/research/api-pricing-methodology#availability-vs-pricing"
+            className="text-primary hover:underline"
+          >
+            /research/api-pricing-methodology
+          </Link>
+          .
         </p>
       </section>
 

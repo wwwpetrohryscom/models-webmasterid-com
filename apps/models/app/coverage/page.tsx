@@ -91,13 +91,28 @@ export default function CoveragePage() {
       href: "/status",
     },
     {
-      label: "First-party pricing rows",
+      label: "First-party pricing references",
       value: summary.firstPartyPricingRows,
       href: "/pricing?status=verified",
     },
     {
-      label: "Hosted-provider pricing rows",
+      label: "Hosted provider pricing references",
       value: summary.hostedPricingRows,
+      href: "/pricing?status=verified",
+    },
+    {
+      label: "Hosted availability records",
+      value: summary.hostedAvailabilityRecords,
+      href: "/pricing?status=verified",
+    },
+    {
+      label: "Pricing review due",
+      value: summary.pricingReviewDueRecords,
+      href: "/pricing?status=verified",
+    },
+    {
+      label: "Pricing stale",
+      value: summary.pricingStaleRecords,
       href: "/pricing?status=verified",
     },
     {
@@ -132,6 +147,24 @@ export default function CoveragePage() {
           { name: "Coverage", href: "/coverage" },
         ])}
       />
+
+      <aside
+        role="note"
+        aria-label="Pricing freshness policy"
+        className="card-surface p-4 text-sm text-muted-foreground"
+      >
+        <p className="font-medium text-foreground">
+          Pricing freshness policy
+        </p>
+        <p className="mt-1">
+          Pricing records carry a freshness state computed against the
+          build date: <strong>Fresh</strong> (checked within 14 days),
+          <strong> Review due</strong> (15–30 days), <strong>Stale</strong>{" "}
+          (31+ days), <strong>Unknown</strong> (no timestamp). Pricing
+          values are source-backed references, not live quotes; WebmasterID
+          Models does not rank models or billing providers by price.
+        </p>
+      </aside>
 
       <section
         aria-label="Entity graph summary"

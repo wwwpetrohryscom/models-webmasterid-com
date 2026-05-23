@@ -210,8 +210,12 @@ export default async function SourcesPage({ searchParams }: PageProps) {
           This page is the audit trail. If a metric appears on a model or
           provider page, the source it came from is listed here — and
           conversely, if a metric is rendered as <DataNotVerified />, no
-          citation exists for it yet. For per-attempt outcomes (including
-          blocked retrievals), see{" "}
+          citation exists for it yet. Pricing sources are classified as{" "}
+          <em>first-party pricing reference</em> (the model creator&apos;s
+          own pricing page) or{" "}
+          <em>hosted pricing reference</em> (a hosting platform&apos;s
+          page). Both are reference values, not live quotes. For
+          per-attempt outcomes (including blocked retrievals), see{" "}
           <Link href="/coverage" className="text-primary hover:underline">
             /coverage
           </Link>

@@ -31,6 +31,8 @@ import { providers, getProviderBySlug } from "@/data/providers";
 import { comparisons } from "@/data/comparisons";
 import { verificationAttempts } from "@/data/verification-attempts";
 import { hostedPricing } from "@/data/hosted-pricing";
+import { getHostedAvailability } from "./hosted-availability";
+import { getPricingFreshness } from "./pricing-freshness";
 import { findObserver } from "@/lib/observers";
 import type { StatusObserver } from "./status-observations";
 
@@ -237,6 +239,12 @@ export interface EntityCoverageSummary {
   hostedPricingRows: number;
   /** Distinct hosting platforms with at least one verified row. */
   hostingPlatformsWithPricing: number;
+  /** Sprint 20: hosted availability records (one per host × model). */
+  hostedAvailabilityRecords: number;
+  /** Sprint 20: pricing records due for review (15–30 days since check). */
+  pricingReviewDueRecords: number;
+  /** Sprint 20: pricing records past the stale threshold. */
+  pricingStaleRecords: number;
   totalComparisons: number;
   twoSidedVerifiedComparisons: number;
   oneSidedVerifiedComparisons: number;
@@ -282,6 +290,24 @@ export function getEntityCoverageSummary(): EntityCoverageSummary {
   const hostingPlatforms = new Set(
     hostedPricing.map((r) => r.billingProviderSlug)
   );
+  // Sprint 20 freshness: compute states across BOTH first-party and
+  // hosted records. First-party records use the underlying model's
+  // lastCheckedAt; hosted records use the hosted-pricing row's own
+  // lastCheckedAt.
+  const allLastChecks: (string | null)[] = [
+    ...models
+      .filter((m) => m.pricing.some((t) => isVerified(t.amount)))
+      .map((m) => m.lastCheckedAt),
+    ...hostedPricing.map((r) => r.lastCheckedAt),
+  ];
+  let pricingReviewDue = 0;
+  let pricingStale = 0;
+  for (const ts of allLastChecks) {
+    const state = getPricingFreshness(ts);
+    if (state === "review_due") pricingReviewDue += 1;
+    if (state === "stale") pricingStale += 1;
+  }
+  const availability = getHostedAvailability();
 
   const sideVerified = (slug: string) =>
     models.find((m) => m.slug === slug)?.verificationStatus === "verified";
@@ -313,6 +339,9 @@ export function getEntityCoverageSummary(): EntityCoverageSummary {
     firstPartyPricingRows: firstPartyPricingTiers.length,
     hostedPricingRows: hostedPricingTiers.length,
     hostingPlatformsWithPricing: hostingPlatforms.size,
+    hostedAvailabilityRecords: availability.length,
+    pricingReviewDueRecords: pricingReviewDue,
+    pricingStaleRecords: pricingStale,
     totalComparisons: comparisons.length,
     twoSidedVerifiedComparisons: twoSidedVerified.length,
     oneSidedVerifiedComparisons: oneSidedVerified.length,

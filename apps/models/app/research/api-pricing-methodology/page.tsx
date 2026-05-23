@@ -26,7 +26,10 @@ export default function Page() {
       breadcrumbParent={{ name: "Research", href: "/research" }}
       toc={[
         { id: "what-rows-mean", label: "What a row on /pricing means" },
+        { id: "reference-not-quote", label: "References, not live quotes" },
+        { id: "no-price-ranking", label: "No price-ranking policy" },
         { id: "creator-vs-host", label: "Model creator vs hosted provider" },
+        { id: "availability-vs-pricing", label: "Hosted availability vs hosted pricing" },
         { id: "base-tokens", label: "Input and output tokens" },
         { id: "pricing-unit-matrix", label: "Pricing unit matrix" },
         { id: "provider-cache-comparison", label: "Provider cache semantics side-by-side" },
@@ -116,6 +119,78 @@ export default function Page() {
         </p>
       </section>
 
+      <section id="reference-not-quote">
+        <h2>References, not live quotes</h2>
+        <p>
+          Pricing is volatile. Vendors run promotional discount windows
+          (DeepSeek&apos;s 75% v4-pro window), hosting platforms re-price
+          weekly, marketplace rates drift with capacity. Without a
+          freshness signal a price catalogue degrades silently as rows
+          age — readers see numbers and assume they are current. Sprint
+          20 reframes every pricing surface as a <em>source-backed
+          reference</em>: a value confirmed against a vendor page on a
+          specific date, with an explicit volatility tag and an
+          explicit freshness state.
+        </p>
+        <p>
+          A row that shows $0.11/$0.34 today is not a guarantee the same
+          rate is in effect tomorrow. Every row links back to the
+          vendor&apos;s own page; cost projections should re-verify
+          against the source before commitment. The schema definition
+          lives at{" "}
+          <Link
+            href="/docs/pricing-fields"
+            className="text-primary hover:underline"
+          >
+            /docs/pricing-fields
+          </Link>
+          ; the rendering layer pairs every row with{" "}
+          <em>Freshness</em> and <em>Volatility</em> chips so the
+          warning is unavoidable.
+        </p>
+      </section>
+
+      <section id="no-price-ranking">
+        <h2>No price-ranking policy</h2>
+        <p>
+          WebmasterID Models does not rank models or billing providers
+          by price. Pricing is rendered side-by-side where the
+          underlying data is verified, but the surfaces deliberately
+          omit:
+        </p>
+        <ul>
+          <li>&quot;Cheapest provider&quot; rankings.</li>
+          <li>
+            &quot;Lower / lowest&quot; comparators or
+            &quot;savings&quot; calculations.
+          </li>
+          <li>&quot;Better value&quot; or &quot;best price&quot; copy.</li>
+          <li>Price-derived winner declarations on comparison pages.</li>
+          <li>Delta columns that compute one row minus another.</li>
+        </ul>
+        <p>
+          The reasons are practical. (1) Tokenizers differ between
+          providers; the same string costs different numbers of tokens
+          on each vendor — a $/1M comparison is meaningful only at the
+          level of a real workload distribution. (2) Cache pricing
+          semantics are not commensurable across vendors (see the cache
+          section below). (3) Promotional windows expire silently — a
+          &quot;cheapest&quot; ranking pinned today is wrong tomorrow.
+          (4) Hosted pricing depends on platform, region, tier, and
+          contract; a public-listing $/1M number is one slice of a
+          multi-variable surface. The data is honest about its
+          limitations rather than papering over them with a derived
+          number that invites bad decisions.
+        </p>
+        <p>
+          An integrity guard enforces this at build time — any new copy
+          containing &quot;cheapest&quot;, &quot;lower cost&quot;,
+          &quot;lowest price&quot;, &quot;best value&quot;, &quot;price
+          winner&quot;, &quot;save money&quot;, or &quot;cheaper
+          than&quot; fails CI on data + content surfaces.
+        </p>
+      </section>
+
       <section id="creator-vs-host">
         <h2>Model creator vs hosted provider</h2>
         <p>
@@ -195,6 +270,39 @@ export default function Page() {
             /docs/pricing-fields
           </Link>
           .
+        </p>
+      </section>
+
+      <section id="availability-vs-pricing">
+        <h2>Hosted availability vs hosted pricing</h2>
+        <p>
+          Sprint 20 separated <em>availability</em> from <em>pricing</em>.
+          Availability is a stable fact — the platform either exposes
+          the model or it does not. Pricing is the volatile reference
+          value — it may change after retrieval and is paired with a
+          freshness signal. The two surface independently in the
+          catalogue so the stable identity claim (&quot;Llama 4 Scout
+          is hosted on Groq under model ID{" "}
+          <code className="rounded bg-muted px-1">
+            meta-llama/llama-4-scout-17b-16e-instruct
+          </code>
+          &quot;) does not degrade in lockstep with the volatile rate.
+        </p>
+        <p>
+          The availability layer lives in{" "}
+          <code className="rounded bg-muted px-1">
+            lib/hosted-availability.ts
+          </code>
+          . It exposes one record per (host × model) carrying the
+          hosted model ID, model creator slug, billing provider slug,
+          the underlying citation, the last-checked timestamp, and a
+          computed pricing-freshness state. Provider pages render the
+          availability list above the pricing table; model pages render
+          it alongside hosted pricing references. The catalogue
+          intentionally does not promote availability into a dedicated
+          indexable route unless and until the data is wide enough to
+          warrant one — see the route-decision note in this
+          sprint&apos;s commit.
         </p>
       </section>
 
