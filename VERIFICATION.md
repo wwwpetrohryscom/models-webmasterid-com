@@ -273,14 +273,39 @@ Hosted-platform providers (Sprint 18):
   `docs.together.ai/docs/serverless-models`. Same hosted-vs-creator
   separation.
 
-Both platforms publish pricing for the hosted models, but the
-catalogue does not republish those rates as a property of the hosted
-*provider*. If a future sprint adds a hosted-pricing relationship
-type to the data model, the schema will distinguish "creator pricing"
-(which Anthropic / Google / DeepSeek / Mistral publish first-party)
-from "hosting-platform pricing" (which Groq / Together / Bedrock /
-Vertex publish). Until that schema exists, hosting pricing stays out
-of the verified pricing surface.
+Both platforms publish pricing for the hosted models. **Sprint 19
+landed the hosted-pricing schema this referred to.** A new typed
+`PricingRecord` shape in `lib/types.ts` carries a `pricingContext`
+discriminator (`model_creator_first_party_api` vs `hosted_provider_api`
+vs `cloud_marketplace` vs `unknown`) plus separate
+`modelCreatorProviderSlug` and `billingProviderSlug` fields. Hosted
+rows live in `data/hosted-pricing.ts` and never sit on the model
+record's own `pricing` array, so model-creator JSON-LD `Offer` blocks
+cannot leak hosted rates.
+
+Sprint 19 verified hosted rows from primary sources:
+
+- **Groq → Llama 4 Scout** — `groq.com/pricing` retrieved 2026-05-23.
+  Listed at $0.11 / 1M input and $0.34 / 1M output under "Llama 4
+  Scout (17Bx16E) 128k". `hostedModelId:
+  "meta-llama/llama-4-scout-17b-16e-instruct"`. Model creator is Meta;
+  billing provider is Groq. **Llama 4 Maverick is NOT on Groq's
+  pricing page** — no row added for it on Groq.
+- **Together AI → DeepSeek V4 Pro** —
+  `www.together.ai/pricing` retrieved 2026-05-23. Listed at $2.10 / 1M
+  input, $4.40 / 1M output, with a separately listed $0.20 / 1M
+  cache-hit input rate. Model creator is DeepSeek; billing provider
+  is Together AI. **Llama 4 Scout and Llama 4 Maverick appear ONLY in
+  Together's Fine-Tuning table (LoRA / Full Fine-Tuning columns) and
+  the dedicated-GPU section, not the serverless inference table** —
+  those numbers are intentionally NOT recorded as inference pricing.
+  Together's `docs/serverless-models` reference contained zero
+  references to Llama 4 on 2026-05-23 (re-fetched).
+
+Hosted rows do not back-fill Meta's first-party pricing — Meta still
+runs no paid first-party Llama API, and the Sprint 18 integrity guard
+that requires a `metaLlama*Pricing` citation before any verified
+Llama pricing row is allowed has been re-checked under Sprint 19.
 
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from

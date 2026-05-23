@@ -10,11 +10,13 @@ import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { isFilteredRoute, robotsMetadata } from "@/lib/should-index";
 import { models } from "@/data/models";
 import { providers } from "@/data/providers";
+import { hostedPricing } from "@/data/hosted-pricing";
 import {
   anthropicStatusPage,
   anthropicApiHostProbeTarget,
   googleCloudStatusIncidents,
 } from "@/data/citations";
+import { isVerified } from "@/lib/verified";
 import type { SourceCitation, SourceType } from "@/lib/types";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -79,7 +81,7 @@ export async function generateMetadata({
 interface IndexedCitation {
   citation: SourceCitation;
   providerSlugs: Set<string>;
-  usage: Set<"model" | "status">;
+  usage: Set<"model" | "status" | "hosted-pricing">;
 }
 
 function buildCitationIndex(): IndexedCitation[] {
@@ -113,6 +115,24 @@ function buildCitationIndex(): IndexedCitation[] {
       e.providerSlugs.add("google");
     }
     e.usage.add("status");
+  }
+
+  // Hosted-provider pricing citations are attributed to the BILLING
+  // provider (Groq, Together AI) — that's whose pricing page the row
+  // was sourced from. The model creator's source surface is unaffected.
+  for (const r of hostedPricing) {
+    if (r.citation) {
+      const e = ensure(r.citation);
+      e.providerSlugs.add(r.billingProviderSlug);
+      e.usage.add("hosted-pricing");
+    }
+    for (const t of r.tiers) {
+      if (isVerified(t.amount)) {
+        const e = ensure(t.amount.citation);
+        e.providerSlugs.add(r.billingProviderSlug);
+        e.usage.add("hosted-pricing");
+      }
+    }
   }
 
   return Array.from(byUrl.values());

@@ -30,6 +30,7 @@ import { models } from "@/data/models";
 import { providers, getProviderBySlug } from "@/data/providers";
 import { comparisons } from "@/data/comparisons";
 import { verificationAttempts } from "@/data/verification-attempts";
+import { hostedPricing } from "@/data/hosted-pricing";
 import { findObserver } from "@/lib/observers";
 import type { StatusObserver } from "./status-observations";
 
@@ -230,6 +231,12 @@ export interface EntityCoverageSummary {
   verifiedProviders: number;
   providersWithStatusObserver: number;
   verifiedPricingRows: number;
+  /** First-party pricing tier count (model_creator_first_party_api). */
+  firstPartyPricingRows: number;
+  /** Hosted-provider pricing tier count (hosted_provider_api). */
+  hostedPricingRows: number;
+  /** Distinct hosting platforms with at least one verified row. */
+  hostingPlatformsWithPricing: number;
   totalComparisons: number;
   twoSidedVerifiedComparisons: number;
   oneSidedVerifiedComparisons: number;
@@ -262,8 +269,18 @@ export function getEntityCoverageSummary(): EntityCoverageSummary {
   const providersWithStatusObserver = providers.filter((p) =>
     Boolean(getStatusObserverForProvider(p.slug))
   );
-  const verifiedPricingRows = models.flatMap((m) =>
+  const firstPartyPricingTiers = models.flatMap((m) =>
     m.pricing.filter((t) => isVerified(t.amount))
+  );
+  const hostedPricingTiers = hostedPricing.flatMap((r) =>
+    r.tiers.filter((t) => isVerified(t.amount))
+  );
+  const verifiedPricingRows = [
+    ...firstPartyPricingTiers,
+    ...hostedPricingTiers,
+  ];
+  const hostingPlatforms = new Set(
+    hostedPricing.map((r) => r.billingProviderSlug)
   );
 
   const sideVerified = (slug: string) =>
@@ -293,6 +310,9 @@ export function getEntityCoverageSummary(): EntityCoverageSummary {
     verifiedProviders: verifiedProviders.length,
     providersWithStatusObserver: providersWithStatusObserver.length,
     verifiedPricingRows: verifiedPricingRows.length,
+    firstPartyPricingRows: firstPartyPricingTiers.length,
+    hostedPricingRows: hostedPricingTiers.length,
+    hostingPlatformsWithPricing: hostingPlatforms.size,
     totalComparisons: comparisons.length,
     twoSidedVerifiedComparisons: twoSidedVerified.length,
     oneSidedVerifiedComparisons: oneSidedVerified.length,

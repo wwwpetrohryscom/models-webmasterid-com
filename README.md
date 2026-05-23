@@ -401,6 +401,18 @@ These rules are non-negotiable. The full workflow lives in
    as the worked example.
 7. **No mass-generated pages.** Every indexable page has a clear user
    purpose and structured value.
+8. **Pricing is two-sided.** Every pricing record carries an explicit
+   `pricingContext`. Model-creator first-party pricing
+   (`model_creator_first_party_api`) lives on each `ModelEntity.pricing`
+   array and is what `buildModelJsonLd()` reads. Hosted-provider
+   pricing (`hosted_provider_api`) lives in
+   [`data/hosted-pricing.ts`](apps/models/data/hosted-pricing.ts) and
+   is rendered in a separate `/pricing` section so a hosting
+   platform&apos;s rate can never be confused for the model
+   creator&apos;s. Hosted rows must cite the billing provider&apos;s
+   own pricing page; integrity guards refuse a Groq row that cites
+   anything other than Groq&apos;s pricing page (and likewise for
+   Together).
 
 Entity model: [`apps/models/lib/types.ts`](apps/models/lib/types.ts).
 Citation registry: [`apps/models/data/citations.ts`](apps/models/data/citations.ts).
@@ -432,9 +444,20 @@ Brand-asset policy: [`BRAND_ASSETS.md`](BRAND_ASSETS.md).
   per-model entries under `providerSlug: "groq"` because attributing
   a hosted model to its hosting platform would misrepresent its
   origin. Integrity guard `Groq + Together verification covers
-  provider only` enforces this.
+  provider only` enforces this. **Sprint 19 added a hosted-pricing
+  row for Llama 4 Scout on Groq** ($0.11 / 1M input, $0.34 / 1M
+  output) sourced from `groq.com/pricing`; the row lives in
+  `data/hosted-pricing.ts` with `pricingContext:
+  "hosted_provider_api"`, model creator `meta`, billing provider
+  `groq`. Llama 4 Maverick is not on Groq's pricing table; no row
+  was added for it.
 - Together AI — provider/platform only. Same hosted-vs-creator
-  discipline as Groq.
+  discipline as Groq. **Sprint 19 added a hosted-pricing row for
+  DeepSeek V4 Pro on Together** ($2.10 / 1M input, $4.40 / 1M output,
+  $0.20 / 1M cache-hit input) sourced from `www.together.ai/pricing`.
+  Llama 4 Scout / Maverick appear only in Together's Fine-Tuning and
+  dedicated-GPU sections, not serverless inference — those numbers
+  are intentionally NOT recorded.
 - Mistral — Mistral Large 3 (canonical snapshot `mistral-large-2512`).
   Verified from Mistral's models overview, models table, API reference,
   and the per-model spec card at

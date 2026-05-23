@@ -239,6 +239,22 @@ export const groqSupportedModels: SourceCitation = citation({
     "Groq supported-models reference. Lists Llama 3.x, GPT-OSS, Whisper, Qwen and other third-party models hosted on the Groq inference platform; Groq does not create these models. Used as provider verification only.",
 });
 
+/**
+ * Groq pricing page. Lists per-1M-tokens input/output prices for every
+ * hosted model on Groq's serverless inference platform, alongside
+ * throughput (TPS) figures. Used as the source of `hosted_provider_api`
+ * pricing rows under provider=groq — the underlying models are
+ * third-party (Meta Llama, OpenAI GPT-OSS, Qwen, etc.).
+ */
+export const groqPricing: SourceCitation = citation({
+  url: "https://groq.com/pricing",
+  name: "Groq — Pricing",
+  type: "official-vendor-pricing",
+  retrievedAt: "2026-05-23T00:00:00.000Z",
+  notes:
+    "Groq's public pricing page. Confirms Llama 4 Scout (17Bx16E) 128k at $0.11/1M input, $0.34/1M output. Page also lists prompt caching (50% discount on cache-hit input) and a Batch API (50% off, 24h–7d processing window). Hosted-provider context — Groq is the billing provider, Meta is the model creator.",
+});
+
 // ---------------------------------------------------------------------------
 // Together AI primary sources.
 // ---------------------------------------------------------------------------
@@ -256,6 +272,23 @@ export const togetherServerlessModels: SourceCitation = citation({
   retrievedAt: "2026-05-21T00:00:00.000Z",
   notes:
     "Together AI serverless-models reference. Lists hosted third-party model families; Together does not create these models. Used as provider verification only.",
+});
+
+/**
+ * Together AI pricing page. Lists per-1M-tokens input/output prices
+ * for every model on Together's serverless inference tier (a separate
+ * fine-tuning + dedicated table appears further down the page —
+ * Sprint 19 carefully avoids confusing fine-tuning and dedicated
+ * GPU-hour pricing with serverless inference pricing). Sourced for
+ * `hosted_provider_api` rows under provider=together-ai.
+ */
+export const togetherPricing: SourceCitation = citation({
+  url: "https://www.together.ai/pricing",
+  name: "Together AI — Pricing",
+  type: "official-vendor-pricing",
+  retrievedAt: "2026-05-23T00:00:00.000Z",
+  notes:
+    "Together AI's public pricing page. Confirms DeepSeek V4 Pro on serverless at $2.10/1M input, $4.40/1M output, with a separately listed $0.20/1M cache-hit input rate. Llama 4 Scout and Llama 4 Maverick appear only in the Fine-Tuning table (LoRA / Full Fine-Tuning columns), not in the serverless inference table — Sprint 19 does NOT record those numbers as inference pricing.",
 });
 
 /**

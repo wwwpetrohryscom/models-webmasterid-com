@@ -26,6 +26,7 @@ export default function Page() {
       breadcrumbParent={{ name: "Research", href: "/research" }}
       toc={[
         { id: "what-rows-mean", label: "What a row on /pricing means" },
+        { id: "creator-vs-host", label: "Model creator vs hosted provider" },
         { id: "base-tokens", label: "Input and output tokens" },
         { id: "pricing-unit-matrix", label: "Pricing unit matrix" },
         { id: "provider-cache-comparison", label: "Provider cache semantics side-by-side" },
@@ -112,6 +113,88 @@ export default function Page() {
           for the full enum). If the row carries a value, it carries a
           citation; if it carries the canonical unverified-data label,
           it carries no citation by design.
+        </p>
+      </section>
+
+      <section id="creator-vs-host">
+        <h2>Model creator vs hosted provider</h2>
+        <p>
+          A pricing row is two-sided: an organisation creates a model,
+          and an organisation bills for inference. The two are usually
+          the same — Anthropic, Google, DeepSeek, and Mistral all run
+          first-party APIs for the models they create — but they are
+          not always the same. Meta releases Llama 4 as open weights
+          and runs no paid API for it; the cost of Llama 4 inference
+          comes from third-party hosting platforms (Groq, Together AI,
+          Bedrock, Vertex, …) at rates each platform sets independently.
+        </p>
+        <p>
+          Sprint 19 (2026-05-23) made this split explicit. Every pricing
+          record now carries a{" "}
+          <code className="rounded bg-muted px-1">pricingContext</code>{" "}
+          tag:
+        </p>
+        <ul>
+          <li>
+            <code className="rounded bg-muted px-1">
+              model_creator_first_party_api
+            </code>{" "}
+            — the billing provider IS the model&apos;s creator. Every
+            existing Anthropic, Google, DeepSeek, and Mistral row is
+            classified here.
+          </li>
+          <li>
+            <code className="rounded bg-muted px-1">
+              hosted_provider_api
+            </code>{" "}
+            — a hosting platform bills for a model created by someone
+            else. Groq&apos;s Llama 4 Scout row and Together AI&apos;s
+            DeepSeek V4 Pro row are the two such rows recorded today.
+          </li>
+        </ul>
+        <p>
+          The /pricing hub renders these two contexts in separate
+          tables. Hosted rows include both the{" "}
+          <em>Model creator</em> and <em>Billing provider</em> columns
+          so a reader can never mistake a Groq rate for a Meta rate.
+          Hosted pricing also has its own <em>hosted model ID</em>{" "}
+          column — the platform-specific identifier the developer
+          actually passes in the API request.
+        </p>
+        <p>
+          Why this distinction matters for cost projection:
+        </p>
+        <ul>
+          <li>
+            Hosted-provider rates do <em>not</em> reflect a model
+            creator&apos;s pricing decision; they reflect the hosting
+            platform&apos;s. A comparison that uses Groq&apos;s Llama
+            4 Scout rate as &quot;Meta&apos;s price&quot; is wrong.
+          </li>
+          <li>
+            Different hosting platforms price the same model
+            differently. Llama 4 Scout on Groq is not Llama 4 Scout on
+            Together; DeepSeek V4 Pro on Together is not DeepSeek V4
+            Pro on DeepSeek&apos;s own API. The two-table layout makes
+            the comparison side-by-side, not collapsed.
+          </li>
+          <li>
+            Promotional discounts and platform-specific features
+            (Groq&apos;s prompt-cache discount, Together&apos;s
+            cache-hit input rate) are attached to the hosting
+            platform&apos;s row, not back-fitted onto the
+            creator&apos;s row.
+          </li>
+        </ul>
+        <p>
+          The full schema lives in{" "}
+          <Link
+            href="/docs/pricing-fields"
+            className="text-primary hover:underline"
+          >
+            /docs/pricing-fields
+          </Link>
+          .
         </p>
       </section>
 

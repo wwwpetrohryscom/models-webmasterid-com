@@ -26,6 +26,7 @@ export default function Page() {
       toc={[
         { id: "shape", label: "ProviderEntity shape" },
         { id: "dimensions", label: "Coverage dimensions" },
+        { id: "roles", label: "Model creator vs hosted platform" },
         { id: "live-matrix", label: "Current provider coverage matrix" },
         { id: "status-meaning", label: "What 'verified' means at the provider level" },
         { id: "partial", label: "Partial verification" },
@@ -118,6 +119,53 @@ export default function Page() {
             one.
           </li>
         </ul>
+      </section>
+
+      <section id="roles">
+        <h2>Model creator vs hosted platform</h2>
+        <p>
+          Providers fall into one of two roles:
+        </p>
+        <ul>
+          <li>
+            <strong>Model creator.</strong> The organisation that trains
+            and releases the model. Anthropic (Claude), Google (Gemini),
+            DeepSeek (DeepSeek V4 Pro), Mistral (Mistral Large 3), and
+            Meta (Llama 4 Scout / Maverick) are model creators. The
+            model record&apos;s{" "}
+            <code className="rounded bg-muted px-1">providerSlug</code>{" "}
+            always points at the creator.
+          </li>
+          <li>
+            <strong>Hosted platform.</strong> An inference provider that
+            does not create models but charges for running third-party
+            ones. Groq and Together AI are hosted platforms. The
+            catalogue intentionally does not carry per-model records
+            under <code className="rounded bg-muted px-1">providerSlug: &quot;groq&quot;</code>{" "}
+            or{" "}
+            <code className="rounded bg-muted px-1">
+              providerSlug: &quot;together-ai&quot;
+            </code>{" "}
+            — that would misattribute the model&apos;s origin. Pricing
+            offered by these platforms lives in{" "}
+            <code className="rounded bg-muted px-1">
+              data/hosted-pricing.ts
+            </code>{" "}
+            and carries{" "}
+            <code className="rounded bg-muted px-1">
+              pricingContext: &quot;hosted_provider_api&quot;
+            </code>
+            .
+          </li>
+        </ul>
+        <p>
+          Both roles can be{" "}
+          <code className="rounded bg-muted px-1">verified</code> — the
+          verification is about whether the platform&apos;s primary
+          documentation is reachable and has been used to populate the
+          records that depend on it, not about whether the platform
+          creates models.
+        </p>
       </section>
 
       <section id="live-matrix">

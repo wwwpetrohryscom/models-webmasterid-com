@@ -18,9 +18,15 @@ import {
 import { EntityMethodologyLinks } from "@/components/entity/EntityMethodologyLinks";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { providers, getProviderBySlug } from "@/data/providers";
-import { models } from "@/data/models";
+import { models, getModelBySlug } from "@/data/models";
 import { getBrandAsset } from "@/data/brand-assets";
 import { attemptsByProvider } from "@/data/verification-attempts";
+import {
+  hostedPricingForBillingProvider,
+  hostedPricingForModel,
+} from "@/data/hosted-pricing";
+import { isVerified } from "@/lib/verified";
+import { formatUsd } from "@/lib/utils";
 import { formatDateISO } from "@/lib/utils";
 import {
   getComparisonsForProvider,
@@ -133,6 +139,19 @@ export default async function ProviderPage({
     m.pricing.some((t) => t.amount !== null && t.amount.citation)
   ).length;
   const brandAsset = getBrandAsset(provider.slug);
+
+  // Hosted-pricing relationships for this provider.
+  //   - billedHostedRows: rows where this provider is the billing
+  //     platform (Groq, Together AI). Shown as "models we host".
+  //   - creatorHostedRows: rows where this provider created the model
+  //     but a third party also hosts it (e.g. Meta → Groq for Llama 4
+  //     Scout, DeepSeek → Together for DeepSeek V4 Pro). Shown as
+  //     "third-party hosting of our models".
+  const billedHostedRows = hostedPricingForBillingProvider(provider.slug);
+  const creatorHostedRows = trackedModels.flatMap((m) =>
+    hostedPricingForModel(m.slug)
+  );
+  const isHostedPlatform = billedHostedRows.length > 0;
 
   const relatedComparisons = getComparisonsForProvider(provider.slug);
   const relatedProviders = getRelatedProviders(provider.slug);
@@ -299,6 +318,202 @@ export default async function ProviderPage({
           </p>
         )}
       </section>
+
+      {isHostedPlatform ? (
+        <section
+          aria-label="Hosted models pricing"
+          className="space-y-3"
+        >
+          <SectionHeader
+            eyebrow="Hosted platform"
+            title={`${provider.name} hosts third-party models`}
+            description={`${provider.name} is a hosting/inference platform — it bills for models created by other organisations. The rows below are pricing decisions made by ${provider.name}, not by the model creators.`}
+            as="h2"
+          />
+          <div className="overflow-hidden rounded-2xl border border-border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-xs uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th scope="col" className="px-4 py-2 text-left">
+                    Model
+                  </th>
+                  <th scope="col" className="px-4 py-2 text-left">
+                    Model creator
+                  </th>
+                  <th scope="col" className="px-4 py-2 text-left">
+                    Hosted model ID
+                  </th>
+                  <th scope="col" className="px-4 py-2 text-right">
+                    Input / 1M
+                  </th>
+                  <th scope="col" className="px-4 py-2 text-right">
+                    Output / 1M
+                  </th>
+                  <th scope="col" className="px-4 py-2 text-left">
+                    Source
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-card">
+                {billedHostedRows.map((r) => {
+                  const m = getModelBySlug(r.modelSlug);
+                  const creator = getProviderBySlug(
+                    r.modelCreatorProviderSlug
+                  );
+                  const input = r.tiers.find(
+                    (t) => t.unit === "1M input tokens"
+                  );
+                  const output = r.tiers.find(
+                    (t) => t.unit === "1M output tokens"
+                  );
+                  return (
+                    <tr key={r.id} className="border-t border-border">
+                      <th
+                        scope="row"
+                        className="px-4 py-2 text-left font-medium text-foreground"
+                      >
+                        {m ? (
+                          <Link
+                            href={`/models/${m.slug}`}
+                            className="hover:underline"
+                          >
+                            {m.name}
+                          </Link>
+                        ) : (
+                          r.modelSlug
+                        )}
+                      </th>
+                      <td className="px-4 py-2 text-muted-foreground">
+                        {creator ? (
+                          <Link
+                            href={`/providers/${creator.slug}`}
+                            className="hover:underline"
+                          >
+                            {creator.name}
+                          </Link>
+                        ) : (
+                          r.modelCreatorProviderSlug
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-xs text-muted-foreground">
+                        {r.hostedModelId ? (
+                          <code className="rounded bg-muted px-1">
+                            {r.hostedModelId}
+                          </code>
+                        ) : (
+                          <DataNotVerified />
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-right tabular-nums">
+                        {input && isVerified(input.amount)
+                          ? formatUsd(input.amount.value)
+                          : "—"}
+                      </td>
+                      <td className="px-4 py-2 text-right tabular-nums">
+                        {output && isVerified(output.amount)
+                          ? formatUsd(output.amount.value)
+                          : "—"}
+                      </td>
+                      <td className="px-4 py-2 text-left">
+                        {r.citation ? (
+                          <Link
+                            href={r.citation.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-primary hover:underline"
+                          >
+                            {r.citation.name.split(" — ")[0]}
+                          </Link>
+                        ) : (
+                          <DataNotVerified />
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Hosted pricing is set by {provider.name} — not by the
+            model&apos;s creator. See{" "}
+            <Link
+              href="/research/api-pricing-methodology#creator-vs-host"
+              className="text-primary hover:underline"
+            >
+              methodology
+            </Link>{" "}
+            for the full distinction.
+          </p>
+        </section>
+      ) : null}
+
+      {creatorHostedRows.length ? (
+        <section
+          aria-label="Third-party hosting"
+          className="space-y-3"
+        >
+          <SectionHeader
+            eyebrow="Hosted elsewhere"
+            title={`Third-party hosting of ${provider.name} models`}
+            description={`Pricing offered by other platforms that host ${provider.name}-created models. ${provider.name} does not set these rates; the hosting platform does.`}
+            as="h2"
+          />
+          <ul className="space-y-2">
+            {creatorHostedRows.map((r) => {
+              const m = getModelBySlug(r.modelSlug);
+              const billing = getProviderBySlug(r.billingProviderSlug);
+              return (
+                <li
+                  key={r.id}
+                  className="card-surface flex flex-col gap-1 p-3 text-sm sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground">
+                      {m ? (
+                        <Link
+                          href={`/models/${m.slug}`}
+                          className="hover:underline"
+                        >
+                          {m.name}
+                        </Link>
+                      ) : (
+                        r.modelSlug
+                      )}{" "}
+                      hosted by{" "}
+                      {billing ? (
+                        <Link
+                          href={`/providers/${billing.slug}`}
+                          className="text-primary hover:underline"
+                        >
+                          {billing.name}
+                        </Link>
+                      ) : (
+                        r.billingProviderSlug
+                      )}
+                    </p>
+                    {r.hostedModelId ? (
+                      <code className="text-xs text-muted-foreground">
+                        {r.hostedModelId}
+                      </code>
+                    ) : null}
+                  </div>
+                  {r.citation ? (
+                    <Link
+                      href={r.citation.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-primary hover:underline"
+                    >
+                      {r.citation.name.split(" — ")[0]}
+                    </Link>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
 
       <section aria-label="Data coverage" className="space-y-3">
         <SectionHeader

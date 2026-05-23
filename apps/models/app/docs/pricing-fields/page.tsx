@@ -26,6 +26,7 @@ export default function Page() {
       toc={[
         { id: "enum-table", label: "PricingUnit enum reference" },
         { id: "shape", label: "Pricing row shape" },
+        { id: "pricing-context", label: "PricingContext: creator vs host" },
         { id: "base", label: "Input / output base units" },
         { id: "cache", label: "Cache pricing units" },
         { id: "prompt-size", label: "Prompt-size tier units" },
@@ -83,6 +84,82 @@ export default function Page() {
           interpolation is never allowed. Each pricing row attaches to
           one model record under its{" "}
           <code className="rounded bg-muted px-1">pricing</code> array.
+        </p>
+      </section>
+
+      <section id="pricing-context">
+        <h2>PricingContext: creator vs host</h2>
+        <p>
+          Sprint 19 added an explicit{" "}
+          <code className="rounded bg-muted px-1">pricingContext</code>{" "}
+          tag on every pricing record so first-party model-creator
+          pricing is never confused with third-party hosted-provider
+          pricing.
+        </p>
+        <pre className="overflow-x-auto rounded-lg border border-border bg-background/60 p-3 text-[12px] leading-relaxed">
+          {`type PricingContext =
+  | "model_creator_first_party_api"
+  | "hosted_provider_api"
+  | "cloud_marketplace"
+  | "unknown";
+
+interface PricingRecord {
+  modelSlug: string;
+  modelCreatorProviderSlug: string;   // who made the model
+  billingProviderSlug: string;        // who invoices the developer
+  hostedModelId?: string;             // platform-specific model ID
+  pricingContext: PricingContext;
+  tiers: VerifiedPricingTier[];
+  citation?: SourceCitation;
+  // ...
+}`}
+        </pre>
+        <ul>
+          <li>
+            <code className="rounded bg-muted px-1">
+              model_creator_first_party_api
+            </code>{" "}
+            — the billing provider IS the model&apos;s creator
+            (Anthropic charging for Claude, DeepSeek charging for
+            DeepSeek V4 Pro, Mistral charging for Mistral Large 3).
+            Existing rows on each <code className="rounded bg-muted px-1">ModelEntity.pricing</code>{" "}
+            array carry this context implicitly.
+          </li>
+          <li>
+            <code className="rounded bg-muted px-1">hosted_provider_api</code>{" "}
+            — a third-party platform (Groq, Together AI) hosts a model
+            created by another organisation and bills the developer at
+            the platform&apos;s own rate. The two providers are
+            different.{" "}
+            <code className="rounded bg-muted px-1">hostedModelId</code>{" "}
+            records the platform-specific identifier (e.g. Groq&apos;s{" "}
+            <code className="rounded bg-muted px-1">
+              meta-llama/llama-4-scout-17b-16e-instruct
+            </code>
+            ).
+          </li>
+          <li>
+            <code className="rounded bg-muted px-1">cloud_marketplace</code>{" "}
+            — reserved for AWS Bedrock / Vertex / Azure pricing rows.
+            Not used today; reserved so future rows have a stable place
+            to land.
+          </li>
+          <li>
+            <code className="rounded bg-muted px-1">unknown</code> — a
+            row whose context has not been determined. Type-level
+            placeholder only; no row currently uses it.
+          </li>
+        </ul>
+        <p>
+          Hosted pricing is intentionally NOT merged into the model
+          creator&apos;s schema.org{" "}
+          <code className="rounded bg-muted px-1">Offer</code> records.
+          Schema.org consumers (search engines, LLMs) treat{" "}
+          <code className="rounded bg-muted px-1">creator</code> +{" "}
+          <code className="rounded bg-muted px-1">offers</code> as a
+          single claim — emitting Groq&apos;s rate under Meta&apos;s{" "}
+          <code className="rounded bg-muted px-1">creator</code> block
+          would falsely imply Meta charges that rate.
         </p>
       </section>
 
@@ -244,8 +321,38 @@ export default function Page() {
             may not carry a verified amount.
           </li>
           <li>
-            DeepSeek pricing must be anchored to a DeepSeek citation.
-            (Same per-provider citation discipline applies elsewhere.)
+            DeepSeek first-party pricing must be anchored to a DeepSeek
+            citation. (Same per-provider citation discipline applies
+            elsewhere.)
+          </li>
+          <li>
+            Every hosted-provider pricing record has a different{" "}
+            <code className="rounded bg-muted px-1">
+              modelCreatorProviderSlug
+            </code>{" "}
+            and{" "}
+            <code className="rounded bg-muted px-1">
+              billingProviderSlug
+            </code>
+            ; first-party records keep them equal.
+          </li>
+          <li>
+            Hosted-provider rows must cite the billing provider&apos;s
+            own pricing page — Groq prices must be sourced from Groq,
+            Together prices from Together. A Meta citation may never
+            sit on a Groq row.
+          </li>
+          <li>
+            Meta first-party Llama pricing remains empty unless an
+            official Meta pricing citation appears in{" "}
+            <code className="rounded bg-muted px-1">
+              data/citations.ts
+            </code>
+            . Groq and Together pricing for Llama models lives in{" "}
+            <code className="rounded bg-muted px-1">
+              data/hosted-pricing.ts
+            </code>{" "}
+            and does not back-fill Meta&apos;s creator pricing.
           </li>
           <li>
             Promotional discount windows are recorded in row{" "}

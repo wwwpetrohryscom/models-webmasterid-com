@@ -27,6 +27,7 @@ import {
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { models, getModelBySlug } from "@/data/models";
 import { getProviderBySlug } from "@/data/providers";
+import { hostedPricingForModel } from "@/data/hosted-pricing";
 import { isVerified } from "@/lib/verified";
 import { buildModelJsonLd } from "@/lib/model-jsonld";
 import {
@@ -376,17 +377,80 @@ export default async function ModelPage({
         </section>
       ) : null}
 
-      <section aria-label="Pricing" className="space-y-3">
+      <section aria-label="Pricing" className="space-y-4">
         <SectionHeader
           eyebrow="API pricing"
-          title="Pricing"
-          description="Per-unit rates pulled from official provider documentation. Each row links back to its primary source."
+          title="First-party pricing"
+          description={
+            provider
+              ? `Per-unit rates published by ${provider.name} for its own first-party API. Each row links back to its primary source. Where ${provider.name} does not run a paid first-party API for this model, the table renders the unverified-data label and any hosted-provider rates appear below.`
+              : "Per-unit rates from the model creator's own first-party API. Where no first-party API exists, hosted-provider rates appear below."
+          }
           as="h2"
         />
         <PricingTable
           tiers={model.pricing}
-          caption={`${model.name} pricing`}
+          caption={`${model.name} first-party pricing`}
         />
+        {(() => {
+          const hostedRows = hostedPricingForModel(model.slug);
+          if (!hostedRows.length) return null;
+          return (
+            <div className="space-y-3">
+              <div>
+                <h3 className="text-base font-semibold text-foreground">
+                  Hosted-provider pricing
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Third-party platforms that host this model and bill at
+                  their own rate. Not the same as the model creator&apos;s
+                  pricing — see{" "}
+                  <Link
+                    href="/research/api-pricing-methodology#creator-vs-host"
+                    className="text-primary hover:underline"
+                  >
+                    methodology
+                  </Link>
+                  .
+                </p>
+              </div>
+              {hostedRows.map((r) => {
+                const billing = getProviderBySlug(r.billingProviderSlug);
+                return (
+                  <div key={r.id} className="card-surface space-y-2 p-4">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+                      <p className="font-medium text-foreground">
+                        Hosted by{" "}
+                        {billing ? (
+                          <Link
+                            href={`/providers/${billing.slug}`}
+                            className="text-primary hover:underline"
+                          >
+                            {billing.name}
+                          </Link>
+                        ) : (
+                          r.billingProviderSlug
+                        )}
+                      </p>
+                      {r.hostedModelId ? (
+                        <code className="rounded bg-muted px-1 text-xs">
+                          {r.hostedModelId}
+                        </code>
+                      ) : null}
+                    </div>
+                    <PricingTable
+                      tiers={r.tiers}
+                      caption={`${model.name} on ${billing?.name ?? r.billingProviderSlug}`}
+                    />
+                    {r.notes ? (
+                      <p className="text-xs text-muted-foreground">{r.notes}</p>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </section>
 
       <section aria-label="Benchmarks" className="space-y-3">

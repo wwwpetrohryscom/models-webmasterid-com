@@ -142,6 +142,50 @@ export interface PricingEntity extends BaseEntity {
   currency: "USD";
 }
 
+/**
+ * Pricing context — who is billing whom for what.
+ *
+ * Sprint 19 distinguishes between API pricing that comes from the
+ * organisation that *created* a model (first-party) and pricing that
+ * comes from a third-party platform *hosting* an open-weights model
+ * created by someone else. Conflating the two misleads readers: e.g.
+ * Groq's Llama 4 Scout rate is a Groq pricing decision, not a Meta one,
+ * and Meta does not run a paid first-party Llama API at all.
+ */
+export type PricingContext =
+  | "model_creator_first_party_api"
+  | "hosted_provider_api"
+  | "cloud_marketplace"
+  | "unknown";
+
+/**
+ * A single pricing record, ready for /pricing rendering. Always carries
+ * an explicit pricing context; the billing provider is the entity that
+ * actually invoices the developer, and the model-creator provider is
+ * the organisation that built the underlying model. They are the same
+ * slug for first-party records and different for hosted records.
+ *
+ * `hostedModelId` is the platform-specific identifier (e.g. Groq's
+ * "meta-llama/llama-4-scout-17b-16e-instruct"). It is intentionally
+ * optional: first-party records use the canonical API ID on the
+ * model entity, while hosted records carry the platform-side ID here.
+ */
+export interface PricingRecord {
+  id: string;
+  modelSlug: string;
+  modelCreatorProviderSlug: string;
+  billingProviderSlug: string;
+  hostedModelId?: string;
+  pricingContext: PricingContext;
+  tiers: VerifiedPricingTier[];
+  /** Optional record-level citation; tier-level citations remain authoritative. */
+  citation?: SourceCitation;
+  lastCheckedAt: string | null;
+  verified: boolean;
+  verificationStatus: VerificationStatus;
+  notes?: string | null;
+}
+
 export type BenchmarkCategory =
   | "reasoning"
   | "coding"

@@ -91,8 +91,13 @@ export default function CoveragePage() {
       href: "/status",
     },
     {
-      label: "Verified pricing rows",
-      value: summary.verifiedPricingRows,
+      label: "First-party pricing rows",
+      value: summary.firstPartyPricingRows,
+      href: "/pricing?status=verified",
+    },
+    {
+      label: "Hosted-provider pricing rows",
+      value: summary.hostedPricingRows,
       href: "/pricing?status=verified",
     },
     {

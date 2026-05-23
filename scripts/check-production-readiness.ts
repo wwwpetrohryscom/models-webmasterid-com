@@ -2426,6 +2426,384 @@ const checks: Check[] = [
       return failures.length ? failures.join("\n") : null;
     },
   },
+  // ---------------------------------------------------------------------
+  // Sprint 19 — hosted-provider pricing schema guards.
+  //
+  // The schema in lib/types.ts defines PricingRecord with explicit
+  // modelCreatorProviderSlug + billingProviderSlug + pricingContext
+  // fields; hosted-pricing rows live in data/hosted-pricing.ts. These
+  // guards make sure:
+  //   - the schema literals stay present
+  //   - every hosted row separates creator from billing provider
+  //   - hosted rows never claim model-creator attribution from a
+  //     hosting platform (Groq/Together) — the creator slug must point
+  //     at the actual model creator (meta, deepseek, …)
+  //   - every hosted price has a citation
+  //   - hosted rows cite the billing provider's own pricing page
+  //   - Meta first-party Llama pricing remains empty unless a
+  //     metaLlama*Pricing citation appears in data/citations.ts
+  //   - /pricing renders both sections and the methodology note
+  //   - docs/pricing-fields and research/api-pricing-methodology
+  //     document the hosted distinction
+  // ---------------------------------------------------------------------
+  {
+    name: "PricingContext literal union exists in lib/types.ts (Sprint 19)",
+    run: () => {
+      const src = readRel("apps/models/lib/types.ts");
+      const required = [
+        '"model_creator_first_party_api"',
+        '"hosted_provider_api"',
+        '"cloud_marketplace"',
+      ];
+      const missing = required.filter((lit) => !src.includes(lit));
+      if (missing.length) {
+        return `PricingContext union in lib/types.ts is missing literal(s): ${missing.join(
+          ", "
+        )}.`;
+      }
+      if (!/export type PricingContext\s*=/.test(src)) {
+        return "Could not locate `export type PricingContext = ...` in lib/types.ts.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "PricingRecord schema declares creator + billing + context fields (Sprint 19)",
+    run: () => {
+      const src = readRel("apps/models/lib/types.ts");
+      const required = [
+        "modelCreatorProviderSlug",
+        "billingProviderSlug",
+        "pricingContext",
+      ];
+      const missing = required.filter((f) => !new RegExp(`\\b${f}\\b`).test(src));
+      if (missing.length) {
+        return `PricingRecord shape in lib/types.ts is missing field(s): ${missing.join(
+          ", "
+        )}.`;
+      }
+      return null;
+    },
+  },
+  {
+    name: "hosted-pricing.ts exists and only declares hosted_provider_api rows",
+    run: () => {
+      const rel = "apps/models/data/hosted-pricing.ts";
+      if (!fileExists(rel)) {
+        return "Missing data/hosted-pricing.ts — Sprint 19 introduced this file.";
+      }
+      const src = readRel(rel);
+      // Strip block + line comments before scanning context literals so
+      // explanatory copy doesn't false-positive.
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      // Every PricingRecord literal must declare
+      // pricingContext: "hosted_provider_api". Anything else under this
+      // file is the wrong context.
+      const contexts = Array.from(
+        stripped.matchAll(/pricingContext:\s*"([^"]+)"/g)
+      ).map((m) => m[1]);
+      if (contexts.length === 0) {
+        return "data/hosted-pricing.ts contains no pricingContext literal — at least one hosted row is required.";
+      }
+      const bad = contexts.filter((c) => c !== "hosted_provider_api");
+      if (bad.length) {
+        return `data/hosted-pricing.ts declares non-hosted pricingContext literal(s): ${bad.join(
+          ", "
+        )}. Move first-party rows back to model.pricing.`;
+      }
+      return null;
+    },
+  },
+  {
+    name: "every hosted-pricing row separates creator from billing provider (Sprint 19)",
+    run: () => {
+      const rel = "apps/models/data/hosted-pricing.ts";
+      const src = readRel(rel);
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      // Split into record blocks by id: "...". A row block is roughly
+      // from one `id: "hosted-pricing-..."` to the next.
+      const recordRe = /id:\s*"hosted-pricing-[^"]+"[\s\S]*?(?=id:\s*"hosted-pricing-|\];|\n\];)/g;
+      const blocks = Array.from(stripped.matchAll(recordRe)).map((m) => m[0]);
+      if (blocks.length === 0) {
+        return "Could not locate any hosted-pricing record blocks in data/hosted-pricing.ts.";
+      }
+      const failures: string[] = [];
+      for (const block of blocks) {
+        const idMatch = block.match(/id:\s*"([^"]+)"/);
+        const id = idMatch?.[1] ?? "<unknown row>";
+        const creator = block.match(
+          /modelCreatorProviderSlug:\s*"([^"]+)"/
+        )?.[1];
+        const billing = block.match(
+          /billingProviderSlug:\s*"([^"]+)"/
+        )?.[1];
+        if (!creator || !billing) {
+          failures.push(
+            `${id}: missing modelCreatorProviderSlug or billingProviderSlug.`
+          );
+          continue;
+        }
+        if (creator === billing) {
+          failures.push(
+            `${id}: modelCreatorProviderSlug and billingProviderSlug are both "${creator}" — hosted rows must split the two. Move this row back to a model record's pricing array.`
+          );
+        }
+        // Hosted-platform providers (groq, together-ai) must never sit
+        // on the creator side — that would misattribute the model.
+        if (creator === "groq" || creator === "together-ai") {
+          failures.push(
+            `${id}: modelCreatorProviderSlug is "${creator}" but Groq / Together AI are hosting platforms, not model creators.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "every hosted-pricing tier has a verified citation (Sprint 19)",
+    run: () => {
+      const rel = "apps/models/data/hosted-pricing.ts";
+      const src = readRel(rel);
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      // Every `amount: verified(...)` call must include a citation
+      // argument (the verified() helper enforces this at runtime; we
+      // also re-check at the source level so a malformed row never
+      // ships).
+      const re = /amount:\s*verified\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g;
+      const failures: string[] = [];
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(stripped)) !== null) {
+        const args = m[1];
+        // verified(value, citation, opts?). At minimum we need two
+        // top-level comma-separated arguments.
+        const depth = (s: string) => {
+          let d = 0;
+          const parts: string[] = [];
+          let cur = "";
+          for (const ch of s) {
+            if (ch === "(") d++;
+            else if (ch === ")") d--;
+            if (ch === "," && d === 0) {
+              parts.push(cur);
+              cur = "";
+            } else {
+              cur += ch;
+            }
+          }
+          if (cur.length) parts.push(cur);
+          return parts;
+        };
+        const parts = depth(args);
+        if (parts.length < 2) {
+          failures.push(
+            `hosted-pricing row tier calls verified(...) without a citation argument: \`amount: verified(${args.trim()})\``
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Groq hosted-pricing rows cite the Groq pricing page",
+    run: () => {
+      const rel = "apps/models/data/hosted-pricing.ts";
+      const src = readRel(rel);
+      // If a row sets billingProviderSlug: "groq", the surrounding
+      // record must reference the groqPricing citation token.
+      const re = /\{[^{}]*billingProviderSlug:\s*"groq"[\s\S]*?\}/g;
+      const blocks = src.match(re) ?? [];
+      const failures: string[] = [];
+      for (const b of blocks) {
+        if (!/groqPricing/.test(b)) {
+          failures.push(
+            "A hosted-pricing row with billingProviderSlug='groq' does not reference the groqPricing citation. Groq prices must cite Groq's own pricing page."
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Together hosted-pricing rows cite the Together pricing page",
+    run: () => {
+      const rel = "apps/models/data/hosted-pricing.ts";
+      const src = readRel(rel);
+      const re = /\{[^{}]*billingProviderSlug:\s*"together-ai"[\s\S]*?\}/g;
+      const blocks = src.match(re) ?? [];
+      const failures: string[] = [];
+      for (const b of blocks) {
+        if (!/togetherPricing/.test(b)) {
+          failures.push(
+            "A hosted-pricing row with billingProviderSlug='together-ai' does not reference the togetherPricing citation. Together prices must cite Together's own pricing page."
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Sprint 19 hosted-pricing citations are registered",
+    run: () => {
+      const src = readRel("apps/models/data/citations.ts");
+      const failures: string[] = [];
+      if (!/export const groqPricing:/.test(src)) {
+        failures.push(
+          "data/citations.ts must export `groqPricing` — Sprint 19 sourced Groq hosted pricing from groq.com/pricing."
+        );
+      }
+      if (!/export const togetherPricing:/.test(src)) {
+        failures.push(
+          "data/citations.ts must export `togetherPricing` — Sprint 19 sourced Together hosted pricing from together.ai/pricing."
+        );
+      }
+      // Pricing citations must be official-vendor-pricing source type.
+      for (const token of ["groqPricing", "togetherPricing"]) {
+        const block = src.split(`export const ${token}`).pop() ?? "";
+        const head = block.slice(0, 800);
+        if (!/type:\s*"official-vendor-pricing"/.test(head)) {
+          failures.push(
+            `${token} must be source type "official-vendor-pricing".`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Meta first-party Llama pricing remains empty without an official Meta pricing citation (Sprint 19 re-check)",
+    run: () => {
+      const citations = readRel("apps/models/data/citations.ts");
+      const models = readRel("apps/models/data/models.ts");
+      // If no metaLlama*Pricing citation exists, neither Llama 4 record
+      // may carry a verified first-party pricing row. This re-checks the
+      // Sprint 18 guard against drift now that Sprint 19 has added
+      // hosted-pricing rows in a separate file.
+      const hasMetaPricingCitation = /export const metaLlama[^:]*Pricing:/.test(
+        citations
+      );
+      if (hasMetaPricingCitation) return null;
+      for (const slug of ["llama-4-scout", "llama-4-maverick"]) {
+        const block = models.split(`slug: "${slug}"`).pop() ?? "";
+        const head = block.slice(0, 6000);
+        const pricingMatch = head.match(/pricing:\s*\[([\s\S]*?)\]/);
+        if (pricingMatch && /verified\(/.test(pricingMatch[1])) {
+          return `${slug} carries a verified first-party pricing row but no metaLlama*Pricing citation exists in data/citations.ts. Hosted-provider pricing lives in data/hosted-pricing.ts, not on the model record.`;
+        }
+      }
+      return null;
+    },
+  },
+  {
+    name: "data/pricing.ts exports unified records derived from both sources (Sprint 19)",
+    run: () => {
+      const src = readRel("apps/models/data/pricing.ts");
+      const failures: string[] = [];
+      if (!/export const firstPartyPricing:/.test(src)) {
+        failures.push(
+          "data/pricing.ts must export `firstPartyPricing` derived from models[].pricing."
+        );
+      }
+      if (!/export const allPricingRecords:/.test(src)) {
+        failures.push(
+          "data/pricing.ts must export `allPricingRecords` merging first-party + hosted records."
+        );
+      }
+      if (!/from "\.\/hosted-pricing"/.test(src)) {
+        failures.push(
+          "data/pricing.ts must import from ./hosted-pricing so hosted rows flow into allPricingRecords."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/pricing renders a hosted-provider section and explanatory note (Sprint 19)",
+    run: () => {
+      const src = readRel("apps/models/app/pricing/page.tsx");
+      const failures: string[] = [];
+      if (!/Hosted provider API pricing/.test(src)) {
+        failures.push(
+          "/pricing must render a 'Hosted provider API pricing' section header."
+        );
+      }
+      if (!/First-party model API pricing/.test(src)) {
+        failures.push(
+          "/pricing must rename the verified section to 'First-party model API pricing' so the two contexts are explicit."
+        );
+      }
+      if (!/Hosted-provider pricing is not the same as model-creator pricing/i.test(src)) {
+        failures.push(
+          "/pricing must include the explanatory note distinguishing hosted-provider pricing from model-creator pricing."
+        );
+      }
+      if (!/from "@\/data\/hosted-pricing"/.test(src)) {
+        failures.push(
+          "/pricing must import hostedPricing from data/hosted-pricing."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "docs/pricing-fields documents pricingContext (Sprint 19)",
+    run: () => {
+      const src = readRel(
+        "apps/models/app/docs/pricing-fields/page.tsx"
+      );
+      const failures: string[] = [];
+      if (!/PricingContext: creator vs host/i.test(src)) {
+        failures.push(
+          "docs/pricing-fields must document `PricingContext` (Sprint 19) with a section header titled 'PricingContext: creator vs host'."
+        );
+      }
+      for (const literal of [
+        "model_creator_first_party_api",
+        "hosted_provider_api",
+      ]) {
+        if (!src.includes(literal)) {
+          failures.push(
+            `docs/pricing-fields must mention the literal \`${literal}\`.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "research/api-pricing-methodology covers hosted-provider distinction (Sprint 19)",
+    run: () => {
+      const src = readRel(
+        "apps/models/app/research/api-pricing-methodology/page.tsx"
+      );
+      if (!/Model creator vs hosted provider/i.test(src)) {
+        return "research/api-pricing-methodology must include a 'Model creator vs hosted provider' section (Sprint 19).";
+      }
+      if (!/hosted_provider_api/.test(src)) {
+        return "research/api-pricing-methodology must reference the `hosted_provider_api` pricingContext literal.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "model-jsonld does not leak hosted pricing into creator Offer (Sprint 19)",
+    run: () => {
+      const src = readRel("apps/models/lib/model-jsonld.ts");
+      // The JSON-LD helper reads from the model entity's own
+      // `pricing` array, which is first-party. It must NOT import
+      // hostedPricing — that would risk emitting Groq/Together rates
+      // under the model creator's schema.org Organization block.
+      if (/hostedPricing|from "@\/data\/hosted-pricing"/.test(src)) {
+        return "lib/model-jsonld.ts references hostedPricing — JSON-LD must only emit first-party pricing under the model creator's Offer block.";
+      }
+      return null;
+    },
+  },
   {
     name: "WebmasterID tracker is loaded once, not duplicated",
     run: () => {

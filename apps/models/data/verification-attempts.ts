@@ -362,6 +362,40 @@ export const verificationAttempts: VerificationAttempt[] = [
     notes:
       "Third automated retry. platform.openai.com still returns HTTP 403. OpenAI verification remains blocked — only a manual browser pass would unblock it.",
   },
+
+  // ---------------------------------------------------------------------
+  // Sprint 19 — hosted-provider pricing pass. Groq + Together pricing
+  // pages were retrieved as raw HTML and the row-by-row prices were
+  // anchored to the model names in the same table cell to avoid
+  // misattribution.
+  // ---------------------------------------------------------------------
+  {
+    providerSlug: "groq",
+    url: "https://groq.com/pricing",
+    target: "Groq hosted-model pricing table",
+    attemptedAt: "2026-05-23T00:00:00.000Z",
+    result: "verified",
+    notes:
+      "Groq pricing page retrieved as raw HTML. The serverless inference table cleanly anchors 'Llama 4 Scout (17Bx16E) 128k' at $0.11/1M input and $0.34/1M output — recorded as a hosted-provider pricing row (creator=meta, billing=groq). Llama 4 Maverick is NOT on the Groq pricing table; no row added for Maverick on Groq. Page also documents a 50% cache-hit discount and a Batch API (50% off, 24h–7d window); those are noted on the hosted row but not synthesised into derived prices.",
+  },
+  {
+    providerSlug: "together-ai",
+    url: "https://www.together.ai/pricing",
+    target: "Together AI serverless inference pricing",
+    attemptedAt: "2026-05-23T00:00:00.000Z",
+    result: "verified",
+    notes:
+      "Together AI pricing page retrieved as raw HTML. The serverless inference table anchors 'DeepSeek V4 Pro' at $2.10/1M input, $4.40/1M output, with $0.20/1M cache-hit input — recorded as a hosted-provider row (creator=deepseek, billing=together-ai). Llama 4 Scout and Llama 4 Maverick appear ONLY in Together's separate Fine-Tuning table (LoRA + Full Fine-Tuning columns) and ONLY in the dedicated-GPU section, not in serverless inference — those prices are intentionally NOT recorded as inference pricing.",
+  },
+  {
+    providerSlug: "together-ai",
+    url: "https://docs.together.ai/docs/serverless-models",
+    target: "Together AI serverless-models docs (Llama 4 lookup)",
+    attemptedAt: "2026-05-23T00:00:00.000Z",
+    result: "reviewable",
+    notes:
+      "Re-retrieved Together's docs/serverless-models page on 2026-05-23. The page contained zero references to 'Llama 4 Scout', 'Llama 4 Maverick', 'Maverick', 'Scout', 'Llama-4', or 'llama-4'. Together does not appear to expose Llama 4 on serverless inference at this time; the catalogue records no Together hosted pricing for the Llama 4 family.",
+  },
 ];
 
 export function attemptsByProvider(slug: string): VerificationAttempt[] {

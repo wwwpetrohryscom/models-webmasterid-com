@@ -18,6 +18,7 @@ import { robotsMetadata, shouldIndexComparison } from "@/lib/should-index";
 import { comparisons, getComparisonBySlug } from "@/data/comparisons";
 import { getModelBySlug } from "@/data/models";
 import { getProviderBySlug } from "@/data/providers";
+import { hostedPricingForModel } from "@/data/hosted-pricing";
 import { mergeCitations, isVerified } from "@/lib/verified";
 
 interface RouteParams {
@@ -164,7 +165,12 @@ export default async function ComparisonPage({
       </section>
 
       <section aria-label="Pricing" className="space-y-3">
-        <SectionHeader eyebrow="Cost" title="Pricing" as="h2" />
+        <SectionHeader
+          eyebrow="Cost"
+          title="First-party pricing"
+          description="Per-unit rates published by each model's creator on their own first-party API. Hosted-provider pricing (Groq, Together) is rendered separately below where available."
+          as="h2"
+        />
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <p className="mb-2 text-sm font-medium text-foreground">
@@ -180,6 +186,111 @@ export default async function ComparisonPage({
           </div>
         </div>
       </section>
+
+      {(() => {
+        const hostedA = hostedPricingForModel(modelA.slug);
+        const hostedB = hostedPricingForModel(modelB.slug);
+        if (!hostedA.length && !hostedB.length) return null;
+        return (
+          <section
+            aria-label="Hosted-provider pricing"
+            className="space-y-3"
+          >
+            <SectionHeader
+              eyebrow="Hosted pricing context"
+              title="Hosted-provider pricing"
+              description="Where a third-party platform hosts the model and bills at its own rate. These rows do NOT reflect the model creator's pricing. Hosted pricing is informational only — it is not used to declare a winner."
+              as="h2"
+            />
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <p className="mb-2 text-sm font-medium text-foreground">
+                  {modelA.name}
+                </p>
+                {hostedA.length ? (
+                  <ul className="space-y-3">
+                    {hostedA.map((r) => {
+                      const billing = getProviderBySlug(r.billingProviderSlug);
+                      return (
+                        <li key={r.id} className="card-surface space-y-2 p-3">
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                            Hosted by{" "}
+                            {billing ? (
+                              <Link
+                                href={`/providers/${billing.slug}`}
+                                className="text-primary hover:underline"
+                              >
+                                {billing.name}
+                              </Link>
+                            ) : (
+                              r.billingProviderSlug
+                            )}
+                            {r.hostedModelId ? (
+                              <>
+                                {" · "}
+                                <code className="rounded bg-muted px-1 text-[10px]">
+                                  {r.hostedModelId}
+                                </code>
+                              </>
+                            ) : null}
+                          </p>
+                          <PricingTable tiers={r.tiers} />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    No hosted-provider pricing recorded.
+                  </p>
+                )}
+              </div>
+              <div>
+                <p className="mb-2 text-sm font-medium text-foreground">
+                  {modelB.name}
+                </p>
+                {hostedB.length ? (
+                  <ul className="space-y-3">
+                    {hostedB.map((r) => {
+                      const billing = getProviderBySlug(r.billingProviderSlug);
+                      return (
+                        <li key={r.id} className="card-surface space-y-2 p-3">
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                            Hosted by{" "}
+                            {billing ? (
+                              <Link
+                                href={`/providers/${billing.slug}`}
+                                className="text-primary hover:underline"
+                              >
+                                {billing.name}
+                              </Link>
+                            ) : (
+                              r.billingProviderSlug
+                            )}
+                            {r.hostedModelId ? (
+                              <>
+                                {" · "}
+                                <code className="rounded bg-muted px-1 text-[10px]">
+                                  {r.hostedModelId}
+                                </code>
+                              </>
+                            ) : null}
+                          </p>
+                          <PricingTable tiers={r.tiers} />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    No hosted-provider pricing recorded.
+                  </p>
+                )}
+              </div>
+            </div>
+          </section>
+        );
+      })()}
 
       <section aria-label="Benchmarks" className="space-y-3">
         <SectionHeader eyebrow="Capability" title="Benchmarks" as="h2" />

@@ -8,8 +8,9 @@ import { JsonLd } from "@/components/JsonLd";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { isFilteredRoute, robotsMetadata } from "@/lib/should-index";
-import { models } from "@/data/models";
+import { models, getModelBySlug } from "@/data/models";
 import { providers, getProviderBySlug } from "@/data/providers";
+import { hostedPricing } from "@/data/hosted-pricing";
 import { formatDateISO, formatUsd, unknownLabel } from "@/lib/utils";
 import { isVerified } from "@/lib/verified";
 import type { ModelEntity, PricingUnit } from "@/lib/types";
@@ -129,8 +130,26 @@ export default async function PricingPage({ searchParams }: PageProps) {
     ({ model }) => !model.pricing.some((t) => isVerified(t.amount))
   );
 
+  // Hosted-provider rows filter on the *billing* provider (Groq /
+  // Together), not the model-creator provider. The same q / unit
+  // filters apply: text search matches model name + slug; unit filter
+  // requires a tier with the selected unit.
+  const hostedRows = hostedPricing.filter((r) => {
+    if (providerFilter && r.billingProviderSlug !== providerFilter) return false;
+    const model = getModelBySlug(r.modelSlug);
+    if (q) {
+      const haystack = `${model?.name ?? ""} ${r.modelSlug} ${
+        r.hostedModelId ?? ""
+      }`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    if (unitFilter && !r.tiers.some((t) => t.unit === unitFilter)) return false;
+    return true;
+  });
+
   const showVerified = !statusFilter || statusFilter === "verified";
   const showPending = !statusFilter || statusFilter === "pending";
+  const showHosted = showVerified;
 
   return (
     <PageShell
@@ -181,6 +200,39 @@ export default async function PricingPage({ searchParams }: PageProps) {
           &quot;Cache hit / 1M&quot; column below shows the cache-read (or
           cache-hit-input) rate where the provider publishes one, and
           renders <DataNotVerified /> otherwise.
+        </p>
+      </section>
+
+      <section
+        aria-label="Model creator vs hosted provider"
+        className="card-surface p-4 text-sm text-muted-foreground"
+      >
+        <h2 className="text-base font-semibold text-foreground">
+          Hosted-provider pricing is not the same as model-creator pricing
+        </h2>
+        <p className="mt-2">
+          A hosted platform (Groq, Together AI, Bedrock, Vertex, …) may
+          expose a model created by another organisation under a
+          platform-specific model ID, and bill for it at a rate set by
+          the platform — not by the model&apos;s creator. Sprint 19
+          splits these into two sections: <em>first-party model API
+          pricing</em> (where the billing provider IS the model creator)
+          and <em>hosted provider API pricing</em> (where they differ).
+          See{" "}
+          <Link
+            href="/research/api-pricing-methodology"
+            className="text-primary hover:underline"
+          >
+            /research/api-pricing-methodology
+          </Link>{" "}
+          for the methodology and{" "}
+          <Link
+            href="/docs/pricing-fields"
+            className="text-primary hover:underline"
+          >
+            /docs/pricing-fields
+          </Link>{" "}
+          for the schema.
         </p>
       </section>
 
@@ -266,18 +318,24 @@ export default async function PricingPage({ searchParams }: PageProps) {
             </Link>
           ) : null}
           <span>
-            {verifiedRows.length} verified row
-            {verifiedRows.length === 1 ? "" : "s"}, {pendingRows.length}{" "}
+            {verifiedRows.length} first-party row
+            {verifiedRows.length === 1 ? "" : "s"}, {hostedRows.length} hosted
+            row{hostedRows.length === 1 ? "" : "s"}, {pendingRows.length}{" "}
             pending.
           </span>
         </div>
       </form>
 
       {showVerified ? (
-        <section aria-label="Verified pricing" className="space-y-3">
+        <section aria-label="First-party model API pricing" className="space-y-3">
           <h2 className="text-lg font-semibold text-foreground">
-            Verified pricing ({verifiedRows.length})
+            First-party model API pricing ({verifiedRows.length})
           </h2>
+          <p className="text-sm text-muted-foreground">
+            Rows where the billing provider is the same organisation that
+            created the model. Pricing values come from each provider&apos;s
+            own official pricing documentation.
+          </p>
           {verifiedRows.length ? (
             <div className="overflow-hidden rounded-2xl border border-border">
               <table className="w-full text-sm">
@@ -417,15 +475,201 @@ export default async function PricingPage({ searchParams }: PageProps) {
         </section>
       ) : null}
 
+      {showHosted ? (
+        <section
+          aria-label="Hosted provider API pricing"
+          className="space-y-3"
+        >
+          <h2 className="text-lg font-semibold text-foreground">
+            Hosted provider API pricing ({hostedRows.length})
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Rows where a third-party platform hosts a model created by
+            another organisation. The <em>Model creator</em> column is the
+            organisation that built the model; the <em>Billing provider</em>{" "}
+            is the platform that invoices for inference. The two are
+            different — and the billing provider sets the rate.
+          </p>
+          {hostedRows.length ? (
+            <div className="overflow-hidden rounded-2xl border border-border">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 text-xs uppercase tracking-wider text-muted-foreground">
+                  <tr>
+                    <th scope="col" className="px-4 py-2 text-left">
+                      Model
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-left">
+                      Model creator
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-left">
+                      Billing provider
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-left">
+                      Hosted model ID
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-right">
+                      Input / 1M
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-right">
+                      Output / 1M
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-right">
+                      Cache hit / 1M
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-left">
+                      Source
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-left">
+                      Last checked
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-card">
+                  {hostedRows.map((r) => {
+                    const model = getModelBySlug(r.modelSlug);
+                    const creator = getProviderBySlug(
+                      r.modelCreatorProviderSlug
+                    );
+                    const billing = getProviderBySlug(r.billingProviderSlug);
+                    const input = r.tiers.find(
+                      (t) => t.unit === "1M input tokens"
+                    );
+                    const output = r.tiers.find(
+                      (t) => t.unit === "1M output tokens"
+                    );
+                    const cacheRead = r.tiers.find(
+                      (t) => t.unit === "1M cache read tokens"
+                    );
+                    return (
+                      <tr key={r.id} className="border-t border-border">
+                        <th
+                          scope="row"
+                          className="px-4 py-2 text-left font-medium text-foreground"
+                        >
+                          {model ? (
+                            <Link
+                              href={`/models/${model.slug}`}
+                              className="hover:underline"
+                            >
+                              {model.name}
+                            </Link>
+                          ) : (
+                            r.modelSlug
+                          )}
+                        </th>
+                        <td className="px-4 py-2 text-muted-foreground">
+                          {creator ? (
+                            <Link
+                              href={`/providers/${creator.slug}`}
+                              className="hover:underline"
+                            >
+                              {creator.name}
+                            </Link>
+                          ) : (
+                            unknownLabel()
+                          )}
+                        </td>
+                        <td className="px-4 py-2 text-muted-foreground">
+                          {billing ? (
+                            <Link
+                              href={`/providers/${billing.slug}`}
+                              className="hover:underline"
+                            >
+                              {billing.name}
+                            </Link>
+                          ) : (
+                            unknownLabel()
+                          )}
+                        </td>
+                        <td className="px-4 py-2 text-xs text-muted-foreground">
+                          {r.hostedModelId ? (
+                            <code className="rounded bg-muted px-1">
+                              {r.hostedModelId}
+                            </code>
+                          ) : (
+                            <DataNotVerified />
+                          )}
+                        </td>
+                        <td className="px-4 py-2 text-right tabular-nums">
+                          <VerifiedField
+                            field={input?.amount}
+                            format={formatUsd}
+                            label="hosted input rate"
+                            inlineCitation={false}
+                          />
+                        </td>
+                        <td className="px-4 py-2 text-right tabular-nums">
+                          <VerifiedField
+                            field={output?.amount}
+                            format={formatUsd}
+                            label="hosted output rate"
+                            inlineCitation={false}
+                          />
+                        </td>
+                        <td className="px-4 py-2 text-right tabular-nums">
+                          <VerifiedField
+                            field={cacheRead?.amount}
+                            format={formatUsd}
+                            label="hosted cache hit"
+                            inlineCitation={false}
+                          />
+                        </td>
+                        <td className="px-4 py-2 text-left">
+                          {r.citation ? (
+                            <Link
+                              href={r.citation.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs text-primary hover:underline"
+                              title={r.citation.name}
+                            >
+                              {r.citation.name.split(" — ")[0]}
+                            </Link>
+                          ) : (
+                            <DataNotVerified />
+                          )}
+                        </td>
+                        <td className="px-4 py-2 text-left text-xs text-muted-foreground">
+                          {formatDateISO(r.lastCheckedAt)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="card-surface p-4 text-sm text-muted-foreground">
+              No hosted-provider rows match the current filters.
+            </p>
+          )}
+        </section>
+      ) : null}
+
       {showPending ? (
         <section aria-label="Pending verification" className="space-y-3">
           <h2 className="text-lg font-semibold text-foreground">
-            Pending verification ({pendingRows.length})
+            Pending or unavailable creator pricing ({pendingRows.length})
           </h2>
+          <p className="text-sm text-muted-foreground">
+            Models where no first-party (model-creator) API pricing has
+            been verified. Reasons differ: Meta does not run a paid
+            first-party Llama API at all (hosted pricing may exist on
+            Groq / Together — see above); OpenAI&apos;s docs site
+            returns HTTP 403 to automated retrieval; Mistral&apos;s
+            pricing tab is JavaScript-driven. Each case is logged on{" "}
+            <Link href="/coverage" className="text-primary hover:underline">
+              /coverage
+            </Link>
+            .
+          </p>
           {pendingRows.length ? (
             <ul className="grid gap-2 sm:grid-cols-2">
               {pendingRows.map(({ model: m }) => {
                 const p = getProviderBySlug(m.providerSlug);
+                const hostedForModel = hostedPricing.filter(
+                  (r) => r.modelSlug === m.slug
+                );
                 return (
                   <li
                     key={m.slug}
@@ -447,6 +691,19 @@ export default async function PricingPage({ searchParams }: PageProps) {
                           provider page
                         </Link>
                       </p>
+                      {hostedForModel.length ? (
+                        <p className="mt-1 text-[11px] text-primary">
+                          Hosted pricing available on{" "}
+                          {hostedForModel
+                            .map(
+                              (r) =>
+                                getProviderBySlug(r.billingProviderSlug)
+                                  ?.name ?? r.billingProviderSlug
+                            )
+                            .join(", ")}{" "}
+                          — see hosted table above.
+                        </p>
+                      ) : null}
                     </div>
                     <VerificationBadge status={m.verificationStatus} />
                   </li>
