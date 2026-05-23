@@ -2237,7 +2237,7 @@ const checks: Check[] = [
     },
   },
   {
-    name: "no \"fastest model\" or \"best model\" copy on data records (Sprint 18)",
+    name: "no \"fastest model\" / \"best model\" / \"cheapest\" copy on data records (Sprint 18 / 19)",
     run: () => {
       const failures: string[] = [];
       const dataFiles = [
@@ -2245,9 +2245,12 @@ const checks: Check[] = [
         "apps/models/data/providers.ts",
         "apps/models/data/comparisons.ts",
         "apps/models/data/citations.ts",
+        "apps/models/data/hosted-pricing.ts",
       ];
-      const banned = /\bbest\s+(?:ai\s+)?model\b|\bfastest\s+(?:ai\s+)?model\b|\bfastest\s+inference\b/i;
+      const banned =
+        /\bbest\s+(?:ai\s+)?model\b|\bfastest\s+(?:ai\s+)?model\b|\bfastest\s+inference\b|\bcheapest\s+(?:ai\s+)?(?:model|provider|platform|inference)\b/i;
       for (const rel of dataFiles) {
+        if (!fileExists(rel)) continue;
         const src = readRel(rel);
         // Strip comments first; cautionary mentions are OK.
         const stripped = src
@@ -2255,7 +2258,7 @@ const checks: Check[] = [
           .replace(/(^|[^:])\/\/.*$/gm, "$1");
         if (banned.test(stripped)) {
           failures.push(
-            `${rel} contains "best model" / "fastest model" / "fastest inference" copy outside comments.`
+            `${rel} contains "best model" / "fastest model" / "fastest inference" / "cheapest …" copy outside comments.`
           );
         }
       }
@@ -2788,6 +2791,130 @@ const checks: Check[] = [
         return "research/api-pricing-methodology must reference the `hosted_provider_api` pricingContext literal.";
       }
       return null;
+    },
+  },
+  {
+    name: "every hosted-pricing row carries an explicit pricingContext (Sprint 19)",
+    run: () => {
+      const rel = "apps/models/data/hosted-pricing.ts";
+      const src = readRel(rel);
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      // Each PricingRecord literal starts at `id: "hosted-pricing-..."`.
+      // Count those vs the number of pricingContext literals — they
+      // must match exactly. A missing context is a silent default
+      // we will not allow.
+      const idCount = (
+        stripped.match(/id:\s*"hosted-pricing-[^"]+"/g) ?? []
+      ).length;
+      const ctxCount = (
+        stripped.match(/pricingContext:\s*"[a-z_]+"/g) ?? []
+      ).length;
+      if (idCount !== ctxCount) {
+        return `data/hosted-pricing.ts has ${idCount} record id(s) but ${ctxCount} pricingContext literal(s). Every record must carry exactly one pricingContext.`;
+      }
+      return null;
+    },
+  },
+  {
+    name: "every hosted-pricing row carries hostedModelId, modelCreatorProviderSlug, billingProviderSlug (Sprint 19)",
+    run: () => {
+      const rel = "apps/models/data/hosted-pricing.ts";
+      const src = readRel(rel);
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      const recordRe =
+        /id:\s*"hosted-pricing-[^"]+"[\s\S]*?(?=id:\s*"hosted-pricing-|\];|\n\];)/g;
+      const blocks = Array.from(stripped.matchAll(recordRe)).map((m) => m[0]);
+      const failures: string[] = [];
+      for (const block of blocks) {
+        const id =
+          block.match(/id:\s*"([^"]+)"/)?.[1] ?? "<unknown row>";
+        for (const f of [
+          "modelCreatorProviderSlug",
+          "billingProviderSlug",
+          "hostedModelId",
+          "pricingContext",
+        ]) {
+          if (!new RegExp(`\\b${f}:`).test(block)) {
+            failures.push(`${id}: missing required field \`${f}\`.`);
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "model page renders hosted-pricing block when rows exist (Sprint 19)",
+    run: () => {
+      const src = readRel("apps/models/app/models/[slug]/page.tsx");
+      const failures: string[] = [];
+      if (!/hostedPricingForModel/.test(src)) {
+        failures.push(
+          "models/[slug]/page.tsx must call hostedPricingForModel(model.slug) so hosted rows render alongside first-party pricing."
+        );
+      }
+      if (!/Hosted-provider pricing/.test(src)) {
+        failures.push(
+          "models/[slug]/page.tsx must render a 'Hosted-provider pricing' subsection so hosted rates are visually separated from first-party rates."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "provider page distinguishes hosted-platform billing from model creator (Sprint 19)",
+    run: () => {
+      const src = readRel("apps/models/app/providers/[slug]/page.tsx");
+      const failures: string[] = [];
+      if (!/hostedPricingForBillingProvider/.test(src)) {
+        failures.push(
+          "providers/[slug]/page.tsx must call hostedPricingForBillingProvider so platforms like Groq / Together render the models they bill for."
+        );
+      }
+      if (!/hostedPricingForModel/.test(src)) {
+        failures.push(
+          "providers/[slug]/page.tsx must call hostedPricingForModel so creator pages (Meta, DeepSeek) surface third-party hosting of their models."
+        );
+      }
+      if (!/hosts third-party models/i.test(src)) {
+        failures.push(
+          "providers/[slug]/page.tsx must include 'hosts third-party models' copy on hosted-platform sections so the role is explicit to readers."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/research/inference-infrastructure covers hosted-platform role (Sprint 19)",
+    run: () => {
+      const src = readRel(
+        "apps/models/app/research/inference-infrastructure/page.tsx"
+      );
+      if (!/Hosted inference platforms/i.test(src)) {
+        return "/research/inference-infrastructure must include a 'Hosted inference platforms' section explaining the creator vs billing distinction.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/compare renders hosted pricing context when present (Sprint 19)",
+    run: () => {
+      const src = readRel("apps/models/app/compare/[slug]/page.tsx");
+      const failures: string[] = [];
+      if (!/hostedPricingForModel/.test(src)) {
+        failures.push(
+          "compare/[slug]/page.tsx must call hostedPricingForModel so hosted rates render side-by-side."
+        );
+      }
+      if (!/Hosted pricing context|Hosted-provider pricing/i.test(src)) {
+        failures.push(
+          "compare/[slug]/page.tsx must render a hosted-pricing section header so the context is explicit."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
     },
   },
   {

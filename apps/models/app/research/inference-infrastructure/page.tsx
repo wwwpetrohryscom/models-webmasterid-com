@@ -27,6 +27,7 @@ export default function Page() {
         { id: "what-counts", label: "What counts as infrastructure" },
         { id: "regions", label: "Regions and cloud availability" },
         { id: "api-surface", label: "API surface and protocols" },
+        { id: "hosted-platforms", label: "Hosted inference platforms" },
         { id: "status-feeds", label: "Status feeds" },
         { id: "batching-caching", label: "Batching and caching" },
         { id: "rate-limits", label: "Rate limits and throughput" },
@@ -174,6 +175,64 @@ export default function Page() {
           drop-in replacement scenarios. The model detail pages render
           a documentation-style example block for the providers whose
           API references are verified.
+        </p>
+      </section>
+
+      <section id="hosted-platforms">
+        <h2>Hosted inference platforms</h2>
+        <p>
+          Some inference providers do not create their own models —
+          they host open-weights models from other organisations and
+          bill the developer at platform-specific rates. Groq and
+          Together AI are the two such platforms tracked here. They
+          are valid <em>billing providers</em> on a pricing record,
+          but they are never recorded as <em>model creators</em>.
+        </p>
+        <ul>
+          <li>
+            <strong>Model creator</strong> — the organisation that
+            trained and released the model (Anthropic, Google, Meta,
+            DeepSeek, Mistral, …). Stored on the model record&apos;s{" "}
+            <code className="rounded bg-muted px-1">providerSlug</code>
+            .
+          </li>
+          <li>
+            <strong>Billing provider</strong> — the entity that
+            invoices the developer for inference. For first-party
+            APIs, equal to the model creator. For hosted-platform
+            APIs, different. Stored on a pricing record&apos;s{" "}
+            <code className="rounded bg-muted px-1">
+              billingProviderSlug
+            </code>
+            .
+          </li>
+          <li>
+            <strong>Hosted model ID</strong> — the platform-specific
+            identifier the developer passes in API requests (e.g.
+            Groq&apos;s{" "}
+            <code className="rounded bg-muted px-1">
+              meta-llama/llama-4-scout-17b-16e-instruct
+            </code>
+            ). Stored on a pricing record&apos;s{" "}
+            <code className="rounded bg-muted px-1">hostedModelId</code>
+            .
+          </li>
+        </ul>
+        <p>
+          Sprint 19 (2026-05-23) seeded the first hosted rows: Groq
+          → Llama 4 Scout (Meta creator) and Together AI → DeepSeek V4
+          Pro (DeepSeek creator). Pricing decisions on those rows are
+          made by the hosting platform — not by the model creator. We
+          do NOT publish vendor latency / throughput / uptime claims
+          from hosted platforms; the catalogue records only documented
+          per-token rates, the hosted model ID, and the citation. See{" "}
+          <Link
+            href="/research/api-pricing-methodology#creator-vs-host"
+            className="text-primary hover:underline"
+          >
+            /research/api-pricing-methodology
+          </Link>
+          .
         </p>
       </section>
 

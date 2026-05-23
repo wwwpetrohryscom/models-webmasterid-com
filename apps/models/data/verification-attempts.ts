@@ -19,7 +19,14 @@ export type AttemptResult =
   | "blocked-429"
   | "not-found-404"
   | "redirect-loop"
-  | "requires-manual-browser";
+  | "requires-manual-browser"
+  // Sprint 19 additions — semantic outcomes for hosted-pricing
+  // verification where the page is reachable but cannot yield a
+  // verified row.
+  | "js-required" // page renders only with JavaScript; no parseable values
+  | "insufficient-data" // page reachable but missing the field we needed
+  | "ambiguous-model-mapping" // listed model could not be mapped exactly to a catalogue entry
+  | "not-official"; // source was reachable but not an official primary source
 
 export interface VerificationAttempt {
   /** Provider slug this attempt belongs to. */
@@ -392,9 +399,18 @@ export const verificationAttempts: VerificationAttempt[] = [
     url: "https://docs.together.ai/docs/serverless-models",
     target: "Together AI serverless-models docs (Llama 4 lookup)",
     attemptedAt: "2026-05-23T00:00:00.000Z",
-    result: "reviewable",
+    result: "insufficient-data",
     notes:
       "Re-retrieved Together's docs/serverless-models page on 2026-05-23. The page contained zero references to 'Llama 4 Scout', 'Llama 4 Maverick', 'Maverick', 'Scout', 'Llama-4', or 'llama-4'. Together does not appear to expose Llama 4 on serverless inference at this time; the catalogue records no Together hosted pricing for the Llama 4 family.",
+  },
+  {
+    providerSlug: "together-ai",
+    url: "https://www.together.ai/pricing",
+    target: "Together AI pricing page (Llama 4 Scout/Maverick rows)",
+    attemptedAt: "2026-05-23T00:00:00.000Z",
+    result: "ambiguous-model-mapping",
+    notes:
+      "Llama 4 Scout and Llama 4 Maverick appear on Together's pricing page only inside the Fine-Tuning table (LoRA / Full Fine-Tuning columns) and the dedicated-GPU section. The numbers cannot be safely mapped to per-1M-tokens serverless inference rates without misattribution — recorded as ambiguous-model-mapping rather than published.",
   },
 ];
 
