@@ -30,6 +30,7 @@ export default function Page() {
         { id: "verified-field", label: "VerifiedField and MaybeVerified" },
         { id: "citation-requirements", label: "Citation requirements" },
         { id: "unverified-label", label: "The canonical unverified-data label" },
+        { id: "freshness-lifecycle", label: "Freshness lifecycle and reverification" },
         { id: "allowed-disallowed", label: "Allowed vs disallowed content" },
       ]}
       relatedLinks={[
@@ -249,6 +250,78 @@ type MaybeVerified<T> = VerifiedField<T> | null;`}
           elsewhere in the codebase — an integrity guard refuses to
           ship a build that duplicates it outside the renderer, the
           constant declaration, and the policy docs.
+        </p>
+      </section>
+
+      <section id="freshness-lifecycle">
+        <h2>Freshness lifecycle and reverification</h2>
+        <p>
+          Verification is a moment-in-time act. Sprint 21 added a
+          source-freshness layer that pairs every verified record with
+          a freshness state computed deterministically against{" "}
+          <code className="rounded bg-muted px-1">
+            siteConfig.buildDate
+          </code>
+          .
+        </p>
+        <ul>
+          <li>
+            <strong>Fresh</strong> — checked recently (standard cadence:
+            within 30 days; pricing cadence: within 14 days).
+          </li>
+          <li>
+            <strong>Review due</strong> — past the fresh window but
+            within the stale window. The value is still considered
+            verified for rendering; a manual reviewer is suggested.
+          </li>
+          <li>
+            <strong>Stale</strong> — past the stale window. Still not
+            asserted as <em>false</em>; the queue marks it for a
+            mandatory manual re-check before reuse on a new surface.
+          </li>
+          <li>
+            <strong>Blocked</strong> — a vendor URL that returned
+            403/401/429/JS-required to automated retrieval. The
+            reverification queue retries every{" "}
+            <code className="rounded bg-muted px-1">
+              SOURCE_FRESHNESS_DAYS.blockedRetry
+            </code>{" "}
+            days against a manual browser pass.
+          </li>
+          <li>
+            <strong>Unknown</strong> — no timestamp on record.
+          </li>
+        </ul>
+        <p>
+          <strong>Reverification policy.</strong> The catalogue does
+          not automatically scrape sources. It does not mutate
+          verified values in the background. It does not publish
+          unreviewed fetched data. The{" "}
+          <Link
+            href="/reverification"
+            className="text-primary hover:underline"
+          >
+            /reverification
+          </Link>{" "}
+          queue (and machine-readable{" "}
+          <code className="rounded bg-muted px-1">
+            /api/reverification
+          </code>
+          ) lists every record due for a manual re-check, the source
+          URL, and a suggested action. The reviewer confirms the value
+          against the vendor&apos;s own page, updates{" "}
+          <code className="rounded bg-muted px-1">retrievedAt</code> or{" "}
+          <code className="rounded bg-muted px-1">lastCheckedAt</code>{" "}
+          with the date of the manual review, and re-runs the
+          integrity guards.
+        </p>
+        <p>
+          <strong>Stale is not false.</strong> A row marked stale is a
+          row whose source has not been confirmed for longer than the
+          window allows — it is not a claim the value is wrong. The
+          renderer keeps showing it (the value was verified at the
+          time) but pairs it with a chip so any reader can see how
+          recently it was last checked.
         </p>
       </section>
 

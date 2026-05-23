@@ -58,7 +58,9 @@ export function GET() {
         .map((p) => absolute(p.slug)),
       updatedDate: siteConfig.buildDate,
       verificationPolicy:
-        "Data not verified unless backed by primary source citation.",
+        "Data not verified unless backed by primary source citation. Verified facts age; the reverification queue at /reverification (machine-readable at /api/reverification) lists sources due for manual re-check. The catalogue never auto-fetches or auto-mutates verified values.",
+      reverificationQueue: absolute("/reverification"),
+      reverificationApi: absolute("/api/reverification"),
     },
     {
       status: 200,

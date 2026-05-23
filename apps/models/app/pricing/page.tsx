@@ -194,7 +194,16 @@ export default async function PricingPage({ searchParams }: PageProps) {
           <code className="rounded bg-muted px-1">lastCheckedAt</code>{" "}
           and a <em>volatility</em> tag (High / Medium / Low) set by the
           row&apos;s pricing context. Both are decision aids, not
-          guarantees.
+          guarantees. Rows marked <strong>review due</strong> or{" "}
+          <strong>stale</strong> should be rechecked before procurement
+          decisions; they appear on the{" "}
+          <Link
+            href="/reverification"
+            className="text-primary hover:underline"
+          >
+            reverification queue
+          </Link>{" "}
+          with the source URL and a suggested manual action.
         </p>
       </aside>
 

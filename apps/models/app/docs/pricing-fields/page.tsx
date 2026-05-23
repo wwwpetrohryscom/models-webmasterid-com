@@ -237,6 +237,16 @@ type PricingFreshnessState =
           <code className="rounded bg-muted px-1">lastCheckedAt</code> so
           a reader can audit the row before projecting cost. WebmasterID
           Models does not rank models or billing providers by price.
+          Rows that age into <em>review_due</em> or <em>stale</em>
+          appear on the{" "}
+          <Link
+            href="/reverification"
+            className="text-primary hover:underline"
+          >
+            /reverification
+          </Link>{" "}
+          queue with the source URL and a suggested manual action —
+          they are never auto-updated.
         </p>
       </section>
 

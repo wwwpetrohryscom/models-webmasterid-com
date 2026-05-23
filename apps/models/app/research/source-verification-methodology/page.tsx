@@ -29,6 +29,7 @@ export default function Page() {
         { id: "verified-field", label: "The VerifiedField shape" },
         { id: "states", label: "Verification states" },
         { id: "retrieval-cadence", label: "Retrieval cadence" },
+        { id: "freshness-and-reverification", label: "Freshness and the reverification queue" },
         { id: "blocked-attempts", label: "Blocked retrievals are recorded too" },
         { id: "jsonld-policy", label: "JSON-LD exclusion policy" },
         { id: "source-allow-vs-rejected", label: "Allowed vs rejected source types" },
@@ -223,6 +224,74 @@ export default function Page() {
           <code className="rounded bg-muted px-1">retrievedAt</code> is
           older than the cadence above should either be re-verified or
           dropped back to null.
+        </p>
+      </section>
+
+      <section id="freshness-and-reverification">
+        <h2>Freshness and the reverification queue</h2>
+        <p>
+          Sprint 21 added a source-freshness model on top of the
+          retrieval cadence above. Every record carries a freshness
+          state — <strong>fresh</strong>, <strong>review_due</strong>,{" "}
+          <strong>stale</strong>, <strong>blocked</strong>, or{" "}
+          <strong>unknown</strong> — computed deterministically against{" "}
+          <code className="rounded bg-muted px-1">
+            siteConfig.buildDate
+          </code>
+          . Pricing rows use the shorter cadence (14d / 30d / 45d);
+          general citations use the standard cadence (30d / 60d / 90d).
+        </p>
+        <p>
+          Records that age into <code className="rounded bg-muted px-1">review_due</code>
+          {" "}or <code className="rounded bg-muted px-1">stale</code>{" "}
+          appear on the{" "}
+          <Link
+            href="/reverification"
+            className="text-primary hover:underline"
+          >
+            /reverification
+          </Link>{" "}
+          queue (machine-readable at{" "}
+          <code className="rounded bg-muted px-1">
+            /api/reverification
+          </code>
+          ) with the source URL, the affected routes, and a suggested
+          manual action. <strong>The catalogue never auto-fetches or
+          auto-mutates verified values</strong>; the queue is an
+          informational nudge for a human reviewer.
+        </p>
+        <p>
+          The workflow:
+        </p>
+        <ol className="ml-5 list-decimal space-y-1">
+          <li>
+            Pick the highest-priority queue item (critical &gt; high &gt;
+            medium &gt; low; pricing reviews rank higher than docs).
+          </li>
+          <li>
+            Open the source URL in a real browser. Confirm the value on
+            the vendor page.
+          </li>
+          <li>
+            Update the on-disk record in{" "}
+            <code className="rounded bg-muted px-1">data/</code>. Stamp{" "}
+            <code className="rounded bg-muted px-1">retrievedAt</code> /{" "}
+            <code className="rounded bg-muted px-1">lastCheckedAt</code>{" "}
+            with the date of the manual review.
+          </li>
+          <li>
+            Re-run{" "}
+            <code className="rounded bg-muted px-1">
+              npm run check:production
+            </code>
+            . The queue refreshes on the next build.
+          </li>
+        </ol>
+        <p>
+          A stale row is not asserted as wrong; it is asserted as
+          unconfirmed since the last review. The renderer keeps showing
+          the value (it was verified at the time) but pairs it with a
+          chip so any reader can see how recently it was checked.
         </p>
       </section>
 

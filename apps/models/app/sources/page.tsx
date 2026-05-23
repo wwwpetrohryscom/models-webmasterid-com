@@ -219,7 +219,17 @@ export default async function SourcesPage({ searchParams }: PageProps) {
           <Link href="/coverage" className="text-primary hover:underline">
             /coverage
           </Link>
-          . For the methodology behind these citations, see{" "}
+          . Each citation below pairs the retrieval date with a
+          freshness chip; sources that have aged out of the standard
+          window appear on the{" "}
+          <Link
+            href="/reverification"
+            className="text-primary hover:underline"
+          >
+            reverification queue
+          </Link>{" "}
+          for a manual re-check — they are never auto-fetched. For the
+          methodology behind these citations, see{" "}
           <Link
             href="/research/source-verification-methodology"
             className="text-primary hover:underline"

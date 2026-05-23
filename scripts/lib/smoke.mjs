@@ -23,6 +23,7 @@ const PAGE_ROUTES = [
   "/sources",
   "/research",
   "/docs",
+  "/reverification",
 ];
 
 const API_ROUTES = [
@@ -36,6 +37,7 @@ const API_ROUTES = [
   "/api/status/anthropic/window?hours=24",
   "/api/status/google/window?hours=24",
   "/api/cron/status",
+  "/api/reverification",
 ];
 
 const FETCH_TIMEOUT_MS = 8_000;

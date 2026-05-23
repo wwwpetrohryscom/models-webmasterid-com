@@ -18,7 +18,7 @@
  * commit (from VERCEL_GIT_COMMIT_SHA) does not start with this prefix.
  */
 
-export const ROUTE_SET_VERSION = "content-v3";
+export const ROUTE_SET_VERSION = "content-v4";
 
 /**
  * Short prefix of the latest commit on `main` that this version of the
@@ -39,6 +39,7 @@ export const REQUIRED_PAGE_ROUTES = [
   "/sources",
   "/research",
   "/docs",
+  "/reverification",
 ] as const;
 export type RequiredPageRoute = (typeof REQUIRED_PAGE_ROUTES)[number];
 
@@ -54,6 +55,7 @@ export const REQUIRED_API_ROUTES = [
   "/api/status/google/latest",
   "/api/status/anthropic/window",
   "/api/status/google/window",
+  "/api/reverification",
 ] as const;
 export type RequiredApiRoute = (typeof REQUIRED_API_ROUTES)[number];
 

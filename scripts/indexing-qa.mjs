@@ -59,6 +59,7 @@ const INDEXABLE_PAGES = [
   },
   { path: "/research/model-selection", expectJsonLd: true, kind: "detail" },
   { path: "/docs/pricing-fields", expectJsonLd: true, kind: "detail" },
+  { path: "/reverification", expectJsonLd: true, kind: "hub" },
 ];
 
 const FILTERED_NOINDEX_PAGES = [

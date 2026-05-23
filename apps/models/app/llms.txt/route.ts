@@ -90,6 +90,7 @@ export function GET() {
     { label: "Infrastructure", path: "/infrastructure" },
     { label: "Coverage", path: "/coverage" },
     { label: "Sources", path: "/sources" },
+    { label: "Reverification queue", path: "/reverification" },
     { label: "Docs", path: "/docs" },
   ]) {
     buf.push(line(`- [${item.label}](${siteConfig.url}${item.path})`));

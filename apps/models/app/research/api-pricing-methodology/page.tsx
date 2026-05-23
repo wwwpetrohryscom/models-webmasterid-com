@@ -146,7 +146,18 @@ export default function Page() {
           </Link>
           ; the rendering layer pairs every row with{" "}
           <em>Freshness</em> and <em>Volatility</em> chips so the
-          warning is unavoidable.
+          warning is unavoidable. Sprint 21 added the manual review
+          loop: rows that age into <em>review_due</em> or{" "}
+          <em>stale</em> show up on the{" "}
+          <Link
+            href="/reverification"
+            className="text-primary hover:underline"
+          >
+            /reverification
+          </Link>{" "}
+          queue with the source URL and a suggested manual action.
+          Nothing on the catalogue auto-fetches or auto-mutates a
+          pricing value.
         </p>
       </section>
 

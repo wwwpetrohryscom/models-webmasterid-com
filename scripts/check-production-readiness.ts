@@ -3238,6 +3238,476 @@ const checks: Check[] = [
       return null;
     },
   },
+  // ---------------------------------------------------------------------
+  // Sprint 21 — source freshness + reverification queue.
+  //
+  // The queue is the manual review surface that sits on top of the
+  // Sprint 20 freshness chips. Guards here keep the policy honest:
+  //   - helpers exist and are deterministic (no Date.now())
+  //   - no module fetches remote URLs
+  //   - the page + API endpoint exist
+  //   - every transparency surface links to the queue
+  //   - the docs document the workflow
+  //   - the route contract advertises the new routes
+  //   - the API endpoint does not expose secrets
+  // ---------------------------------------------------------------------
+  {
+    name: "lib/source-freshness.ts exists with deterministic build-date semantics (Sprint 21)",
+    run: () => {
+      const rel = "apps/models/lib/source-freshness.ts";
+      if (!fileExists(rel)) {
+        return "Missing lib/source-freshness.ts — Sprint 21 introduced this helper.";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const token of [
+        "FreshnessState",
+        "ReverificationReason",
+        "SOURCE_FRESHNESS_DAYS",
+        "getFreshnessState",
+        "freshnessPriority",
+        "REVERIFICATION_POLICY_NOTE",
+      ]) {
+        if (!new RegExp(`\\b${token}\\b`).test(src)) {
+          failures.push(
+            `lib/source-freshness.ts must export \`${token}\`.`
+          );
+        }
+      }
+      // Must read siteConfig.buildDate, must NOT use Date.now() for
+      // the canonical "now" — that would make rendering nondeterministic.
+      if (!/siteConfig\.buildDate/.test(src)) {
+        failures.push(
+          "lib/source-freshness.ts must compute freshness against siteConfig.buildDate."
+        );
+      }
+      // Strip comments before checking for Date.now() so the JSDoc
+      // mention of "(not wall-clock Date.now())" doesn't trip the guard.
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      if (/Date\.now\s*\(/.test(stripped)) {
+        failures.push(
+          "lib/source-freshness.ts must not call Date.now() — freshness must be deterministic against siteConfig.buildDate."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lib/reverification.ts exists and is network-free (Sprint 21)",
+    run: () => {
+      const rel = "apps/models/lib/reverification.ts";
+      if (!fileExists(rel)) {
+        return "Missing lib/reverification.ts — Sprint 21 introduced the reverification queue builder.";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const token of [
+        "ReverificationQueueItem",
+        "getReverificationQueue",
+        "getReverificationSummary",
+        "getReverificationQueueByProvider",
+        "getHighPriorityReverificationItems",
+      ]) {
+        if (!new RegExp(`\\b${token}\\b`).test(src)) {
+          failures.push(
+            `lib/reverification.ts must export \`${token}\`.`
+          );
+        }
+      }
+      // Strip comments — they reference "fetch" by name in the
+      // policy explanation, which is not the same as a runtime call.
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      if (/\bfetch\s*\(/.test(stripped) || /\bprocess\.env\b/.test(stripped)) {
+        failures.push(
+          "lib/reverification.ts must be a pure local read — no fetch(), no process.env."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/reverification page exists (Sprint 21)",
+    run: () => {
+      const rel = "apps/models/app/reverification/page.tsx";
+      if (!fileExists(rel)) {
+        return "Missing /reverification page (Sprint 21).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      if (!/Reverification Queue/i.test(src)) {
+        failures.push(
+          "/reverification must render the 'Reverification Queue' title."
+        );
+      }
+      if (!/getReverificationQueue/.test(src)) {
+        failures.push(
+          "/reverification must call getReverificationQueue() to render the queue."
+        );
+      }
+      if (!/getReverificationSummary/.test(src)) {
+        failures.push(
+          "/reverification must call getReverificationSummary() for the summary cards."
+        );
+      }
+      if (!/REVERIFICATION_POLICY_NOTE/.test(src)) {
+        failures.push(
+          "/reverification must render the canonical REVERIFICATION_POLICY_NOTE."
+        );
+      }
+      // Page must explicitly disavow auto-mutation language.
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      const promisesAutoUpdate =
+        /auto[- ]?fetch(?:es|ing)?\s+(?:and|then)\s+(?:updates|replaces|writes)/i.test(
+          stripped
+        ) ||
+        /scrape[s]?\s+(?:and|then)\s+(?:updates|publishes|writes)/i.test(
+          stripped
+        );
+      if (promisesAutoUpdate) {
+        failures.push(
+          "/reverification must NOT promise automatic scraping / mutation of verified values."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/api/reverification endpoint exists and is secrets-free (Sprint 21)",
+    run: () => {
+      const rel = "apps/models/app/api/reverification/route.ts";
+      if (!fileExists(rel)) {
+        return "Missing /api/reverification endpoint (Sprint 21).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      if (!/getReverificationQueue/.test(src)) {
+        failures.push(
+          "/api/reverification must call getReverificationQueue() to populate `items`."
+        );
+      }
+      if (!/getReverificationSummary/.test(src)) {
+        failures.push(
+          "/api/reverification must call getReverificationSummary() for the `summary` field."
+        );
+      }
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      // No secret env values may surface in the response.
+      const bannedEnv =
+        /process\.env\.(?:CRON_SECRET|KV_REST_API_TOKEN|VERCEL_OIDC_TOKEN|REDIS|SUPABASE|OPENAI|ANTHROPIC|GROQ|TOGETHER|GOOGLE|MISTRAL|DEEPSEEK)[A-Z_0-9]*\b/;
+      if (bannedEnv.test(stripped)) {
+        failures.push(
+          "/api/reverification must not reference any secret env var (CRON_SECRET, KV tokens, vendor keys)."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract advertises /reverification and /api/reverification (Sprint 21)",
+    run: () => {
+      const src = readRel("apps/models/lib/route-contract.ts");
+      const failures: string[] = [];
+      if (!/"\/reverification"/.test(src)) {
+        failures.push(
+          "lib/route-contract.ts REQUIRED_PAGE_ROUTES must include '/reverification'."
+        );
+      }
+      if (!/"\/api\/reverification"/.test(src)) {
+        failures.push(
+          "lib/route-contract.ts REQUIRED_API_ROUTES must include '/api/reverification'."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/coverage links to /reverification (Sprint 21)",
+    run: () => {
+      const src = readRel("apps/models/app/coverage/page.tsx");
+      if (!/\/reverification/.test(src)) {
+        return "/coverage must link to /reverification (the freshness queue).";
+      }
+      if (!/getReverificationSummary/.test(src)) {
+        return "/coverage must render reverification summary counts via getReverificationSummary().";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/sources surfaces freshness language and links to /reverification (Sprint 21)",
+    run: () => {
+      const src = readRel("apps/models/app/sources/page.tsx");
+      const failures: string[] = [];
+      if (!/\/reverification/.test(src)) {
+        failures.push(
+          "/sources must link to /reverification so readers can see which sources are due for re-check."
+        );
+      }
+      const componentSrc = readRel(
+        "apps/models/components/SourceCitation.tsx"
+      );
+      if (!/getFreshnessState/.test(componentSrc)) {
+        failures.push(
+          "components/SourceCitation.tsx must call getFreshnessState() so every citation renders with a freshness chip."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/pricing links to /reverification (Sprint 21)",
+    run: () => {
+      const src = readRel("apps/models/app/pricing/page.tsx");
+      if (!/\/reverification/.test(src)) {
+        return "/pricing must link to /reverification so review-due and stale rows can be audited.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "docs/data-verification documents freshness states (Sprint 21)",
+    run: () => {
+      const src = readRel(
+        "apps/models/app/docs/data-verification/page.tsx"
+      );
+      const failures: string[] = [];
+      if (!/Freshness lifecycle and reverification/i.test(src)) {
+        failures.push(
+          "docs/data-verification must include a 'Freshness lifecycle and reverification' section."
+        );
+      }
+      if (!/Stale is not false/i.test(src)) {
+        failures.push(
+          "docs/data-verification must include the 'Stale is not false' framing."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "research/source-verification-methodology documents the queue workflow (Sprint 21)",
+    run: () => {
+      const src = readRel(
+        "apps/models/app/research/source-verification-methodology/page.tsx"
+      );
+      const failures: string[] = [];
+      if (!/Freshness and the reverification queue/i.test(src)) {
+        failures.push(
+          "research/source-verification-methodology must include a 'Freshness and the reverification queue' section."
+        );
+      }
+      // Allow whitespace + newlines between "auto-fetches or" and
+      // "auto-mutates" so the JSX can wrap the phrase naturally
+      // across two source lines.
+      if (
+        !/never auto-fetches or\s+auto-mutates/i.test(src) &&
+        !/never\s+auto-mutates/i.test(src)
+      ) {
+        failures.push(
+          "research/source-verification-methodology must explicitly state the no-auto-mutation policy."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "sitemap + llms.txt advertise /reverification (Sprint 21)",
+    run: () => {
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const failures: string[] = [];
+      if (!/\/reverification/.test(sitemap)) {
+        failures.push("sitemap.ts must include /reverification.");
+      }
+      if (!/\/reverification/.test(llms)) {
+        failures.push("llms.txt must list /reverification.");
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/api/site advertises the reverification queue + API (Sprint 21)",
+    run: () => {
+      const src = readRel("apps/models/app/api/site/route.ts");
+      const failures: string[] = [];
+      if (!/reverificationQueue/.test(src)) {
+        failures.push(
+          "/api/site must include `reverificationQueue` in its response."
+        );
+      }
+      if (!/reverificationApi/.test(src)) {
+        failures.push(
+          "/api/site must include `reverificationApi` in its response."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "smoke + indexing scripts include /reverification (Sprint 21)",
+    run: () => {
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+      if (!/"\/reverification"/.test(smoke)) {
+        failures.push(
+          "scripts/lib/smoke.mjs PAGE_ROUTES must include '/reverification'."
+        );
+      }
+      if (!/"\/api\/reverification"/.test(smoke)) {
+        failures.push(
+          "scripts/lib/smoke.mjs API_ROUTES must include '/api/reverification'."
+        );
+      }
+      if (!/"\/reverification"/.test(indexing)) {
+        failures.push(
+          "scripts/indexing-qa.mjs must include '/reverification' in the indexable pages list."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no data record is mutated at runtime in lib/ (Sprint 21)",
+    run: () => {
+      // The catalogue is read-only at request time. No helper in lib/
+      // may push, splice, or assign into the typed data records, and
+      // no helper may write to the data directory. This re-states the
+      // entity-graph network-free invariant for the reverification
+      // layer and is a defence-in-depth check.
+      const targets = [
+        "apps/models/lib/reverification.ts",
+        "apps/models/lib/source-freshness.ts",
+        "apps/models/lib/hosted-availability.ts",
+        "apps/models/lib/pricing-freshness.ts",
+      ];
+      const failures: string[] = [];
+      const writeFs =
+        /\b(writeFile|writeFileSync|appendFile|appendFileSync|rmSync|rm\s*\(|unlink|mkdir)\b/;
+      const networkCall = /\bfetch\s*\(/;
+      const dataMutation =
+        /\b(models|providers|hostedPricing|verificationAttempts)\s*\.(push|splice|unshift|pop|shift|sort|reverse)\s*\(/;
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        if (writeFs.test(stripped)) {
+          failures.push(
+            `${rel} writes to the filesystem — read-only allowed only.`
+          );
+        }
+        if (networkCall.test(stripped)) {
+          failures.push(
+            `${rel} calls fetch() — reverification + freshness helpers must stay network-free.`
+          );
+        }
+        if (dataMutation.test(stripped)) {
+          failures.push(
+            `${rel} mutates a typed data array (push/splice/etc.).`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "every reverification queue item has affectedRoutes + suggestedAction (Sprint 21)",
+    run: () => {
+      // ReverificationQueueItem declares affectedRoutes and
+      // suggestedAction as required fields, so TypeScript already
+      // enforces that every items.push({...}) literal carries them.
+      // This guard re-states the invariant at the type-definition
+      // level so a future loosening of the interface trips CI.
+      const src = readRel("apps/models/lib/reverification.ts");
+      const failures: string[] = [];
+      // The interface declaration must mark these as required (no `?`).
+      const ifaceMatch = src.match(
+        /export interface ReverificationQueueItem\s*\{([\s\S]*?)\}/
+      );
+      if (!ifaceMatch) {
+        return "Could not locate `ReverificationQueueItem` interface in lib/reverification.ts.";
+      }
+      const body = ifaceMatch[1];
+      const requiredField = (name: string): boolean =>
+        new RegExp(`\\b${name}\\s*:`).test(body) &&
+        !new RegExp(`\\b${name}\\s*\\?:`).test(body);
+      if (!requiredField("affectedRoutes")) {
+        failures.push(
+          "ReverificationQueueItem.affectedRoutes must be a required string[] field."
+        );
+      }
+      if (!requiredField("suggestedAction")) {
+        failures.push(
+          "ReverificationQueueItem.suggestedAction must be a required string field."
+        );
+      }
+      // Defence-in-depth: confirm every actual push call body
+      // mentions both fields. Use a brace-depth counter rather than
+      // regex so nested template literals don't trip it.
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      const pushStarts: number[] = [];
+      const startRe = /items\.push\(\s*\{/g;
+      let mm: RegExpExecArray | null;
+      while ((mm = startRe.exec(stripped)) !== null) {
+        pushStarts.push(mm.index + mm[0].length - 1); // index of "{"
+      }
+      for (const start of pushStarts) {
+        let depth = 0;
+        let end = start;
+        for (let i = start; i < stripped.length; i++) {
+          const ch = stripped[i];
+          if (ch === "{") depth++;
+          else if (ch === "}") {
+            depth--;
+            if (depth === 0) {
+              end = i;
+              break;
+            }
+          }
+        }
+        const bodyText = stripped.slice(start, end + 1);
+        if (!/affectedRoutes:/.test(bodyText)) {
+          failures.push(
+            "A reverification queue item is missing `affectedRoutes`."
+          );
+        }
+        if (!/suggestedAction:/.test(bodyText)) {
+          failures.push(
+            "A reverification queue item is missing `suggestedAction`."
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "blocked OpenAI docs are represented in the queue (Sprint 21)",
+    run: () => {
+      // Defence-in-depth: blocked-403 attempts against OpenAI must
+      // continue to drive a queue item. The queue builder walks every
+      // blocked attempt; this guard confirms the data is still in the
+      // attempts log so the queue actually receives an item.
+      const src = readRel("apps/models/data/verification-attempts.ts");
+      const openAiBlocked =
+        /providerSlug:\s*"openai"[\s\S]*?result:\s*"blocked-403"/.test(src);
+      if (!openAiBlocked) {
+        return "verification-attempts.ts must keep at least one blocked OpenAI attempt so /reverification surfaces it.";
+      }
+      return null;
+    },
+  },
   {
     name: "WebmasterID tracker is loaded once, not duplicated",
     run: () => {

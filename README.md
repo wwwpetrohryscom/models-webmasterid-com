@@ -435,6 +435,22 @@ These rules are non-negotiable. The full workflow lives in
     [`lib/hosted-availability.ts`](apps/models/lib/hosted-availability.ts)
     as a *separate* surface from pricing — availability is stable;
     pricing is volatile.
+11. **No auto-mutation; manual reverification queue (Sprint 21).**
+    Verified facts age. A generalised
+    [`lib/source-freshness.ts`](apps/models/lib/source-freshness.ts)
+    computes a deterministic state (fresh / review_due / stale /
+    blocked / unknown) against `siteConfig.buildDate` across
+    citations, model records, providers, pricing, hosted pricing,
+    and verification attempts. Records that age out feed a
+    [`lib/reverification.ts`](apps/models/lib/reverification.ts) queue
+    rendered at [`/reverification`](apps/models/app/reverification/page.tsx)
+    and exposed as JSON at
+    [`/api/reverification`](apps/models/app/api/reverification/route.ts).
+    **The catalogue does not auto-fetch vendor sources, does not
+    mutate verified values in the background, and does not publish
+    unreviewed fetched data.** The queue is informational — every
+    item points a human reviewer at a source URL with a suggested
+    manual action. Stale ≠ false.
 
 Entity model: [`apps/models/lib/types.ts`](apps/models/lib/types.ts).
 Citation registry: [`apps/models/data/citations.ts`](apps/models/data/citations.ts).

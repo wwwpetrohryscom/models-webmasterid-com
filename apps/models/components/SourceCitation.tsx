@@ -1,6 +1,11 @@
 import Link from "next/link";
 import type { SourceCitation as SourceCitationT } from "@/lib/types";
 import { formatDateISO } from "@/lib/utils";
+import {
+  freshnessClasses,
+  freshnessLabel,
+  getFreshnessState,
+} from "@/lib/source-freshness";
 
 const TYPE_LABEL: Record<SourceCitationT["type"], string> = {
   "official-vendor-docs": "Official docs",
@@ -19,15 +24,27 @@ export function SourceCitationItem({
   citation: SourceCitationT;
   compact?: boolean;
 }) {
+  // Sprint 21: pair every citation with a deterministic freshness
+  // chip computed against siteConfig.buildDate. Pricing citations
+  // use the pricing cadence (14d/30d); other citations use the
+  // standard cadence (30d/60d/90d).
+  const category =
+    citation.type === "official-vendor-pricing" ? "pricing" : "source";
+  const freshness = getFreshnessState(citation.retrievedAt, { category });
   return (
     <article
       className="rounded-xl border border-border bg-card p-3"
       data-source-type={citation.type}
+      data-source-freshness={freshness}
     >
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <span className="pill">{TYPE_LABEL[citation.type]}</span>
-        <span>
-          Retrieved {formatDateISO(citation.retrievedAt)}
+        <span>Retrieved {formatDateISO(citation.retrievedAt)}</span>
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${freshnessClasses(freshness)}`}
+          aria-label={`Source freshness ${freshnessLabel(freshness)}`}
+        >
+          {freshnessLabel(freshness)}
         </span>
       </div>
       <Link

@@ -17,6 +17,7 @@ import {
   getEntityCoverageSummary,
   getStatusObserverForProvider,
 } from "@/lib/entity-graph";
+import { getReverificationSummary } from "@/lib/reverification";
 import {
   isStatusStorageConfigured,
   MINIMUM_OBSERVATIONS_FOR_UPTIME,
@@ -64,6 +65,7 @@ const ATTEMPT_LABEL: Record<string, string> = {
 
 export default function CoveragePage() {
   const summary = getEntityCoverageSummary();
+  const reverification = getReverificationSummary();
   const summaryCards: { label: string; value: number; href?: string }[] = [
     {
       label: "Verified models",
@@ -163,6 +165,11 @@ export default function CoveragePage() {
           (31+ days), <strong>Unknown</strong> (no timestamp). Pricing
           values are source-backed references, not live quotes; WebmasterID
           Models does not rank models or billing providers by price.
+          Items that age out of freshness move to the{" "}
+          <Link href="/reverification" className="text-primary hover:underline">
+            reverification queue
+          </Link>{" "}
+          for a manual review — they are never auto-updated.
         </p>
       </aside>
 
@@ -203,6 +210,53 @@ export default function CoveragePage() {
               </li>
             );
           })}
+        </ul>
+      </section>
+
+      <section
+        aria-label="Freshness and reverification"
+        className="space-y-3"
+      >
+        <SectionHeader
+          eyebrow="Freshness"
+          title="Freshness and reverification queue"
+          description="Coverage is not the same as freshness. A verified field can age into a review_due or stale state before any vendor change; the reverification queue points a human reviewer at the next source to re-check. The queue is informational — no automatic scraping, no auto-mutation."
+          cta={{ label: "Open reverification queue", href: "/reverification" }}
+          as="h2"
+        />
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {(
+            [
+              { label: "Total items", value: reverification.total },
+              { label: "Critical", value: reverification.critical },
+              { label: "High", value: reverification.high },
+              {
+                label: "Pricing review due",
+                value: reverification.pricing,
+              },
+              {
+                label: "Hosted pricing review due",
+                value: reverification.hostedPricing,
+              },
+              { label: "Stale", value: reverification.stale },
+              { label: "Review due", value: reverification.reviewDue },
+              { label: "Blocked", value: reverification.blocked },
+            ] as const
+          ).map((card) => (
+            <li key={card.label}>
+              <Link
+                href="/reverification"
+                className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                  {card.label}
+                </p>
+                <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
+                  {card.value}
+                </p>
+              </Link>
+            </li>
+          ))}
         </ul>
       </section>
 

@@ -26,6 +26,7 @@ const STATIC_ROUTES: StaticRoute[] = [
   { path: "/infrastructure", changeFrequency: "weekly", priority: 0.6 },
   { path: "/coverage", changeFrequency: "weekly", priority: 0.7 },
   { path: "/sources", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/reverification", changeFrequency: "weekly", priority: 0.6 },
   { path: "/research", changeFrequency: "weekly", priority: 0.7 },
   { path: "/docs", changeFrequency: "monthly", priority: 0.5 },
 ];

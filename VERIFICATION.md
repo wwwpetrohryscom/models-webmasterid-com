@@ -336,6 +336,58 @@ pricing as references, never as a ranking. No new indexable route
 was added — the spec's optional `/hosted-models` route was rejected
 as thin with only two availability records.
 
+**Sprint 21 — source freshness workflow + reverification queue.**
+Sprint 21 generalises Sprint 20's pricing-freshness layer into a
+source-wide model that covers citations, model records, providers,
+pricing, hosted pricing, status observers, and verification
+attempts. A new
+[`lib/source-freshness.ts`](apps/models/lib/source-freshness.ts)
+exposes `FreshnessState` (`fresh` / `review_due` / `stale` /
+`blocked` / `unknown`), `SOURCE_FRESHNESS_DAYS` thresholds
+(standard 30/60/90, pricing 14/30/45, blocked-retry 30),
+`getFreshnessState`, `freshnessPriority`, and the canonical
+`REVERIFICATION_POLICY_NOTE`. State is computed deterministically
+against `siteConfig.buildDate` — no wall-clock reads.
+
+A new [`lib/reverification.ts`](apps/models/lib/reverification.ts)
+builds a typed `ReverificationQueueItem[]` from the data layer with
+explicit `affectedRoutes` and `suggestedAction` on every item.
+Sources walked:
+- first-party pricing rows past the pricing freshness window
+- hosted-pricing rows past the same window
+- citations past the standard freshness window
+- blocked verification attempts (until a newer verified attempt
+  supersedes them — OpenAI 403s persist through the queue)
+- providers with verificationStatus = "partial"
+- verified providers with a public status page but no observer
+- verified model records carrying ≥3 null canonical metrics
+
+The queue is surfaced at [`/reverification`](apps/models/app/reverification/page.tsx)
+(indexable, sitemap + llms.txt + footer linked) and exposed as
+machine-readable JSON at
+[`/api/reverification`](apps/models/app/api/reverification/route.ts).
+/coverage now renders a freshness summary card grid linked to the
+queue; /sources pairs every citation with a freshness chip and links
+to the queue; /pricing notes the queue as the audit path for review-
+due rows. Docs at /docs/data-verification and
+/research/source-verification-methodology gained sections covering
+the freshness lifecycle, the workflow, and the explicit
+"stale is not false" framing.
+
+**No-auto-mutation policy.** The reverification queue is
+informational only. Nothing on the platform auto-fetches vendor
+sources, auto-updates verified values, or publishes unreviewed
+fetched data. Queue items point a human reviewer at a source URL
+with a suggested manual action; the catalogue only mutates after a
+manual review confirms the value and the reviewer hand-edits the
+data file with a fresh `retrievedAt` or `lastCheckedAt`. Integrity
+guards refuse any helper that calls `fetch()` from the freshness or
+reverification layers, refuses any filesystem mutation in those
+helpers, refuses /api/reverification to surface secret env values,
+and refuses to ship `/reverification` if its copy promises
+auto-scraping or auto-updates. `ROUTE_SET_VERSION` is bumped to
+`content-v4` for this sprint.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,
