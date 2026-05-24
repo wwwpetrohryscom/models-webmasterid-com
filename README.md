@@ -474,6 +474,27 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+16. **UX conversion polish + landing narrative (Sprint 26).** The
+    Hero now leads with positioning + a primary "Start with a use
+    case" CTA + a secondary "How it works" CTA. The homepage gained
+    two new sections directly below the Hero: a "How to use this"
+    workflow strip (shared
+    [`<DecisionWorkflow>`](apps/models/components/DecisionWorkflow.tsx)
+    component) and a "Who this is for / What this catalogue is not"
+    two-card framing. A new
+    [`/how-it-works`](apps/models/app/how-it-works/page.tsx) page
+    walks the full five-step workflow (use case → shortlist →
+    comparison → gaps + freshness → evidence brief) with
+    step-by-step section headers and deep links into each
+    workspace. The four workspace pages — `/select`,
+    `/compare/build`, `/briefs/build`, `/intelligence` — gained
+    tightened one-paragraph intros that name the step number
+    ("Workspace · step 2 of 5") and reference `/how-it-works` so a
+    cold visitor can always find the walkthrough. Seven new
+    integrity guards enforce the strip + framing + walkthrough
+    presence and re-check the no-recommendation policy on the new
+    surfaces. No theme / CSS / dependency changes.
+
 15. **Decision briefs + shareable evidence exports (Sprint 25).** A
     new [`/briefs/build`](apps/models/app/briefs/build/page.tsx)
     workspace renders a shareable evidence pack from 2–4 selected

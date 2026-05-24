@@ -82,6 +82,7 @@ export function GET() {
 
   buf.push(line("## Core sections"));
   for (const item of [
+    { label: "How it works (walkthrough)", path: "/how-it-works" },
     { label: "Models", path: "/models" },
     { label: "Providers", path: "/providers" },
     { label: "Compare", path: "/compare" },

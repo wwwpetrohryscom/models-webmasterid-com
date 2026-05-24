@@ -139,9 +139,9 @@ export default async function CompareBuilderPage({
 
   return (
     <PageShell
-      eyebrow="Workspace"
+      eyebrow="Workspace · step 3 of 5"
       title="Comparison Builder"
-      intro="Build a source-backed side-by-side view from verified model fields. No rankings, no winners, no unsupported benchmark claims. Generated query URLs are noindex; only the unfiltered base page is indexable."
+      intro="Render 2–4 selected models side by side using verified fields straight from the typed local data layer. No derived metrics, no deltas, no winner. Unknown values render the canonical unverified-data label rather than inventing numbers. Generated query URLs are noindex; only the unfiltered base page is indexable. New here? Start at /how-it-works."
     >
       <Breadcrumbs
         items={[

@@ -18,6 +18,7 @@ interface StaticRoute {
 
 const STATIC_ROUTES: StaticRoute[] = [
   { path: "/", changeFrequency: "daily", priority: 1 },
+  { path: "/how-it-works", changeFrequency: "monthly", priority: 0.9 },
   { path: "/models", changeFrequency: "weekly", priority: 0.9 },
   { path: "/providers", changeFrequency: "weekly", priority: 0.8 },
   { path: "/compare", changeFrequency: "weekly", priority: 0.8 },
@@ -96,8 +97,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     }));
 
+  // Static routes always win — anything in STATIC_ROUTES is removed
+  // from the content-registry pass so the sitemap never has a
+  // duplicate URL entry. Top-level content pages (e.g.
+  // `/how-it-works`) get their priority from STATIC_ROUTES.
+  const staticPaths = new Set(STATIC_ROUTES.map((r) => r.path));
   const contentEntries: MetadataRoute.Sitemap = contentPages
-    .filter((p) => p.indexable)
+    .filter((p) => p.indexable && !staticPaths.has(p.slug))
     .map((p) => ({
       url: `${siteConfig.url}${p.slug}`,
       lastModified: new Date(p.updatedDate),

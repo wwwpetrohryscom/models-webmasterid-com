@@ -88,7 +88,7 @@ export default function IntelligencePage() {
     <PageShell
       eyebrow="Workspace"
       title="AI Model Infrastructure Intelligence Workspace"
-      intro="Navigate verified models, provider coverage, pricing references, status observations, source freshness, and comparison clusters from one operational view. Every count below is derived from the typed local data layer — there are no fabricated metrics, no rankings, and no auto-mutated values."
+      intro="Operator view across the entity graph — verified models, provider coverage, pricing references, source freshness, comparison clusters, and the manual reverification queue in one snapshot. Every count below is derived from the typed local data layer. No fabricated metrics, no rankings, no auto-mutation. New here? Open the five-step walkthrough at /how-it-works."
     >
       <Breadcrumbs
         items={[

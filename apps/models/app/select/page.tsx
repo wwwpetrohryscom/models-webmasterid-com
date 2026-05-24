@@ -133,9 +133,9 @@ export default async function SelectPage({ searchParams }: PageProps) {
 
   return (
     <PageShell
-      eyebrow="Workspace"
+      eyebrow="Workspace · step 2 of 5"
       title="Model Selection Workspace"
-      intro="Build a source-backed shortlist using verified context windows, lifecycle status, pricing references, hosted availability, source coverage, and data gaps. This is not a recommendation engine. It surfaces verified fields so a reader can decide which models to investigate."
+      intro="Pick a use case to weight which verified fields matter, then narrow a source-backed shortlist by provider, lifecycle, context window, modality, pricing coverage, hosted availability, verification status, or freshness. This is not a recommendation engine — shortlist order is deterministic, never a ranking. New here? Start at /how-it-works."
     >
       <Breadcrumbs
         items={[

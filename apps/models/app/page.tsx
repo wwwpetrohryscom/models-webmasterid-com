@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Hero } from "@/components/Hero";
+import { DecisionWorkflow } from "@/components/DecisionWorkflow";
 import { StatCard } from "@/components/StatCard";
 import { DashboardCard } from "@/components/DashboardCard";
 import { ModelBadge } from "@/components/ModelBadge";
@@ -64,10 +65,87 @@ export default function HomePage() {
 
       <Hero />
 
+      {/* How to use this — workflow strip */}
+      <section
+        aria-label="How to use this"
+        className="container-page mt-10"
+      >
+        <SectionHeader
+          eyebrow="How to use this"
+          title="A decision workflow, not a recommendation engine"
+          description="Five server-rendered steps. Start with a use case, narrow a source-backed shortlist, inspect verified fields side by side, surface the data gaps, then export an evidence brief. WebmasterID Models supports the decision; the reader runs the workload."
+          cta={{ label: "Read the full walkthrough", href: "/how-it-works" }}
+        />
+        <div className="mt-6">
+          <DecisionWorkflow variant="card" />
+        </div>
+      </section>
+
+      {/* Who / What this is not */}
+      <section
+        aria-label="Who this is for and what it is not"
+        className="container-page mt-12"
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          <article className="card-surface space-y-2 p-5 text-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              Who this is for
+            </p>
+            <p className="text-foreground">
+              Engineers and technical buyers evaluating which AI model
+              to test next.
+            </p>
+            <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+              <li>
+                You need verified context windows, modality, lifecycle
+                status, and pricing references in one place.
+              </li>
+              <li>
+                You want explicit data gaps when a vendor does not
+                publish a value, not invented numbers.
+              </li>
+              <li>
+                You want a paste-ready evidence brief you can share
+                with the rest of the team.
+              </li>
+              <li>
+                You are comfortable doing the final workload-specific
+                testing yourself.
+              </li>
+            </ul>
+          </article>
+          <article className="card-surface space-y-2 p-5 text-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              What this catalogue is not
+            </p>
+            <p className="text-foreground">
+              An evidence base — not a verdict generator.
+            </p>
+            <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+              <li>
+                Not a model ranking. No winner is declared.
+              </li>
+              <li>
+                Not a price-ranking engine. Pricing rows are
+                source-backed references, not live quotes.
+              </li>
+              <li>
+                Not a latency / throughput / uptime claim. Status
+                observations are recorded; SLA assertions are not.
+              </li>
+              <li>
+                Not a compliance certification. Verification means a
+                primary source backed the value on the date recorded.
+              </li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
       {/* Stats strip */}
       <section
         aria-label="Coverage statistics"
-        className="container-page mt-10"
+        className="container-page mt-12"
       >
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           <StatCard

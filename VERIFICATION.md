@@ -589,6 +589,39 @@ secret env, every entry-point links to `/briefs/build`, banned
 recommendation language stays out of every Sprint-25 surface, and
 the OpenAI no-metrics policy is re-checked.
 
+**Sprint 26 — UX conversion polish + landing narrative.** Sprint
+26 makes the product self-explanatory for a cold visitor. Hero
+copy rewritten to lead with positioning + a primary "Start with
+a use case" CTA + a secondary "How it works" CTA. The homepage
+gained two new sections directly below the Hero: a "How to use
+this" workflow strip (the shared `<DecisionWorkflow>` component
+with a CTA to `/how-it-works`) and a "Who this is for / What this
+catalogue is not" two-card framing.
+
+A new walkthrough page lives at
+[`/how-it-works`](apps/models/app/how-it-works/page.tsx). It opens
+with the same workflow strip + the "what this is / what this is
+not" framing, then walks five step-numbered sections (use case →
+shortlist → comparison → gaps + freshness → evidence brief), each
+linking into the appropriate workspace. The page joins the
+content registry, lives in `STATIC_ROUTES` (priority 0.9, monthly)
+so the sitemap pass de-dupes correctly, leads the llms.txt hub
+list, and is added to the footer Content column.
+
+Workspace intros tightened to a single paragraph each with an
+explicit step number in the eyebrow ("Workspace · step 2 of 5")
+and a reference to `/how-it-works`. Surfaces touched: `/select`,
+`/compare/build`, `/briefs/build`, `/intelligence`.
+
+Seven new integrity guards confirm `/how-it-works` exists +
+pulls title from the content registry, the homepage renders the
+workflow strip + audience cards, Hero links to `/use-cases` and
+`/how-it-works`, every workspace intro references
+`/how-it-works`, route contract + sitemap + llms.txt + footer
+advertise the new route, smoke + indexing include it, and no
+recommendation language appears on Sprint-26 surfaces. No
+theme/CSS/dependency changes — copy + components only.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,

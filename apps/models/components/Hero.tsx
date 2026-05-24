@@ -22,9 +22,11 @@ export function Hero() {
               <span className="absolute inline-flex h-full w-full rounded-full bg-success/60" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
             </span>
-            <span className="font-medium text-foreground">Live intelligence</span>
+            <span className="font-medium text-foreground">
+              Verified intelligence
+            </span>
             <span className="text-muted-foreground">
-              · Last updated {formatDateISO(siteConfig.buildDate)}
+              · Build {formatDateISO(siteConfig.buildDate)}
             </span>
           </div>
 
@@ -37,24 +39,25 @@ export function Hero() {
           </h1>
 
           <p className="mt-5 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
-            Track AI models, providers, pricing, benchmarks, and inference
-            infrastructure — in real time. Built for builders who treat the
-            model stack as critical infrastructure.
+            A source-backed catalogue of AI models, providers, pricing
+            references, hosted availability, and freshness signals.
+            Verified fields, explicit data gaps, no rankings — built for
+            engineers evaluating which model to test next.
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
-              href="/models"
+              href="/use-cases"
               className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-foreground px-5 text-sm font-semibold text-background shadow-elevated transition hover:bg-foreground/90"
             >
-              Explore Models
+              Start with a use case
               <span aria-hidden="true">→</span>
             </Link>
             <Link
-              href="/compare"
+              href="/how-it-works"
               className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:bg-card hover:text-primary"
             >
-              Compare Models
+              How it works
             </Link>
             <Link
               href="/coverage"
@@ -67,7 +70,7 @@ export function Hero() {
           <dl className="mt-10 grid max-w-xl grid-cols-3 gap-6">
             <div>
               <dt className="text-xs uppercase tracking-wider text-muted-foreground">
-                Coverage
+                Verified
               </dt>
               <dd className="mt-1 text-sm font-medium text-foreground">
                 Models · Providers · Pricing
@@ -75,10 +78,10 @@ export function Hero() {
             </div>
             <div>
               <dt className="text-xs uppercase tracking-wider text-muted-foreground">
-                Signals
+                Workspace
               </dt>
               <dd className="mt-1 text-sm font-medium text-foreground">
-                Benchmarks · Infra · Status
+                Select · Compare · Brief
               </dd>
             </div>
             <div>
@@ -86,7 +89,7 @@ export function Hero() {
                 Integrity
               </dt>
               <dd className="mt-1 text-sm font-medium text-foreground">
-                Verified, timestamped, cited
+                Sourced · Timestamped · No rankings
               </dd>
             </div>
           </dl>

@@ -251,6 +251,34 @@ export const contentPages: ContentPage[] = [
     jsonLdType: "TechArticle",
   },
   {
+    slug: "/how-it-works",
+    title: "How WebmasterID Models works",
+    description:
+      "Walkthrough of the five-step decision workflow: pick a use case, build a source-backed shortlist, compare verified fields side by side, surface data gaps, and export a paste-ready evidence brief. WebmasterID Models supports the decision; the reader runs the workload.",
+    section: "research-guides",
+    updatedDate: "2026-05-24",
+    relatedRoutes: [
+      "/use-cases",
+      "/select",
+      "/compare/build",
+      "/briefs/build",
+      "/coverage",
+      "/sources",
+      "/docs/decision-workflow",
+      "/docs/decision-briefs",
+      "/research/model-selection",
+    ],
+    keywords: [
+      "how it works",
+      "decision workflow",
+      "model selection workflow",
+      "ai model evaluation",
+      "verified data workflow",
+    ],
+    indexable: true,
+    jsonLdType: "TechArticle",
+  },
+  {
     slug: "/docs/decision-briefs",
     title: "Decision briefs",
     description:

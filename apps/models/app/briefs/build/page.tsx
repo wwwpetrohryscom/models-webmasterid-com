@@ -131,9 +131,9 @@ export default async function BriefsBuildPage({
 
   return (
     <PageShell
-      eyebrow="Workspace"
+      eyebrow="Workspace · step 5 of 5"
       title="Decision Brief Builder"
-      intro="Generate a shareable evidence brief from verified model fields, source trails, data gaps, and freshness notes. Briefs are evidence, not recommendations. Generated query URLs are noindex; only the base /briefs/build page is indexable."
+      intro="Export a paste-ready evidence pack for 2–4 selected models — verified evidence rows, explicit data gaps, the source trail, freshness notes, hosted availability, and a checklist of external tests still to run. Markdown by default; JSON via the export endpoint. Briefs are evidence, not recommendations. Generated query URLs are noindex; only the base /briefs/build page is indexable. New here? Start at /how-it-works."
     >
       <Breadcrumbs
         items={[

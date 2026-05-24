@@ -35,6 +35,7 @@ const PAGE_ROUTES = [
   "/docs/decision-workflow",
   "/briefs/build",
   "/docs/decision-briefs",
+  "/how-it-works",
 ];
 
 const API_ROUTES = [

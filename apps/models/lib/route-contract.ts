@@ -45,6 +45,7 @@ export const REQUIRED_PAGE_ROUTES = [
   "/use-cases",
   "/compare/build",
   "/briefs/build",
+  "/how-it-works",
 ] as const;
 export type RequiredPageRoute = (typeof REQUIRED_PAGE_ROUTES)[number];
 

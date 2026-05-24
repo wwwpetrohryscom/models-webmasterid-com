@@ -5494,6 +5494,197 @@ const checks: Check[] = [
       }
     },
   },
+  // ---------------------------------------------------------------------
+  // Sprint 26 — UX conversion polish: landing narrative + workflow
+  // clarity. New /how-it-works walkthrough, homepage decision-workflow
+  // strip + "Who / What this is not" framing, polished workspace
+  // intros. Same no-recommendation policy applies to every new surface.
+  // ---------------------------------------------------------------------
+  {
+    name: "/how-it-works walkthrough exists (Sprint 26)",
+    run: () => {
+      const rel = "apps/models/app/how-it-works/page.tsx";
+      if (!fileExists(rel)) {
+        return "Missing /how-it-works page (Sprint 26).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      if (!/DecisionWorkflow/.test(src)) {
+        failures.push(
+          "/how-it-works must render the shared <DecisionWorkflow> component."
+        );
+      }
+      const usesRegistry = /getContentPage\(/.test(src);
+      const referencesSlug = /"\/how-it-works"/.test(src);
+      const content = readRel("apps/models/lib/content.ts");
+      const registryTitle =
+        /"\/how-it-works"[\s\S]*?title:\s*"How WebmasterID Models works"/i.test(
+          content
+        );
+      if (!(usesRegistry && referencesSlug && registryTitle)) {
+        return "/how-it-works must read its title from the content registry (getContentPage). Registry entry must keep the canonical title.";
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Homepage renders the decision-workflow strip + audience cards (Sprint 26)",
+    run: () => {
+      const src = readRel("apps/models/app/page.tsx");
+      const failures: string[] = [];
+      if (!/DecisionWorkflow/.test(src)) {
+        failures.push(
+          "Homepage must render the shared <DecisionWorkflow> strip below the hero."
+        );
+      }
+      if (!/How to use this/i.test(src)) {
+        failures.push(
+          "Homepage must include the 'How to use this' section header."
+        );
+      }
+      if (!/Who this is for/i.test(src)) {
+        failures.push(
+          "Homepage must include the 'Who this is for' framing card."
+        );
+      }
+      if (!/What this catalogue is not/i.test(src)) {
+        failures.push(
+          "Homepage must include the 'What this catalogue is not' framing card."
+        );
+      }
+      if (!/\/how-it-works/.test(src)) {
+        failures.push(
+          "Homepage must link to /how-it-works (e.g. via the workflow strip CTA)."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Hero funnels into use-case workflow (Sprint 26)",
+    run: () => {
+      const src = readRel("apps/models/components/Hero.tsx");
+      const failures: string[] = [];
+      if (!/Start with a use case/i.test(src)) {
+        failures.push(
+          "Hero must include the 'Start with a use case' primary CTA."
+        );
+      }
+      if (!/\/use-cases/.test(src)) {
+        failures.push("Hero must link to /use-cases.");
+      }
+      if (!/How it works/i.test(src) || !/\/how-it-works/.test(src)) {
+        failures.push("Hero must link to /how-it-works.");
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Workspace intros mention the workflow walkthrough (Sprint 26)",
+    run: () => {
+      const surfaces = [
+        "apps/models/app/select/page.tsx",
+        "apps/models/app/compare/build/page.tsx",
+        "apps/models/app/briefs/build/page.tsx",
+        "apps/models/app/intelligence/page.tsx",
+      ];
+      const failures: string[] = [];
+      for (const rel of surfaces) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (!/\/how-it-works/.test(src)) {
+          failures.push(
+            `${rel} must reference /how-it-works in its intro so new visitors can find the walkthrough.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/how-it-works is in route contract + sitemap + llms.txt + footer (Sprint 26)",
+    run: () => {
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const footer = readRel("apps/models/components/SiteFooter.tsx");
+      const failures: string[] = [];
+      if (!/"\/how-it-works"/.test(contract)) {
+        failures.push(
+          "lib/route-contract.ts REQUIRED_PAGE_ROUTES must include /how-it-works."
+        );
+      }
+      if (!/"\/how-it-works"/.test(sitemap)) {
+        failures.push("sitemap must include /how-it-works.");
+      }
+      if (!/"\/how-it-works"/.test(llms)) {
+        failures.push("llms.txt must list /how-it-works.");
+      }
+      if (!/\/how-it-works/.test(footer)) {
+        failures.push("SiteFooter must link to /how-it-works.");
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Smoke + indexing include /how-it-works (Sprint 26)",
+    run: () => {
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+      if (!/"\/how-it-works"/.test(smoke)) {
+        failures.push("scripts/lib/smoke.mjs must include /how-it-works.");
+      }
+      if (!/"\/how-it-works"/.test(indexing)) {
+        failures.push(
+          "scripts/indexing-qa.mjs must include /how-it-works."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "No recommendation language on Sprint 26 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/components/Hero.tsx",
+        "apps/models/app/how-it-works/page.tsx",
+      ];
+      const banned: { pattern: RegExp; label: string }[] = [
+        { pattern: /\bbest model\b/i, label: "best model" },
+        { pattern: /\bwe recommend\b/i, label: "we recommend" },
+        { pattern: /\brecommended model\b/i, label: "recommended model" },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\bcheapest\s+(?:model|provider|platform|inference)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:model|provider|inference)\b/i,
+          label: "fastest <noun>",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned recommendation phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
   {
     name: "WebmasterID tracker is loaded once, not duplicated",
     run: () => {
