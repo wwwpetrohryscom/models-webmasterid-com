@@ -19,6 +19,14 @@ This is a **first-party brand asset**. It is authored in this repository and is 
 
 `check:production` enforces that the four logo files and the `<Logo>` component exist and that both `SiteHeader` and `SiteFooter` render the component.
 
+### v2 brand mark (new official lockup)
+
+A second official lockup is available as SVG approximations alongside the original. Direction: rounded square tile with a blue → green gradient, white stylised "W" with Wi-Fi arcs above the left peak, and a "AiModels / WebmasterID" wordmark with a teal-green tint on "ID".
+
+- **Files:** [`apps/models/public/logo-v2-mark.svg`](apps/models/public/logo-v2-mark.svg) (mark only), [`apps/models/public/logo-v2.svg`](apps/models/public/logo-v2.svg) (full lockup with wordmark).
+- **Status:** SVG recreations from the provided source image — geometry approximated. If the original source files (Figma, PNG, SVG) are available, swap them in to replace these recreations before promoting the v2 mark to the default `<Logo>` variant.
+- **Not yet wired into `<Logo>`:** the existing component, `SiteHeader`, and `SiteFooter` continue to render the original lockup. Promote the v2 files by either renaming over `logo.svg` / `logo-mark.svg` once approved, or by extending the `<Logo>` component with a `variant="v2"` option and updating the surfaces that should switch.
+
 ---
 
 
