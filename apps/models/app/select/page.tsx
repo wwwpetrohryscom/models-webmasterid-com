@@ -14,6 +14,8 @@ import {
   getShortlistSummary,
   type ModelShortlistFilters,
 } from "@/lib/model-shortlists";
+import { comparisonBuilderUrl } from "@/lib/comparison-builder";
+import { DecisionWorkflow } from "@/components/DecisionWorkflow";
 import { modelUseCases, type ModelUseCaseSlug } from "@/lib/use-cases";
 import {
   freshnessClasses,
@@ -173,7 +175,14 @@ export default async function SelectPage({ searchParams }: PageProps) {
           invent metrics. Unknown values remain explicitly unverified;
           unsupported modalities are not asserted.
         </p>
+        <p>
+          Shortlists help narrow a field set; the comparison builder
+          shows verified values side by side. Open the top of this
+          shortlist in the builder for a side-by-side view.
+        </p>
       </aside>
+
+      <DecisionWorkflow variant="card" highlightStep={2} />
 
       <form
         method="get"
@@ -355,6 +364,19 @@ export default async function SelectPage({ searchParams }: PageProps) {
           eyebrow="Shortlist"
           title={`Shortlist (${shortlist.length})`}
           description="Shortlist order: verified field count → active lifecycle → source count → name. This is not a ranking; it is a deterministic order that surfaces well-sourced records first."
+          cta={
+            shortlist.length >= 2
+              ? {
+                  label: "Compare top shortlist in builder →",
+                  href: comparisonBuilderUrl({
+                    modelSlugs: shortlist
+                      .slice(0, 4)
+                      .map((e) => e.model.slug),
+                    useCase: useCaseFilter ?? undefined,
+                  }),
+                }
+              : undefined
+          }
           as="h2"
         />
         {shortlist.length ? (
@@ -470,7 +492,18 @@ export default async function SelectPage({ searchParams }: PageProps) {
                       </span>
                     </td>
                     <td className="px-4 py-2 text-xs text-muted-foreground">
-                      {suggestedAction}
+                      <p>{suggestedAction}</p>
+                      <p className="mt-1">
+                        <Link
+                          href={comparisonBuilderUrl({
+                            modelSlugs: [model.slug],
+                            useCase: useCaseFilter ?? undefined,
+                          })}
+                          className="text-primary hover:underline"
+                        >
+                          Compare in builder →
+                        </Link>
+                      </p>
                     </td>
                   </tr>
                 ))}

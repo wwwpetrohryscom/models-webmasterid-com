@@ -251,6 +251,30 @@ export const contentPages: ContentPage[] = [
     jsonLdType: "TechArticle",
   },
   {
+    slug: "/docs/decision-workflow",
+    title: "Decision workflow",
+    description:
+      "How WebmasterID Models supports model-selection decisions without ranking, recommendation, or winner claims — use cases first, source-backed shortlist, side-by-side verified comparison, explicit data gaps, source freshness, then external testing.",
+    section: "data-verification",
+    updatedDate: "2026-05-23",
+    relatedRoutes: [
+      "/select",
+      "/use-cases",
+      "/compare/build",
+      "/docs/comparison-methodology",
+      "/research/model-selection",
+    ],
+    keywords: [
+      "decision workflow",
+      "model selection",
+      "comparison builder",
+      "no ranking",
+      "no recommendation",
+    ],
+    indexable: true,
+    jsonLdType: "TechArticle",
+  },
+  {
     slug: "/docs/pricing-fields",
     title: "Pricing fields reference",
     description:

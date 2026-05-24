@@ -31,6 +31,8 @@ const PAGE_ROUTES = [
   "/use-cases/multimodal-input",
   "/use-cases/hosted-inference",
   "/use-cases/governance-review",
+  "/compare/build",
+  "/docs/decision-workflow",
 ];
 
 const API_ROUTES = [

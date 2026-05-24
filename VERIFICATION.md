@@ -485,6 +485,55 @@ advertise the new routes, and no OpenAI numeric metric may appear
 on a Sprint-23 surface (re-check of the Sprint-18 unverified-GPT-5
 policy).
 
+**Sprint 24 — comparison builder + decision workflow.** Sprint 24
+turns the selection workflow into an ad-hoc, server-rendered
+side-by-side comparison surface. A new
+[`/compare/build`](apps/models/app/compare/build/page.tsx) workspace
+accepts `?models=<comma-list>`, `?useCase`, `?fields`, `?showGaps`
+and renders 2–4 selected models against verified fields straight
+from the typed local data layer. The cap is enforced server-side at
+`COMPARISON_BUILDER_MAX_MODELS = 4`; over-selection truncates with
+a banner.
+
+[`lib/comparison-builder.ts`](apps/models/lib/comparison-builder.ts)
+exposes `buildModelComparison`, `getComparableModels`,
+`getComparisonBuilderDefaults`, `getComparisonFieldDefinitions`,
+`getComparisonBuilderSummary`, and `comparisonBuilderUrl`. Pure
+local read; an integrity guard refuses any identifier matching
+`score|rank|ranking|rankBy|ranked|weightedScore|fitnessScore|winner|recommend|recommended`.
+
+[`components/DecisionWorkflow.tsx`](apps/models/components/DecisionWorkflow.tsx)
+ships the six-step decision strip used across `/select`,
+`/compare/build`, every use-case detail page, and the new
+[`/docs/decision-workflow`](apps/models/app/docs/decision-workflow/page.tsx)
+documentation page. The doc page explains in long form why the
+catalogue does not rank, why use cases come first, how shortlist
+order is derived, how the comparison builder works, how data gaps
+affect decisions, how to use sources + freshness, and what the
+platform deliberately does not decide for the reader.
+
+Flow connections added this sprint:
+- `/select` rows carry a "Compare in builder" link per row plus a
+  "Compare top shortlist in builder" header CTA seeded from the
+  current filter.
+- Use-case detail pages render an "Open comparison builder for
+  this use case" link pre-seeded from the use-case shortlist (top
+  4 candidates — explicitly framed as candidates, not picks).
+- `/compare` hub gained a "Build a custom comparison" callout
+  with four pre-seeded use-case URLs.
+
+The `should-index` allow-list adds `models`, `fields`, `showGaps`
+so every `/compare/build?...` URL is `noindex, follow`. The
+unfiltered `/compare/build` base page is indexable and listed in
+the content registry (`/docs/decision-workflow` joins the registry
+so sitemap + llms.txt + /api/site advertise it automatically).
+`ROUTE_SET_VERSION` bumps to `content-v7`. Ten new integrity
+guards enforce: helper is score-free + network-free, the builder
+applies the filtered-noindex policy, every entry-point links to
+`/compare/build`, banned recommendation language stays out of
+every Sprint-24 surface, and the OpenAI no-metrics policy is
+re-checked across the new files.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,

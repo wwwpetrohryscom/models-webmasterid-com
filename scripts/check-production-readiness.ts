@@ -4489,9 +4489,14 @@ const checks: Check[] = [
       const sitemap = readRel("apps/models/app/sitemap.ts");
       const llms = readRel("apps/models/app/llms.txt/route.ts");
       const failures: string[] = [];
-      if (!/ROUTE_SET_VERSION\s*=\s*"content-v6"/.test(contract)) {
+      // Sprint 23 introduced content-v6. Later sprints may bump
+      // further; accept any content-vN with N >= 6.
+      const versionMatch = contract.match(
+        /ROUTE_SET_VERSION\s*=\s*"content-v(\d+)"/
+      );
+      if (!versionMatch || Number(versionMatch[1]) < 6) {
         failures.push(
-          "ROUTE_SET_VERSION must be bumped to \"content-v6\" for Sprint 23."
+          "ROUTE_SET_VERSION must be \"content-v6\" or later (Sprint 23 introduced content-v6)."
         );
       }
       for (const r of ['"/select"', '"/use-cases"']) {
@@ -4603,6 +4608,298 @@ const checks: Check[] = [
       // These pages render GENERIC counts; they do not hand-write
       // an OpenAI numeric metric. Verify no GPT-5 / OpenAI numeric
       // literal sneaks into user-facing strings.
+      const banned =
+        /"[^"]*\bgpt-5\b[^"]*"[\s\S]{0,200}?\b\d{4,}\b/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} mentions GPT-5 alongside a numeric literal — no OpenAI metrics are verified yet.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  // ---------------------------------------------------------------------
+  // Sprint 24 — comparison builder + decision workflow surfaces.
+  // ---------------------------------------------------------------------
+  {
+    name: "lib/comparison-builder.ts exists and is score-free (Sprint 24)",
+    run: () => {
+      const rel = "apps/models/lib/comparison-builder.ts";
+      if (!fileExists(rel)) {
+        return "Missing lib/comparison-builder.ts (Sprint 24).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const token of [
+        "buildModelComparison",
+        "getComparableModels",
+        "getComparisonBuilderDefaults",
+        "getComparisonFieldDefinitions",
+        "getComparisonBuilderSummary",
+        "comparisonBuilderUrl",
+        "COMPARISON_BUILDER_MAX_MODELS",
+      ]) {
+        if (!new RegExp(`\\b${token}\\b`).test(src)) {
+          failures.push(
+            `lib/comparison-builder.ts must export \`${token}\`.`
+          );
+        }
+      }
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      const bannedIdentifiers =
+        /\b(score|rank|ranking|rankBy|ranked|weightedScore|fitnessScore|winner|recommend|recommended)\b/i;
+      if (bannedIdentifiers.test(stripped)) {
+        failures.push(
+          "lib/comparison-builder.ts must not contain score/rank/winner/recommend identifiers."
+        );
+      }
+      if (/\bfetch\s*\(/.test(stripped) || /\bprocess\.env\b/.test(stripped)) {
+        failures.push(
+          "lib/comparison-builder.ts must be a pure local read."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/compare/build page exists with filtered-noindex policy (Sprint 24)",
+    run: () => {
+      const rel = "apps/models/app/compare/build/page.tsx";
+      if (!fileExists(rel)) {
+        return "Missing /compare/build page (Sprint 24).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      if (!/Comparison Builder/i.test(src)) {
+        failures.push(
+          "/compare/build must render the 'Comparison Builder' title."
+        );
+      }
+      if (!/buildModelComparison/.test(src)) {
+        failures.push(
+          "/compare/build must call buildModelComparison()."
+        );
+      }
+      if (!/isFilteredRoute/.test(src) || !/robotsMetadata/.test(src)) {
+        failures.push(
+          "/compare/build must apply filtered-noindex policy via isFilteredRoute + robotsMetadata."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "DecisionWorkflow component exists (Sprint 24)",
+    run: () => {
+      const rel = "apps/models/components/DecisionWorkflow.tsx";
+      if (!fileExists(rel)) {
+        return "Missing components/DecisionWorkflow.tsx (Sprint 24).";
+      }
+      const src = readRel(rel);
+      if (!/export function DecisionWorkflow/.test(src)) {
+        return "DecisionWorkflow.tsx must export `DecisionWorkflow`.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/docs/decision-workflow page exists (Sprint 24)",
+    run: () => {
+      const rel = "apps/models/app/docs/decision-workflow/page.tsx";
+      if (!fileExists(rel)) {
+        return "Missing /docs/decision-workflow (Sprint 24).";
+      }
+      const src = readRel(rel);
+      // Title may be inlined in JSX or pulled from the content
+      // registry via getContentPage(). Either signal is fine.
+      const usesRegistry = /getContentPage\(/.test(src);
+      const referencesSlug =
+        /"\/docs\/decision-workflow"/.test(src) ||
+        /SLUG\s*=\s*"\/docs\/decision-workflow"/.test(src);
+      const inlineTitle = /Decision workflow/i.test(src);
+      const content = readRel("apps/models/lib/content.ts");
+      const registryTitle =
+        /"\/docs\/decision-workflow"[\s\S]*?title:\s*"Decision workflow"/i.test(
+          content
+        );
+      if (
+        !inlineTitle &&
+        !(usesRegistry && referencesSlug && registryTitle)
+      ) {
+        return "/docs/decision-workflow must render the 'Decision workflow' title (inline or via the content registry).";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/select + use-case pages + /compare hub link to /compare/build (Sprint 24)",
+    run: () => {
+      const failures: string[] = [];
+      const select = readRel("apps/models/app/select/page.tsx");
+      // /select can link to the builder either via the literal path
+      // or via the comparisonBuilderUrl() helper. Both are valid
+      // signals; the helper returns "/compare/build?..." at runtime.
+      if (
+        !/\/compare\/build/.test(select) &&
+        !/comparisonBuilderUrl/.test(select)
+      ) {
+        failures.push("/select must link to /compare/build.");
+      }
+      // Use-case detail pages link via the shared layout.
+      const layout = readRel(
+        "apps/models/components/UseCaseDetailLayout.tsx"
+      );
+      if (!/comparisonBuilderUrl|\/compare\/build/.test(layout)) {
+        failures.push(
+          "components/UseCaseDetailLayout.tsx must link to /compare/build."
+        );
+      }
+      const hub = readRel("apps/models/app/compare/page.tsx");
+      if (!/Build a custom comparison/i.test(hub)) {
+        failures.push(
+          "/compare hub must include the 'Build a custom comparison' section."
+        );
+      }
+      if (!/\/compare\/build/.test(hub)) {
+        failures.push("/compare hub must link to /compare/build.");
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract + sitemap + content registry advertise Sprint 24 routes",
+    run: () => {
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const content = readRel("apps/models/lib/content.ts");
+      const failures: string[] = [];
+      if (!/ROUTE_SET_VERSION\s*=\s*"content-v(?:[7-9]|\d{2,})"/.test(contract)) {
+        failures.push(
+          "ROUTE_SET_VERSION must be \"content-v7\" or later for Sprint 24."
+        );
+      }
+      if (!/"\/compare\/build"/.test(contract)) {
+        failures.push(
+          "route-contract REQUIRED_PAGE_ROUTES must include /compare/build."
+        );
+      }
+      if (!/"\/compare\/build"/.test(sitemap)) {
+        failures.push("sitemap must include /compare/build.");
+      }
+      if (!/"\/docs\/decision-workflow"/.test(content)) {
+        failures.push(
+          "lib/content.ts must register /docs/decision-workflow so it flows through sitemap / llms.txt / /api/site."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "smoke + indexing scripts include Sprint 24 routes",
+    run: () => {
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+      for (const path of ['"/compare/build"', '"/docs/decision-workflow"']) {
+        if (!smoke.includes(path)) {
+          failures.push(
+            `scripts/lib/smoke.mjs must include ${path} in PAGE_ROUTES.`
+          );
+        }
+      }
+      if (!/"\/compare\/build"/.test(indexing)) {
+        failures.push(
+          "scripts/indexing-qa.mjs must include /compare/build as an indexable page."
+        );
+      }
+      if (!/"\/docs\/decision-workflow"/.test(indexing)) {
+        failures.push(
+          "scripts/indexing-qa.mjs must include /docs/decision-workflow as a detail page."
+        );
+      }
+      if (!/"\/compare\/build\?useCase=long-context-analysis"/.test(indexing)) {
+        failures.push(
+          "scripts/indexing-qa.mjs must spot-check one filtered /compare/build URL for the noindex policy."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "should-index allow-list covers Sprint 24 builder filter keys",
+    run: () => {
+      const src = readRel("apps/models/lib/should-index.ts");
+      const failures: string[] = [];
+      for (const key of ["models", "fields", "showGaps"]) {
+        if (!new RegExp(`"${key}"`).test(src)) {
+          failures.push(
+            `should-index FILTERED_KEYS must include "${key}" so /compare/build?${key}=... is noindex.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no recommendation language on Sprint 24 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/app/compare/build/page.tsx",
+        "apps/models/app/docs/decision-workflow/page.tsx",
+        "apps/models/components/DecisionWorkflow.tsx",
+        "apps/models/lib/comparison-builder.ts",
+      ];
+      const banned: { pattern: RegExp; label: string }[] = [
+        { pattern: /\bbest model\b/i, label: "best model" },
+        { pattern: /\bwe recommend\b/i, label: "we recommend" },
+        { pattern: /\brecommended model\b/i, label: "recommended model" },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\bcheapest\s+(?:model|provider|platform|inference)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:model|provider|inference)\b/i,
+          label: "fastest <noun>",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned recommendation phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric appears on Sprint 24 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/app/compare/build/page.tsx",
+        "apps/models/app/docs/decision-workflow/page.tsx",
+        "apps/models/components/DecisionWorkflow.tsx",
+        "apps/models/lib/comparison-builder.ts",
+      ];
       const banned =
         /"[^"]*\bgpt-5\b[^"]*"[\s\S]{0,200}?\b\d{4,}\b/i;
       const failures: string[] = [];

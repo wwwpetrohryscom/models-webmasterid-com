@@ -474,6 +474,33 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+14. **Comparison builder + decision workflow (Sprint 24).** A new
+    [`/compare/build`](apps/models/app/compare/build/page.tsx)
+    workspace renders 2–4 selected models side by side from verified
+    fields with server-rendered GET filters
+    (`?models`, `?useCase`, `?fields`, `?showGaps`). The unfiltered
+    base page is indexable; every query URL is `noindex, follow`.
+    [`lib/comparison-builder.ts`](apps/models/lib/comparison-builder.ts)
+    exposes `buildModelComparison`, `getComparisonBuilderDefaults`,
+    `comparisonBuilderUrl`, and a typed `ComparisonBuilderField`
+    union — an integrity guard refuses any score / rank / winner /
+    recommend identifier in the helper.
+    [`components/DecisionWorkflow.tsx`](apps/models/components/DecisionWorkflow.tsx)
+    renders a six-step strip ("start with a use case → build a
+    shortlist → compare verified fields → inspect data gaps → review
+    sources/freshness → decide what to test externally") and is
+    embedded on `/select`, `/compare/build`, every use-case detail
+    page, and the new
+    [`/docs/decision-workflow`](apps/models/app/docs/decision-workflow/page.tsx)
+    page (which explains the no-ranking policy in long form).
+    `/select` rows now carry a "Compare in builder" deep link; the
+    "Compare top shortlist" CTA seeds the builder from the current
+    filter. `/compare` hub gained a "Build a custom comparison"
+    section pointing at four pre-seeded use-case URLs.
+    `ROUTE_SET_VERSION` bumped to `content-v7`. Ten new integrity
+    guards enforce the no-recommendation policy on every Sprint-24
+    surface.
+
 13. **Model selection workspace + use-case intelligence (Sprint
     23).** The new
     [`/select`](apps/models/app/select/page.tsx) workspace builds a

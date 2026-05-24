@@ -18,7 +18,7 @@
  * commit (from VERCEL_GIT_COMMIT_SHA) does not start with this prefix.
  */
 
-export const ROUTE_SET_VERSION = "content-v6";
+export const ROUTE_SET_VERSION = "content-v7";
 
 /**
  * Short prefix of the latest commit on `main` that this version of the
@@ -43,6 +43,7 @@ export const REQUIRED_PAGE_ROUTES = [
   "/intelligence",
   "/select",
   "/use-cases",
+  "/compare/build",
 ] as const;
 export type RequiredPageRoute = (typeof REQUIRED_PAGE_ROUTES)[number];
 

@@ -102,6 +102,10 @@ const FILTERED_KEYS = new Set<string>([
   "minContext",
   "pricingCoverage",
   "hostedAvailability",
+  // Sprint 24: /compare/build comparison builder filters
+  "models",
+  "fields",
+  "showGaps",
 ]);
 
 export function isFilteredRoute(

@@ -4,6 +4,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
 import { SectionHeader } from "@/components/SectionHeader";
 import { VerificationBadge } from "@/components/VerificationBadge";
+import { DecisionWorkflow } from "@/components/DecisionWorkflow";
 import { breadcrumbJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import {
@@ -11,6 +12,7 @@ import {
   freshnessLabel,
 } from "@/lib/source-freshness";
 import { getUseCaseShortlist } from "@/lib/model-shortlists";
+import { comparisonBuilderUrl } from "@/lib/comparison-builder";
 import type { ModelUseCase } from "@/lib/use-cases";
 import { isVerified } from "@/lib/verified";
 
@@ -102,6 +104,8 @@ export function UseCaseDetailLayout({
         {narrative}
       </section>
 
+      <DecisionWorkflow variant="card" highlightStep={1} />
+
       <section aria-label="Shortlist" className="space-y-3">
         <SectionHeader
           eyebrow="Shortlist"
@@ -113,6 +117,23 @@ export function UseCaseDetailLayout({
           }}
           as="h2"
         />
+        {shortlist.length >= 2 ? (
+          <p className="text-xs text-muted-foreground">
+            <Link
+              href={comparisonBuilderUrl({
+                modelSlugs: shortlist
+                  .slice(0, 4)
+                  .map((e) => e.model.slug),
+                useCase: useCase.slug,
+              })}
+              className="text-primary hover:underline"
+            >
+              Open comparison builder for this use case →
+            </Link>{" "}
+            Pre-seeded with the top 4 shortlist candidates; these are
+            candidates, not picks.
+          </p>
+        ) : null}
         {shortlist.length ? (
           <div className="overflow-x-auto rounded-2xl border border-border">
             <table className="w-full text-sm">

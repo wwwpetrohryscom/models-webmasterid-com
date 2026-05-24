@@ -68,6 +68,8 @@ const INDEXABLE_PAGES = [
     expectJsonLd: true,
     kind: "detail",
   },
+  { path: "/compare/build", expectJsonLd: true, kind: "hub" },
+  { path: "/docs/decision-workflow", expectJsonLd: true, kind: "detail" },
 ];
 
 const FILTERED_NOINDEX_PAGES = [
@@ -77,6 +79,7 @@ const FILTERED_NOINDEX_PAGES = [
   "/sources?provider=anthropic",
   "/reverification?priority=high",
   "/select?useCase=long-context-analysis",
+  "/compare/build?useCase=long-context-analysis",
 ];
 
 const MACHINE_ENDPOINTS = [

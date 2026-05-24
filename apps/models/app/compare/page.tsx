@@ -220,6 +220,57 @@ export default async function CompareIndexPage({ searchParams }: PageProps) {
         </p>
       </aside>
 
+      <aside
+        aria-label="Build a custom comparison"
+        className="card-surface space-y-2 p-4 text-sm text-muted-foreground"
+      >
+        <p className="font-medium text-foreground">
+          Build a custom comparison
+        </p>
+        <p>
+          The static comparison pages below cover curated, two-sided
+          verified pairs. The builder at{" "}
+          <Link
+            href="/compare/build"
+            className="text-primary hover:underline"
+          >
+            /compare/build
+          </Link>{" "}
+          lets you inspect any supported 2–4 models side by side
+          without creating a permanent indexable page. Generated query
+          URLs are noindex; the unfiltered base page is indexable.
+        </p>
+        <p className="text-xs">
+          <Link
+            href="/compare/build"
+            className="text-primary hover:underline"
+          >
+            /compare/build
+          </Link>
+          {" · "}
+          <Link
+            href="/compare/build?useCase=long-context-analysis"
+            className="text-primary hover:underline"
+          >
+            seed from long-context shortlist
+          </Link>
+          {" · "}
+          <Link
+            href="/compare/build?useCase=hosted-inference"
+            className="text-primary hover:underline"
+          >
+            seed from hosted-inference shortlist
+          </Link>
+          {" · "}
+          <Link
+            href="/compare/build?useCase=governance-review"
+            className="text-primary hover:underline"
+          >
+            seed from governance-review shortlist
+          </Link>
+        </p>
+      </aside>
+
       {(() => {
         const coverage = getComparisonCoverageSummary();
         const hostedSet = new Set(
