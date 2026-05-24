@@ -73,6 +73,17 @@ const INDEXABLE_PAGES = [
   { path: "/briefs/build", expectJsonLd: true, kind: "hub" },
   { path: "/docs/decision-briefs", expectJsonLd: true, kind: "detail" },
   { path: "/how-it-works", expectJsonLd: true, kind: "detail" },
+  { path: "/demos", expectJsonLd: true, kind: "hub" },
+  {
+    path: "/demos/long-context-analysis",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/examples/decision-brief",
+    expectJsonLd: true,
+    kind: "detail",
+  },
 ];
 
 const FILTERED_NOINDEX_PAGES = [

@@ -622,6 +622,74 @@ advertise the new route, smoke + indexing include it, and no
 recommendation language appears on Sprint-26 surfaces. No
 theme/CSS/dependency changes — copy + components only.
 
+**Sprint 27 — visual proof + guided demos + example evidence
+brief.** Sprint 27 makes the product easier to evaluate by
+packaging the existing workflow surfaces into three predefined
+navigation recipes and one worked example. None of the new
+surfaces invent data, fabricate screenshots, or imply
+recommendation.
+
+[`lib/guided-demos.ts`](apps/models/lib/guided-demos.ts) defines
+three demo slugs — `long-context-analysis`, `hosted-inference`,
+`governance-review` — each carrying:
+- a use-case slug pointer
+- a `modelSlugs` list derived from the typed catalogue
+  (`getUseCaseShortlist()` for long-context + governance;
+  `hostedPricing[].modelSlug` for hosted-inference)
+- a five-step route plan into `/use-cases/<slug>`, `/select?...`,
+  `/compare/build?...`, `/briefs/build?...`, and `/sources`
+  (`/reverification` added for governance)
+- the verified fields the demo intends to inspect
+- a per-demo policy note re-stating what the demo does NOT
+  assert
+
+The helper is a pure local read. An integrity guard refuses any
+`score|rank|winner|recommend` identifier in code; disclaimer
+strings remain allowed.
+
+Five new server-rendered components in `apps/models/components/demo/`
+render visual proof from local data:
+- `WorkflowPreviewPanel` — five connected tiles for the demo's
+  route plan
+- `DemoRouteCard` — the demo summary card used on the hub
+- `EvidencePreviewTable` — verified-field table for a model set
+- `DecisionBriefPreview` — runs `buildDecisionBrief()` and shows
+  counts + export links
+- `DemoStepStrip` — numbered list of the demo's primary routes
+
+[`/demos`](apps/models/app/demos/page.tsx) hub renders the three
+demo cards + the shared `<DecisionWorkflow>` strip + a
+`WorkflowPreviewPanel` for the long-context demo.
+[`/demos/[slug]`](apps/models/app/demos/[slug]/page.tsx) detail
+pages render hero + per-demo policy + `WorkflowPreviewPanel` +
+step strip + evidence table + brief preview + a "what this demo
+does not decide" callout + related routes.
+
+[`/examples/decision-brief`](apps/models/app/examples/decision-brief/page.tsx)
+renders a worked example using the same `buildDecisionBrief()`
+helper as the live `/briefs/build` and `/api/briefs/decision`
+endpoints, so the example cannot drift from the real export. The
+page surfaces evidence preview, full data-gap list, full source
+trail, and the next-external-tests checklist; a "Build your own"
+panel links the live builder and both export endpoints.
+
+Flow integrations: homepage gained a "Try a guided workflow"
+section, `/how-it-works` gained a "Try this workflow" section,
+`/intelligence` workspace links gained a "Guided demos" card,
+`/select` + `/compare/build` intros added quick-start demo links,
+`/briefs/build` policy aside added a "view example" link, and the
+footer Content column added "Demos" + "Example brief".
+
+`ROUTE_SET_VERSION` bumps to `content-v9`. Nine new integrity
+guards enforce: helper exists + is deterministic + score-free,
+demo components exist, /demos hub + detail pages exist with the
+"not model recommendations" framing, /examples/decision-brief
+uses `buildDecisionBrief()`, every entry-point links to /demos,
+route contract + sitemap + llms.txt + smoke + indexing advertise
+the new routes, no recommendation language appears on Sprint-27
+surfaces, no fake screenshot references and no benchmark numeric
+literals leak into demo surfaces, OpenAI no-metrics re-checked.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,

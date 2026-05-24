@@ -5685,6 +5685,409 @@ const checks: Check[] = [
       return failures.length ? failures.join("\n") : null;
     },
   },
+  // ---------------------------------------------------------------------
+  // Sprint 27 — visual proof + guided demos + example evidence brief.
+  // ---------------------------------------------------------------------
+  {
+    name: "lib/guided-demos.ts exists with three demos (Sprint 27)",
+    run: () => {
+      const rel = "apps/models/lib/guided-demos.ts";
+      if (!fileExists(rel)) {
+        return "Missing lib/guided-demos.ts (Sprint 27).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const token of [
+        "getGuidedDemos",
+        "getGuidedDemo",
+        "getGuidedDemoRoutes",
+        "GuidedDemoSlug",
+      ]) {
+        if (!new RegExp(`\\b${token}\\b`).test(src)) {
+          failures.push(
+            `lib/guided-demos.ts must export \`${token}\`.`
+          );
+        }
+      }
+      for (const slug of [
+        '"long-context-analysis"',
+        '"hosted-inference"',
+        '"governance-review"',
+      ]) {
+        if (!src.includes(slug)) {
+          failures.push(
+            `lib/guided-demos.ts must declare the ${slug} demo slug.`
+          );
+        }
+      }
+      // No fetch / no env / no Date.now / no scoring.
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1")
+        .replace(/"(?:\\.|[^"\\])*"/g, "")
+        .replace(/'(?:\\.|[^'\\])*'/g, "")
+        .replace(/`(?:\\.|[^`\\])*`/g, "");
+      if (/\bfetch\s*\(/.test(stripped)) {
+        failures.push("lib/guided-demos.ts must not call fetch().");
+      }
+      if (/\bprocess\.env\b/.test(stripped)) {
+        failures.push(
+          "lib/guided-demos.ts must not read process.env."
+        );
+      }
+      const banned =
+        /\b(score|rank|ranking|rankBy|ranked|weightedScore|fitnessScore|winner|recommend|recommended)\b/i;
+      if (banned.test(stripped)) {
+        failures.push(
+          "lib/guided-demos.ts must not contain score/rank/winner/recommend identifiers (string-literal disclaimer copy is allowed)."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "demo components exist (Sprint 27)",
+    run: () => {
+      const required = [
+        "apps/models/components/demo/WorkflowPreviewPanel.tsx",
+        "apps/models/components/demo/DemoRouteCard.tsx",
+        "apps/models/components/demo/EvidencePreviewTable.tsx",
+        "apps/models/components/demo/DecisionBriefPreview.tsx",
+        "apps/models/components/demo/DemoStepStrip.tsx",
+      ];
+      const missing = required.filter((r) => !fileExists(r));
+      if (missing.length) {
+        return `Missing demo component(s): ${missing.join(", ")}.`;
+      }
+      return null;
+    },
+  },
+  {
+    name: "/demos hub + demo detail pages exist (Sprint 27)",
+    run: () => {
+      const required = [
+        "apps/models/app/demos/page.tsx",
+        "apps/models/app/demos/[slug]/page.tsx",
+      ];
+      const missing = required.filter((r) => !fileExists(r));
+      if (missing.length) {
+        return `Missing /demos page(s): ${missing.join(", ")}.`;
+      }
+      const hub = readRel("apps/models/app/demos/page.tsx");
+      const failures: string[] = [];
+      if (!/Guided product demos/i.test(hub)) {
+        failures.push(
+          "/demos hub must render the 'Guided product demos' title."
+        );
+      }
+      if (!/getGuidedDemos/.test(hub)) {
+        failures.push(
+          "/demos hub must call getGuidedDemos() to render the demo cards."
+        );
+      }
+      if (!/not model recommendations/i.test(hub)) {
+        failures.push(
+          "/demos hub must include the 'navigation examples, not model recommendations' framing."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/examples/decision-brief uses buildDecisionBrief (Sprint 27)",
+    run: () => {
+      const rel = "apps/models/app/examples/decision-brief/page.tsx";
+      if (!fileExists(rel)) {
+        return "Missing /examples/decision-brief (Sprint 27).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      if (!/buildDecisionBrief/.test(src)) {
+        failures.push(
+          "/examples/decision-brief must call buildDecisionBrief() so the example cannot drift from the live brief helper."
+        );
+      }
+      if (!/this is an example, not a recommendation/i.test(src)) {
+        failures.push(
+          "/examples/decision-brief must label itself as an example, not a recommendation."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "demo detail pages link to select/compare/brief/sources/reverification (Sprint 27)",
+    run: () => {
+      // The detail page renders the demo's primaryRoutes array via
+      // <DemoStepStrip>; guided-demos.ts already builds those routes
+      // pointing at /select, /compare/build, /briefs/build, /sources
+      // (and /reverification for governance). Verify the detail page
+      // pulls the route array.
+      const detail = readRel("apps/models/app/demos/[slug]/page.tsx");
+      const failures: string[] = [];
+      if (!/DemoStepStrip/.test(detail)) {
+        failures.push(
+          "demo detail page must render <DemoStepStrip> so demo.primaryRoutes are surfaced."
+        );
+      }
+      // The detail page also explicitly links /coverage, /sources,
+      // /reverification in its related-routes aside.
+      for (const path of ['"/sources"', '"/reverification"']) {
+        if (!detail.includes(path)) {
+          failures.push(
+            `demo detail page must link to ${path} in its related-routes block.`
+          );
+        }
+      }
+      // And the guided-demos helper itself must build routes for the
+      // four canonical workspaces.
+      const helper = readRel("apps/models/lib/guided-demos.ts");
+      for (const path of [
+        "/use-cases/",
+        "/select?",
+        "comparisonBuilderUrl",
+        "decisionBriefUrl",
+        "/sources",
+      ]) {
+        if (!helper.includes(path)) {
+          failures.push(
+            `lib/guided-demos.ts must include the canonical workspace path \`${path}\` in its built routes.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Sprint 27 surfaces link to /demos (Sprint 27)",
+    run: () => {
+      const failures: string[] = [];
+      const homepage = readRel("apps/models/app/page.tsx");
+      if (!/\/demos\b/.test(homepage)) {
+        failures.push(
+          "Homepage must link to /demos (Try a guided workflow section)."
+        );
+      }
+      const howItWorks = readRel(
+        "apps/models/app/how-it-works/page.tsx"
+      );
+      if (!/\/demos\b/.test(howItWorks)) {
+        failures.push("/how-it-works must link to /demos.");
+      }
+      const intel = readRel("apps/models/lib/intelligence-summary.ts");
+      if (!/"\/demos"/.test(intel)) {
+        failures.push(
+          "lib/intelligence-summary.ts must include a workspace card for /demos."
+        );
+      }
+      const briefs = readRel(
+        "apps/models/app/briefs/build/page.tsx"
+      );
+      if (!/\/examples\/decision-brief/.test(briefs)) {
+        failures.push(
+          "/briefs/build must link to /examples/decision-brief."
+        );
+      }
+      const footer = readRel(
+        "apps/models/components/SiteFooter.tsx"
+      );
+      if (!/"\/demos"/.test(footer)) {
+        failures.push("SiteFooter must link to /demos.");
+      }
+      if (!/"\/examples\/decision-brief"/.test(footer)) {
+        failures.push(
+          "SiteFooter must link to /examples/decision-brief."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract + sitemap + llms.txt + smoke + indexing advertise Sprint 27 routes",
+    run: () => {
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+      const versionMatch = contract.match(
+        /ROUTE_SET_VERSION\s*=\s*"content-v(\d+)"/
+      );
+      if (!versionMatch || Number(versionMatch[1]) < 9) {
+        failures.push(
+          "ROUTE_SET_VERSION must be \"content-v9\" or later for Sprint 27."
+        );
+      }
+      for (const path of ['"/demos"', '"/examples/decision-brief"']) {
+        if (!contract.includes(path)) {
+          failures.push(`route-contract must include ${path}.`);
+        }
+        if (!sitemap.includes(path)) {
+          failures.push(`sitemap must include ${path}.`);
+        }
+        if (!llms.includes(path)) {
+          failures.push(`llms.txt must list ${path}.`);
+        }
+        if (!smoke.includes(path)) {
+          failures.push(
+            `scripts/lib/smoke.mjs must include ${path}.`
+          );
+        }
+      }
+      // Demo detail pages live in sitemap + smoke too.
+      for (const path of [
+        '"/demos/long-context-analysis"',
+        '"/demos/hosted-inference"',
+        '"/demos/governance-review"',
+      ]) {
+        if (!sitemap.includes(path)) {
+          failures.push(`sitemap must include ${path}.`);
+        }
+        if (!smoke.includes(path)) {
+          failures.push(`scripts/lib/smoke.mjs must include ${path}.`);
+        }
+      }
+      if (!/"\/demos"/.test(indexing)) {
+        failures.push(
+          "scripts/indexing-qa.mjs must include /demos as an indexable hub."
+        );
+      }
+      if (!/"\/examples\/decision-brief"/.test(indexing)) {
+        failures.push(
+          "scripts/indexing-qa.mjs must include /examples/decision-brief as a detail page."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no recommendation language on Sprint 27 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/guided-demos.ts",
+        "apps/models/app/demos/page.tsx",
+        "apps/models/app/demos/[slug]/page.tsx",
+        "apps/models/app/examples/decision-brief/page.tsx",
+        "apps/models/components/demo/WorkflowPreviewPanel.tsx",
+        "apps/models/components/demo/DemoRouteCard.tsx",
+        "apps/models/components/demo/EvidencePreviewTable.tsx",
+        "apps/models/components/demo/DecisionBriefPreview.tsx",
+        "apps/models/components/demo/DemoStepStrip.tsx",
+      ];
+      const banned: { pattern: RegExp; label: string }[] = [
+        { pattern: /\bbest model\b/i, label: "best model" },
+        { pattern: /\bwe recommend\b/i, label: "we recommend" },
+        { pattern: /\brecommended model\b/i, label: "recommended model" },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\bcheapest\s+(?:model|provider|platform|inference)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:model|provider|inference)\b/i,
+          label: "fastest <noun>",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned recommendation phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no fake screenshot language or fabricated benchmark literals on demo surfaces",
+    run: () => {
+      // Demo surfaces must render their visual proof from local data
+      // (the <WorkflowPreviewPanel> / <EvidencePreviewTable> /
+      // <DecisionBriefPreview> components do exactly that). Forbid
+      // any reference to a static screenshot file or a benchmark
+      // numeric literal in the demo surfaces themselves.
+      const targets = [
+        "apps/models/app/demos/page.tsx",
+        "apps/models/app/demos/[slug]/page.tsx",
+        "apps/models/app/examples/decision-brief/page.tsx",
+        "apps/models/components/demo/WorkflowPreviewPanel.tsx",
+        "apps/models/components/demo/DemoRouteCard.tsx",
+        "apps/models/components/demo/EvidencePreviewTable.tsx",
+        "apps/models/components/demo/DecisionBriefPreview.tsx",
+        "apps/models/components/demo/DemoStepStrip.tsx",
+      ];
+      const failures: string[] = [];
+      // Static image file references like `screenshot.png`, or a
+      // tag pointing at `screenshot-*` assets. Disclaimer prose
+      // ("no fabricated screenshots") does not trip this.
+      const screenshotRefs =
+        /screenshots?[-_.\/][a-z0-9-_]*\.(?:png|jpg|jpeg|webp|gif|svg)/i;
+      // Benchmark score literal like "MMLU 89.4" or "GPQA 74.2".
+      // Case-sensitive on the benchmark name to avoid catching the
+      // JS `Math.min(...)` builtin or generic English "math".
+      const benchmarkLiteral =
+        /\b(?:MMLU|GPQA|HumanEval|HellaSwag|ARC-AGI|TruthfulQA|GSM8K|SWE-?Bench)\b[^"<>]{0,40}\b\d+(?:\.\d+)?\b/;
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        if (screenshotRefs.test(stripped)) {
+          failures.push(
+            `${rel} references a screenshot file — demo surfaces must render visual proof from live local data, not fabricated images.`
+          );
+        }
+        if (benchmarkLiteral.test(stripped)) {
+          failures.push(
+            `${rel} contains a benchmark name alongside a numeric literal — no fabricated benchmark scores allowed.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric appears on Sprint 27 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/guided-demos.ts",
+        "apps/models/app/demos/page.tsx",
+        "apps/models/app/demos/[slug]/page.tsx",
+        "apps/models/app/examples/decision-brief/page.tsx",
+        "apps/models/components/demo/WorkflowPreviewPanel.tsx",
+        "apps/models/components/demo/DemoRouteCard.tsx",
+        "apps/models/components/demo/EvidencePreviewTable.tsx",
+        "apps/models/components/demo/DecisionBriefPreview.tsx",
+        "apps/models/components/demo/DemoStepStrip.tsx",
+      ];
+      const banned =
+        /"[^"]*\bgpt-5\b[^"]*"[\s\S]{0,200}?\b\d{4,}\b/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} mentions GPT-5 alongside a numeric literal — no OpenAI metrics are verified yet.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
   {
     name: "WebmasterID tracker is loaded once, not duplicated",
     run: () => {

@@ -181,6 +181,30 @@ export default async function SelectPage({ searchParams }: PageProps) {
           shows verified values side by side. Open the top of this
           shortlist in the builder for a side-by-side view.
         </p>
+        <p className="text-xs">
+          Or start from a guided demo:{" "}
+          <Link
+            href="/demos/long-context-analysis"
+            className="text-primary hover:underline"
+          >
+            long-context
+          </Link>
+          {" · "}
+          <Link
+            href="/demos/hosted-inference"
+            className="text-primary hover:underline"
+          >
+            hosted inference
+          </Link>
+          {" · "}
+          <Link
+            href="/demos/governance-review"
+            className="text-primary hover:underline"
+          >
+            governance review
+          </Link>
+          .
+        </p>
       </aside>
 
       <DecisionWorkflow variant="card" highlightStep={2} />

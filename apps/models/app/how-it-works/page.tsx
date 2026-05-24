@@ -333,6 +333,71 @@ export default function HowItWorksPage() {
         </ul>
       </section>
 
+      <section aria-label="Try this workflow" className="space-y-3">
+        <SectionHeader
+          eyebrow="Try this workflow"
+          title="Guided demos and an example brief"
+          description="Three pre-built route plans walk the five steps on real verified data. The example decision brief shows what the export looks like without forcing you to build one."
+          cta={{ label: "Open all demos", href: "/demos" }}
+          as="h2"
+        />
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <li>
+            <Link
+              href="/demos/long-context-analysis"
+              className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Long-context demo
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Walks context window + prompt-size pricing tiers.
+              </p>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/demos/hosted-inference"
+              className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Hosted inference demo
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Hosted availability + platform pricing references.
+              </p>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/demos/governance-review"
+              className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Governance demo
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Verification state + freshness + reverification.
+              </p>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/examples/decision-brief"
+              className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Example brief
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Pre-built evidence pack — Markdown + JSON exports
+                live.
+              </p>
+            </Link>
+          </li>
+        </ul>
+      </section>
+
       <aside
         className="card-surface p-5 text-sm text-muted-foreground"
         aria-label="Related references"

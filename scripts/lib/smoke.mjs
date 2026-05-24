@@ -36,6 +36,11 @@ const PAGE_ROUTES = [
   "/briefs/build",
   "/docs/decision-briefs",
   "/how-it-works",
+  "/demos",
+  "/demos/long-context-analysis",
+  "/demos/hosted-inference",
+  "/demos/governance-review",
+  "/examples/decision-brief",
 ];
 
 const API_ROUTES = [

@@ -142,6 +142,58 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Try a guided workflow */}
+      <section
+        aria-label="Try a guided workflow"
+        className="container-page mt-12"
+      >
+        <SectionHeader
+          eyebrow="Demos"
+          title="Try a guided workflow"
+          description="Three pre-packaged route plans that walk the full use case → shortlist → compare → brief → sources workflow on real verified data. Navigation examples, not model recommendations."
+          cta={{ label: "All demos", href: "/demos" }}
+        />
+        <ul className="mt-6 grid gap-3 sm:grid-cols-3">
+          {[
+            {
+              href: "/demos/long-context-analysis",
+              title: "Long-context analysis",
+              detail:
+                "Verified context window + prompt-size pricing tiers.",
+            },
+            {
+              href: "/demos/hosted-inference",
+              title: "Hosted inference",
+              detail:
+                "Hosted availability + per-platform pricing references.",
+            },
+            {
+              href: "/demos/governance-review",
+              title: "Governance review",
+              detail:
+                "Verification state + source freshness + reverification queue.",
+            },
+          ].map((card) => (
+            <li key={card.href}>
+              <Link
+                href={card.href}
+                className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-sm font-semibold text-foreground">
+                  {card.title}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {card.detail}
+                </p>
+                <p className="mt-2 text-[10px] text-muted-foreground">
+                  Walks five steps · ends at an example evidence brief.
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* Stats strip */}
       <section
         aria-label="Coverage statistics"

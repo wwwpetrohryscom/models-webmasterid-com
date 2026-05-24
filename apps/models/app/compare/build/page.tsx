@@ -308,6 +308,30 @@ export default async function CompareBuilderPage({
             verified field count). Models are listed as candidates,
             not as picks.
           </p>
+          <p className="mt-1 text-[11px]">
+            Or try a guided comparison:{" "}
+            <Link
+              href="/demos/long-context-analysis"
+              className="text-primary hover:underline"
+            >
+              long-context
+            </Link>
+            {" · "}
+            <Link
+              href="/demos/hosted-inference"
+              className="text-primary hover:underline"
+            >
+              hosted inference
+            </Link>
+            {" · "}
+            <Link
+              href="/demos/governance-review"
+              className="text-primary hover:underline"
+            >
+              governance review
+            </Link>
+            .
+          </p>
         </aside>
       ) : null}
 

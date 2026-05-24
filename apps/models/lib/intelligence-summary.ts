@@ -320,6 +320,12 @@ export function getWorkspaceLinks(): WorkspaceLink[] {
         "Export source-backed evidence packs from selected models. Markdown or JSON.",
     },
     {
+      label: "Guided demos",
+      href: "/demos",
+      description:
+        "Three predefined route plans that walk the full workflow on real verified data.",
+    },
+    {
       label: "Model catalogue",
       href: "/models",
       description:

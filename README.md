@@ -474,6 +474,35 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+17. **Visual proof + guided demos + example evidence brief (Sprint
+    27).** Three predefined route plans live at
+    [`/demos`](apps/models/app/demos/page.tsx) — long-context
+    analysis, hosted inference, and governance review — each with a
+    dedicated detail page at `/demos/[slug]`. A new
+    [`/examples/decision-brief`](apps/models/app/examples/decision-brief/page.tsx)
+    page renders a worked example using the same
+    `buildDecisionBrief()` helper as the live builder so the
+    example cannot drift from the real export. New visual proof
+    components in
+    [`apps/models/components/demo/`](apps/models/components/demo/)
+    (`WorkflowPreviewPanel`, `DemoRouteCard`,
+    `EvidencePreviewTable`, `DecisionBriefPreview`, `DemoStepStrip`)
+    render every visual surface from local data — there are no
+    fabricated screenshots and no benchmark literals. A new
+    [`lib/guided-demos.ts`](apps/models/lib/guided-demos.ts) helper
+    builds each demo's route plan + evidence-field list +
+    per-demo policy note; demo `modelSlugs` are derived from the
+    shortlist helper (long-context, governance) or from the
+    hosted-pricing layer (hosted-inference) so the demos stay
+    honest as the data layer grows. Homepage, `/how-it-works`,
+    `/intelligence`, `/select`, `/compare/build`, `/briefs/build`,
+    and the footer all deep-link into the demos / example brief.
+    `ROUTE_SET_VERSION` bumps to `content-v9`. Nine new integrity
+    guards enforce: helper is score-free, every demo surface bans
+    recommendation language + screenshot references + benchmark
+    literals, every Sprint-27 surface re-checks the OpenAI
+    no-metrics rule.
+
 16. **UX conversion polish + landing narrative (Sprint 26).** The
     Hero now leads with positioning + a primary "Start with a use
     case" CTA + a secondary "How it works" CTA. The homepage gained

@@ -176,6 +176,16 @@ export default async function BriefsBuildPage({
           not rank by price, and does not generate conclusions that
           imply endorsement. Unknown values stay explicitly unverified.
         </p>
+        <p className="text-xs">
+          Not sure what a brief looks like?{" "}
+          <Link
+            href="/examples/decision-brief"
+            className="text-primary hover:underline"
+          >
+            View an example decision brief →
+          </Link>{" "}
+          (pre-built from the long-context-analysis demo).
+        </p>
       </aside>
 
       <DecisionWorkflow variant="card" highlightStep={6} />
