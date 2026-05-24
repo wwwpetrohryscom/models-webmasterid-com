@@ -324,6 +324,12 @@ function buildDeveloperPath(): LearningPath {
       "Open the hosted-inference brief builder",
       "Pre-seed the brief builder so the evidence pack stays consistent with the comparison."
     ),
+    workflowStep(
+      "/lab/prompt-testing-basics",
+      "Run the prompt-testing playbook",
+      "Walk a minimal repeatable prompt-test routine against the shortlisted candidates and end with a Markdown evidence brief.",
+      25
+    ),
   ];
   return {
     slug: "developer",
@@ -609,6 +615,12 @@ function buildAutomationSpecialistPath(): LearningPath {
       "/briefs/build?useCase=structured-output",
       "Open the structured-output brief builder",
       "Generate the evidence pack that ships with the automation review."
+    ),
+    workflowStep(
+      "/lab/automation-workflow-testing",
+      "Run the automation workflow testing playbook",
+      "Test the candidate model inside the automation loop — retries, downstream parsers, regression surface — before letting it run unattended.",
+      40
     ),
   ];
   return {

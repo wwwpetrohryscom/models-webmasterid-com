@@ -67,6 +67,17 @@ const PAGE_ROUTES = [
   "/learn/exercises/create-decision-brief",
   "/learn/exercises/check-source-freshness",
   "/learn/exercises/plan-external-model-test",
+  "/lab",
+  "/lab/prompt-testing-basics",
+  "/lab/structured-output-testing",
+  "/lab/long-context-testing",
+  "/lab/multimodal-input-testing",
+  "/lab/automation-workflow-testing",
+  "/lab/model-regression-testing",
+  "/lab/templates",
+  "/lab/templates/model-evaluation-plan",
+  "/lab/templates/prompt-test-matrix",
+  "/lab/templates/automation-risk-checklist",
 ];
 
 const API_ROUTES = [
@@ -84,6 +95,9 @@ const API_ROUTES = [
   "/api/reverification/checklist?format=json",
   "/api/intelligence",
   "/api/briefs/decision?format=json",
+  "/api/lab/templates/model-evaluation-plan",
+  "/api/lab/templates/prompt-test-matrix",
+  "/api/lab/templates/automation-risk-checklist",
 ];
 
 const FETCH_TIMEOUT_MS = 8_000;
@@ -154,6 +168,7 @@ async function checkRoute({ base, path, kind, mode, headers = {} }) {
   const isHtml = /text\/html/i.test(contentType);
   const isJson = /application\/json/i.test(contentType);
   const isPlain = /text\/plain/i.test(contentType);
+  const isMarkdown = /text\/markdown/i.test(contentType);
   const note = [];
 
   if (kind === "api") {
@@ -211,8 +226,12 @@ async function checkRoute({ base, path, kind, mode, headers = {} }) {
         note: note.join("; ") || "",
       };
     }
-    // Generic API: 2xx + json/plain.
-    if (http >= 200 && http < 300 && (isJson || isPlain)) {
+    // Generic API: 2xx + json / plain / markdown.
+    if (
+      http >= 200 &&
+      http < 300 &&
+      (isJson || isPlain || isMarkdown)
+    ) {
       return { path, http, contentType, status: "pass", note: "" };
     }
     return {
@@ -220,7 +239,7 @@ async function checkRoute({ base, path, kind, mode, headers = {} }) {
       http,
       contentType,
       status: "fail",
-      note: `expected 2xx JSON, got ${http} ${contentType}`,
+      note: `expected 2xx JSON / Markdown, got ${http} ${contentType}`,
     };
   }
 

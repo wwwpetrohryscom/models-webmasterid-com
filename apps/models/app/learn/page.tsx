@@ -158,16 +158,17 @@ export default function LearnHubPage() {
       </section>
 
       <section
-        aria-label="Learn, apply, verify"
+        aria-label="Learn, apply, verify, test"
         className="space-y-3"
       >
         <SectionHeader
           eyebrow="Curriculum"
-          title="Learn → Apply → Verify"
-          description="Concept lessons explain the verified fields. Exercises route those concepts through the workspaces. Sources anchor every claim — every step of the curriculum stays auditable."
+          title="Learn → Apply → Verify → Test"
+          description="Concept lessons explain the verified fields. Exercises route those concepts through the workspaces. Sources anchor every claim. The AI Usage Lab adds testing playbooks before integration. Every step of the curriculum stays auditable."
+          cta={{ label: "Open the lab", href: "/lab" }}
           as="h2"
         />
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {[
           {
             eyebrow: "Learn",
@@ -186,6 +187,12 @@ export default function LearnHubPage() {
             title: "Verify with sources",
             body: "Every claim in the catalogue is anchored to a primary-source citation with a retrievedAt date. The reverification queue surfaces what is due for re-check.",
             cta: { label: "Open citation registry", href: "/sources" },
+          },
+          {
+            eyebrow: "Test",
+            title: "Test before production",
+            body: "The AI Usage Lab adds six testing playbooks and three paste-ready Markdown templates. Playbooks teach how to test; they do not certify the model.",
+            cta: { label: "Open the lab", href: "/lab" },
           },
         ].map((card) => (
           <article

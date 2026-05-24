@@ -202,6 +202,57 @@ const STATIC_ROUTES: StaticRoute[] = [
     changeFrequency: "monthly",
     priority: 0.7,
   },
+  { path: "/lab", changeFrequency: "monthly", priority: 0.85 },
+  {
+    path: "/lab/prompt-testing-basics",
+    changeFrequency: "monthly",
+    priority: 0.75,
+  },
+  {
+    path: "/lab/structured-output-testing",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/lab/long-context-testing",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/lab/multimodal-input-testing",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/lab/automation-workflow-testing",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/lab/model-regression-testing",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/lab/templates",
+    changeFrequency: "monthly",
+    priority: 0.75,
+  },
+  {
+    path: "/lab/templates/model-evaluation-plan",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/lab/templates/prompt-test-matrix",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/lab/templates/automation-risk-checklist",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

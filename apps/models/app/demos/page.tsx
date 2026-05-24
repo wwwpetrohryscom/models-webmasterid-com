@@ -176,7 +176,12 @@ export default function DemosHubPage() {
         </p>
         <p className="text-muted-foreground">
           Demos walk the workflow; exercises ask you to produce the
-          artifact. Pair them in either order.
+          artifact. Pair them in either order. When the artifact is
+          ready, run the matching{" "}
+          <Link href="/lab" className="text-primary hover:underline">
+            lab playbook
+          </Link>{" "}
+          before integration.
         </p>
         <ul className="grid gap-2 sm:grid-cols-3">
           <li>

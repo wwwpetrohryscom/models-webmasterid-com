@@ -68,6 +68,13 @@ export function GET() {
       intelligenceEndpoints: INTELLIGENCE_ENDPOINTS.map(absolute),
       decisionBriefBuilder: absolute("/briefs/build"),
       decisionBriefApi: absolute("/api/briefs/decision"),
+      labHub: absolute("/lab"),
+      labTemplates: absolute("/lab/templates"),
+      labTemplateEndpoints: [
+        absolute("/api/lab/templates/model-evaluation-plan"),
+        absolute("/api/lab/templates/prompt-test-matrix"),
+        absolute("/api/lab/templates/automation-risk-checklist"),
+      ],
     },
     {
       status: 200,

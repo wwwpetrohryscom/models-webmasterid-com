@@ -1072,6 +1072,175 @@ not gate the workspaces behind any auth surface.
 Completion of any path is the evidence artifact in the
 reader's hands — never a UI signal.
 
+**Sprint 31 — AI Usage Lab.** Sprint 31 extends the
+curriculum into a fourth step:
+**Learn → Apply → Verify → Test**. The lab teaches
+practical model testing before integration — it does not
+certify the model, validate safety, replace benchmarks,
+or guarantee production readiness.
+
+[`lib/lab-playbooks.ts`](apps/models/lib/lab-playbooks.ts)
+is the single source of truth for the lab. The registry
+exports `labPlaybooks`, `labTemplates`, `getLabPlaybook`,
+`getLabTemplate`, `getLabPlaybooks`, `getLabTemplates`,
+`getLabPlaybookRoutes`, `getLabTemplateRoutes`, and
+`labTemplateToMarkdown`.
+
+Six playbooks ship:
+
+- `prompt-testing-basics` — beginner, 25 min.
+- `structured-output-testing` — intermediate, 30 min.
+- `long-context-testing` — intermediate, 35 min.
+- `multimodal-input-testing` — intermediate, 30 min.
+- `automation-workflow-testing` — intermediate, 40 min.
+- `model-regression-testing` — intermediate, 30 min.
+
+Each playbook carries: `goal`, `whenToUse`, typed
+`prerequisites`, `testSetup`, `minimumTestSet`,
+`promptVariants`, `observationsToRecord`, `failureModes`,
+`stopConditions`, `outputs`, `relatedTemplates`,
+`relatedRoutes`, and an explicit `policyNote`. No
+playbook fabricates example results, names a winner, or
+publishes benchmark scores.
+
+Three templates ship:
+
+- `model-evaluation-plan` — five-section plan covering
+  identify, scope, test plan, observations, decision.
+- `prompt-test-matrix` — Markdown table scaffold for
+  prompt × candidate × pass/fail rollups.
+- `automation-risk-checklist` — five-section pre-launch
+  risk checklist for automations that depend on a model.
+
+Templates are typed `LabTemplate` with structured
+`sections[]` and `body[]` arrays. The deterministic
+`labTemplateToMarkdown(template)` serialiser turns any
+template into clean Markdown — no Date.now, no model
+slugs, no user input.
+
+Five new server components in
+`apps/models/components/lab/`:
+
+- `LabPlaybookCard` — summary card (difficulty,
+  minutes, output count).
+- `LabTemplateCard` — summary card with section count.
+- `LabPolicyNote` — the explicit "what the lab does not
+  promise" callout.
+- `LabChecklistSection` — bullet-list section used by
+  every playbook field.
+- `LabWorkflowStrip` — the four-step "define task →
+  build test set → run model trials → record evidence"
+  strip.
+
+[`/lab`](apps/models/app/lab/page.tsx) hub renders the
+hero, `LabWorkflowStrip`, playbook grid, template grid,
+`LabPolicyNote`, and a `CollectionPage` JSON-LD payload
+that lists every playbook as `HowTo` and every template
+as `CreativeWork`.
+
+[`/lab/[slug]`](apps/models/app/lab/%5Bslug%5D/page.tsx)
+dynamic route prerenders the six playbook detail pages
+via `generateStaticParams()`. Each detail page renders
+the playbook's policy note, at-a-glance card, goal, and
+every checklist section (`whenToUse`, `prerequisites`,
+`testSetup`, `minimumTestSet`, `promptVariants`,
+`observationsToRecord`, `failureModes`, `stopConditions`,
+`outputs`), related templates, related workflows, and the
+`LabPolicyNote`. JSON-LD: `TechArticle` +
+`BreadcrumbList`.
+
+[`/lab/templates`](apps/models/app/lab/templates/page.tsx)
+hub renders the three templates with an explicit
+"templates are planning tools, not safety guarantees"
+callout.
+[`/lab/templates/[slug]`](apps/models/app/lab/templates/%5Bslug%5D/page.tsx)
+dynamic route prerenders the three template detail pages
+and surfaces a direct "Open raw Markdown" link to the
+API export endpoint.
+
+[`/api/lab/templates/[slug]`](apps/models/app/api/lab/templates/%5Bslug%5D/route.ts)
+endpoint is the Markdown export surface. It is pure
+local derivation:
+
+- Uses `force-static` with `generateStaticParams()` so
+  the three template responses are prerendered.
+- Calls `labTemplateToMarkdown()` from the registry — the
+  serializer stays in lib, not in the route.
+- Responds `text/markdown; charset=utf-8`.
+- Sets `X-Robots-Tag: noindex` so generated planning
+  templates do not enter the index from outside.
+- `Cache-Control: public, max-age=300, s-maxage=300`.
+- No fetch, no env, no Date.now, no user input.
+
+Flow integrations:
+
+- Homepage gains a "Test before production" section.
+- `/learn` Learn → Apply → Verify expands to four
+  cards, the new Test card linking to `/lab`.
+- `/how-it-works` adds a "Learn → Apply → Verify →
+  Test" section pointing into three lab surfaces.
+- `/briefs/build` policy aside links the lab as the
+  testing planning home.
+- `/demos` "after the demo, complete an exercise" panel
+  adds a follow-up link to the matching lab playbook.
+- SiteFooter Workflow column adds Lab + Lab templates.
+- The developer learning path adds the
+  prompt-testing-basics playbook as its final workflow
+  step.
+- The automation-specialist learning path adds the
+  automation-workflow-testing playbook as its final
+  workflow step.
+
+`ROUTE_SET_VERSION` bumps to `content-v13`. The
+`REQUIRED_PAGE_ROUTES` array adds `/lab` and
+`/lab/templates`; the `REQUIRED_API_ROUTES` array adds
+the three template export endpoints. `/api/site` now
+advertises `labHub`, `labTemplates`, and
+`labTemplateEndpoints`.
+
+Smoke (`scripts/lib/smoke.mjs`) gains markdown
+content-type handling — generic API checks now accept
+`text/markdown` alongside JSON / plain text so the lab
+export endpoints pass the same gate as the briefs
+endpoint.
+
+Twelve new integrity guards enforce:
+
+1. Registry exists with all 9 required exports.
+2. All 6 playbook slugs registered.
+3. All 3 template slugs registered.
+4. Hub + dynamic playbook detail + templates hub +
+   template detail pages all exist.
+5. Export endpoint exists with `X-Robots-Tag: noindex`,
+   `text/markdown`, `labTemplateToMarkdown()` call, no
+   `Date.now`, no `process.env`, no `fetch`.
+6. The 5 lab components exist.
+7. Registry has no score / rank / recommend / winner
+   language.
+8. Lab pages contain no benchmark numeric score.
+9. Lab pages contain no production-readiness /
+   certification / safety guarantee / SEO ranking
+   guarantee phrasing (`guarantees production readiness`,
+   `is production ready`, `certifies the model`,
+   `validates safety automatically`,
+   `guaranteed seo/search/ranking/traffic`,
+   `top of google`, `rank #1`, `certified compliant`).
+10. No OpenAI numeric metric appears on Sprint 31
+    surfaces.
+11. `/how-it-works` mentions
+    `Learn → Apply → Verify → Test`.
+12. Route contract + sitemap + llms.txt + smoke +
+    indexing advertise all 11 lab page routes; route
+    contract + smoke advertise the 3 API endpoints.
+
+**Lab policy.** The lab teaches workload-specific
+testing discipline. It does not certify any model,
+publish benchmark scores, validate safety, guarantee
+SEO outcomes or automation reliability, or substitute
+for the team's own production-readiness review. A
+filled-in template is evidence the planning work was
+done — not a sign-off.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,

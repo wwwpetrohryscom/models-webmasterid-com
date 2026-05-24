@@ -7340,6 +7340,428 @@ const checks: Check[] = [
       return failures.length ? failures.join("\n") : null;
     },
   },
+  // -------------------------------------------------------------------
+  // Sprint 31 — AI Usage Lab (playbooks + templates + export endpoint)
+  // -------------------------------------------------------------------
+  {
+    name: "lib/lab-playbooks.ts exists with required exports (Sprint 31)",
+    run: () => {
+      const rel = "apps/models/lib/lab-playbooks.ts";
+      if (!fileExists(rel)) return `Missing ${rel}.`;
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const sym of [
+        "export const labPlaybooks",
+        "export const labTemplates",
+        "export function getLabPlaybook",
+        "export function getLabTemplate",
+        "export function getLabPlaybooks",
+        "export function getLabTemplates",
+        "export function getLabPlaybookRoutes",
+        "export function getLabTemplateRoutes",
+        "export function labTemplateToMarkdown",
+      ]) {
+        if (!src.includes(sym)) {
+          failures.push(`${rel} must include \`${sym}\`.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "all 6 lab playbook slugs registered (Sprint 31)",
+    run: () => {
+      const src = readRel("apps/models/lib/lab-playbooks.ts");
+      const failures: string[] = [];
+      for (const slug of [
+        "prompt-testing-basics",
+        "structured-output-testing",
+        "long-context-testing",
+        "multimodal-input-testing",
+        "automation-workflow-testing",
+        "model-regression-testing",
+      ]) {
+        if (!src.includes(`slug: "${slug}"`)) {
+          failures.push(`Registry missing playbook slug "${slug}".`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "all 3 lab template slugs registered (Sprint 31)",
+    run: () => {
+      const src = readRel("apps/models/lib/lab-playbooks.ts");
+      const failures: string[] = [];
+      for (const slug of [
+        "model-evaluation-plan",
+        "prompt-test-matrix",
+        "automation-risk-checklist",
+      ]) {
+        if (!src.includes(`slug: "${slug}"`)) {
+          failures.push(`Registry missing template slug "${slug}".`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/lab hub + dynamic detail + templates hub + templates detail exist (Sprint 31)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/app/lab/page.tsx",
+        "apps/models/app/lab/[slug]/page.tsx",
+        "apps/models/app/lab/templates/page.tsx",
+        "apps/models/app/lab/templates/[slug]/page.tsx",
+      ]) {
+        if (!fileExists(rel)) failures.push(`Missing ${rel}.`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/api/lab/templates/[slug] export endpoint exists (Sprint 31)",
+    run: () => {
+      const rel = "apps/models/app/api/lab/templates/[slug]/route.ts";
+      if (!fileExists(rel)) return `Missing ${rel}.`;
+      const src = readRel(rel);
+      const failures: string[] = [];
+      if (!/X-Robots-Tag/.test(src) || !/noindex/.test(src)) {
+        failures.push(
+          "/api/lab/templates/[slug] must set X-Robots-Tag: noindex so generated templates do not enter the index from outside."
+        );
+      }
+      if (!/text\/markdown/.test(src)) {
+        failures.push(
+          "/api/lab/templates/[slug] must respond with text/markdown content type."
+        );
+      }
+      if (!/labTemplateToMarkdown/.test(src)) {
+        failures.push(
+          "/api/lab/templates/[slug] must call labTemplateToMarkdown() to keep the serializer in lib."
+        );
+      }
+      // No fetch / no env / no Date.now in the endpoint.
+      if (/Date\.now\(/.test(src)) {
+        failures.push(
+          "/api/lab/templates/[slug] must not call Date.now — the endpoint is pure local derivation."
+        );
+      }
+      if (/process\.env/.test(src)) {
+        failures.push(
+          "/api/lab/templates/[slug] must not read process.env — the endpoint is secrets-free."
+        );
+      }
+      if (/fetch\(/.test(src)) {
+        failures.push(
+          "/api/lab/templates/[slug] must not call fetch — the endpoint is offline-pure."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "5 lab components exist (Sprint 31)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/components/lab/LabPlaybookCard.tsx",
+        "apps/models/components/lab/LabTemplateCard.tsx",
+        "apps/models/components/lab/LabPolicyNote.tsx",
+        "apps/models/components/lab/LabChecklistSection.tsx",
+        "apps/models/components/lab/LabWorkflowStrip.tsx",
+      ]) {
+        if (!fileExists(rel)) failures.push(`Missing component ${rel}.`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lab registry has no score / rank / recommend / winner language (Sprint 31)",
+    run: () => {
+      // Strip block comments + line comments first; banned phrasing
+      // must not appear as positive assertions in the registry itself.
+      const src = readRel("apps/models/lib/lab-playbooks.ts");
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\byour\s+score\s+is\b/i,
+          label: "your score is",
+        },
+        {
+          pattern: /\bbest\s+(?:ai\s+)?model\s+(?:is|for)\b/i,
+          label: "best model is/for",
+        },
+        {
+          pattern: /\bour\s+recommended\s+model\b/i,
+          label: "our recommended model",
+        },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\bcheapest\s+(?:ai\s+)?(?:model|provider|platform)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:ai\s+)?(?:model|provider)\b/i,
+          label: "fastest <noun>",
+        },
+      ];
+      const failures: string[] = [];
+      for (const b of banned) {
+        if (b.pattern.test(stripped)) {
+          failures.push(
+            `lib/lab-playbooks.ts contains banned phrase "${b.label}".`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lab pages contain no benchmark numeric score (Sprint 31)",
+    run: () => {
+      const targets = [
+        "apps/models/lib/lab-playbooks.ts",
+        "apps/models/app/lab/page.tsx",
+        "apps/models/app/lab/[slug]/page.tsx",
+        "apps/models/app/lab/templates/page.tsx",
+        "apps/models/app/lab/templates/[slug]/page.tsx",
+        "apps/models/components/lab/LabPlaybookCard.tsx",
+        "apps/models/components/lab/LabTemplateCard.tsx",
+        "apps/models/components/lab/LabPolicyNote.tsx",
+        "apps/models/components/lab/LabChecklistSection.tsx",
+        "apps/models/components/lab/LabWorkflowStrip.tsx",
+      ];
+      const benchmarkLiteral =
+        /\b(?:MMLU|GPQA|HumanEval|HellaSwag|ARC-AGI|TruthfulQA|GSM8K|SWE-?Bench)\b[^"<>]{0,40}\b\d+(?:\.\d+)?\b/;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        if (benchmarkLiteral.test(stripped)) {
+          failures.push(
+            `${rel} contains a benchmark name alongside a numeric literal — lab surfaces must not publish benchmark scores.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lab pages contain no production-readiness / certification / safety guarantee language (Sprint 31)",
+    run: () => {
+      const targets = [
+        "apps/models/lib/lab-playbooks.ts",
+        "apps/models/app/lab/page.tsx",
+        "apps/models/app/lab/[slug]/page.tsx",
+        "apps/models/app/lab/templates/page.tsx",
+        "apps/models/app/lab/templates/[slug]/page.tsx",
+        "apps/models/components/lab/LabPlaybookCard.tsx",
+        "apps/models/components/lab/LabTemplateCard.tsx",
+        "apps/models/components/lab/LabPolicyNote.tsx",
+        "apps/models/components/lab/LabChecklistSection.tsx",
+        "apps/models/components/lab/LabWorkflowStrip.tsx",
+      ];
+      // Positive-assertion patterns only. The LabPolicyNote
+      // intentionally enumerates these as things the lab does NOT do
+      // so the policy copy must stay readable.
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bguarantees?\s+production\s+readiness\b/i,
+          label: "guarantees production readiness",
+        },
+        {
+          pattern: /\bis\s+production[\s-]ready\b/i,
+          label: "is production ready",
+        },
+        {
+          pattern: /\bcertifies\s+(?:the\s+)?model\b/i,
+          label: "certifies the model",
+        },
+        {
+          pattern: /\bvalidates\s+safety\s+automatically\b/i,
+          label: "validates safety automatically",
+        },
+        {
+          pattern: /\bguarantee(?:s|d)?\s+(?:seo|search|ranking|traffic)\b/i,
+          label: "guaranteed seo/search/ranking/traffic",
+        },
+        {
+          pattern: /\btop\s+of\s+google\b/i,
+          label: "top of google",
+        },
+        {
+          pattern: /\brank\s+#1\b/i,
+          label: "rank #1",
+        },
+        {
+          pattern: /\bcertified\s+compliant\b/i,
+          label: "certified compliant",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric appears on Sprint 31 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/lab-playbooks.ts",
+        "apps/models/app/lab/page.tsx",
+        "apps/models/app/lab/[slug]/page.tsx",
+        "apps/models/app/lab/templates/page.tsx",
+        "apps/models/app/lab/templates/[slug]/page.tsx",
+        "apps/models/components/lab/LabPlaybookCard.tsx",
+        "apps/models/components/lab/LabTemplateCard.tsx",
+        "apps/models/components/lab/LabPolicyNote.tsx",
+        "apps/models/components/lab/LabChecklistSection.tsx",
+        "apps/models/components/lab/LabWorkflowStrip.tsx",
+      ];
+      const banned = /"[^"]*\bgpt-5\b[^"]*"/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} references GPT-5 — no OpenAI metrics are verified yet.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/how-it-works mentions Learn → Apply → Verify → Test (Sprint 31)",
+    run: () => {
+      const src = readRel("apps/models/app/how-it-works/page.tsx");
+      if (!/Learn\s*[→]\s*Apply\s*[→]\s*Verify\s*[→]\s*Test/i.test(src)) {
+        return "/how-it-works must surface the 'Learn → Apply → Verify → Test' framing so the lab integration is visible.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/learn + homepage + briefs/build + demos link to /lab (Sprint 31)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/app/learn/page.tsx",
+        "apps/models/app/page.tsx",
+        "apps/models/app/briefs/build/page.tsx",
+        "apps/models/app/demos/page.tsx",
+      ]) {
+        const src = readRel(rel);
+        if (!/\/lab\b/.test(src)) {
+          failures.push(`${rel} must link to /lab.`);
+        }
+      }
+      // Footer must list /lab as well.
+      const footer = readRel("apps/models/components/SiteFooter.tsx");
+      if (!/"\/lab"/.test(footer)) {
+        failures.push("SiteFooter must link to /lab.");
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract + sitemap + llms.txt + smoke + indexing advertise Sprint 31 lab routes",
+    run: () => {
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+
+      const versionMatch = contract.match(
+        /ROUTE_SET_VERSION\s*=\s*"content-v(\d+)"/
+      );
+      if (!versionMatch || Number(versionMatch[1]) < 13) {
+        failures.push(
+          'ROUTE_SET_VERSION must be "content-v13" or later for Sprint 31.'
+        );
+      }
+
+      // Hubs the route contract advertises.
+      for (const hub of ['"/lab"', '"/lab/templates"']) {
+        if (!contract.includes(hub)) {
+          failures.push(`route-contract must include ${hub}.`);
+        }
+      }
+
+      const labPageRoutes = [
+        "/lab",
+        "/lab/prompt-testing-basics",
+        "/lab/structured-output-testing",
+        "/lab/long-context-testing",
+        "/lab/multimodal-input-testing",
+        "/lab/automation-workflow-testing",
+        "/lab/model-regression-testing",
+        "/lab/templates",
+        "/lab/templates/model-evaluation-plan",
+        "/lab/templates/prompt-test-matrix",
+        "/lab/templates/automation-risk-checklist",
+      ];
+      for (const path of labPageRoutes) {
+        const quoted = `"${path}"`;
+        if (!sitemap.includes(quoted)) {
+          failures.push(`sitemap must include ${quoted}.`);
+        }
+        if (!smoke.includes(quoted)) {
+          failures.push(`scripts/lib/smoke.mjs must include ${quoted}.`);
+        }
+        if (!indexing.includes(quoted)) {
+          failures.push(`scripts/indexing-qa.mjs must include ${quoted}.`);
+        }
+        if (!llms.includes(quoted)) {
+          failures.push(`llms.txt must list ${quoted}.`);
+        }
+      }
+
+      // API export endpoints — route contract + smoke (sitemap + llms
+      // do not advertise API routes; indexing skips them too).
+      const labApiRoutes = [
+        "/api/lab/templates/model-evaluation-plan",
+        "/api/lab/templates/prompt-test-matrix",
+        "/api/lab/templates/automation-risk-checklist",
+      ];
+      for (const path of labApiRoutes) {
+        const quoted = `"${path}"`;
+        if (!contract.includes(quoted)) {
+          failures.push(`route-contract must include ${quoted}.`);
+        }
+        if (!smoke.includes(quoted)) {
+          failures.push(`scripts/lib/smoke.mjs must include ${quoted}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
 ];
 
 function main(): void {

@@ -166,6 +166,53 @@ const INDEXABLE_PAGES = [
     expectJsonLd: true,
     kind: "detail",
   },
+  { path: "/lab", expectJsonLd: true, kind: "hub" },
+  {
+    path: "/lab/prompt-testing-basics",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/lab/structured-output-testing",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/lab/long-context-testing",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/lab/multimodal-input-testing",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/lab/automation-workflow-testing",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/lab/model-regression-testing",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  { path: "/lab/templates", expectJsonLd: true, kind: "hub" },
+  {
+    path: "/lab/templates/model-evaluation-plan",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/lab/templates/prompt-test-matrix",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/lab/templates/automation-risk-checklist",
+    expectJsonLd: true,
+    kind: "detail",
+  },
 ];
 
 const FILTERED_NOINDEX_PAGES = [

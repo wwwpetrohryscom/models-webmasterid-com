@@ -162,6 +162,44 @@ export function GET() {
       label: "Lesson — benchmark limitations",
       path: "/learn/benchmark-limitations",
     },
+    { label: "AI Usage Lab (hub)", path: "/lab" },
+    {
+      label: "Lab playbook — prompt testing basics",
+      path: "/lab/prompt-testing-basics",
+    },
+    {
+      label: "Lab playbook — structured output testing",
+      path: "/lab/structured-output-testing",
+    },
+    {
+      label: "Lab playbook — long-context testing",
+      path: "/lab/long-context-testing",
+    },
+    {
+      label: "Lab playbook — multimodal input testing",
+      path: "/lab/multimodal-input-testing",
+    },
+    {
+      label: "Lab playbook — automation workflow testing",
+      path: "/lab/automation-workflow-testing",
+    },
+    {
+      label: "Lab playbook — model regression testing",
+      path: "/lab/model-regression-testing",
+    },
+    { label: "Lab templates (hub)", path: "/lab/templates" },
+    {
+      label: "Lab template — model evaluation plan",
+      path: "/lab/templates/model-evaluation-plan",
+    },
+    {
+      label: "Lab template — prompt test matrix",
+      path: "/lab/templates/prompt-test-matrix",
+    },
+    {
+      label: "Lab template — automation risk checklist",
+      path: "/lab/templates/automation-risk-checklist",
+    },
     { label: "How it works (walkthrough)", path: "/how-it-works" },
     { label: "Guided demos", path: "/demos" },
     {

@@ -478,6 +478,54 @@ export default function HowItWorksPage() {
       </section>
 
       <section
+        aria-label="Test before production with the lab"
+        className="space-y-3"
+      >
+        <SectionHeader
+          eyebrow="Test"
+          title="Learn → Apply → Verify → Test"
+          description="The AI Usage Lab adds a fourth step to the curriculum. Six testing playbooks (prompt, structured output, long-context, multimodal, automation, regression) and three paste-ready Markdown templates pair with the workflow above. Lab outputs feed straight into the decision brief builder."
+          cta={{ label: "Open the lab", href: "/lab" }}
+          as="h2"
+        />
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            {
+              href: "/lab/prompt-testing-basics",
+              title: "Prompt testing basics",
+              detail: "Beginner · 25 min · ends with an evidence brief.",
+            },
+            {
+              href: "/lab/long-context-testing",
+              title: "Long-context testing",
+              detail:
+                "Intermediate · 35 min · recall and cost growth at large prompt sizes.",
+            },
+            {
+              href: "/lab/templates",
+              title: "Lab templates",
+              detail:
+                "Paste-ready Markdown for evaluation plans, prompt matrices, automation risk.",
+            },
+          ].map((card) => (
+            <li key={card.href}>
+              <Link
+                href={card.href}
+                className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-sm font-semibold text-foreground">
+                  {card.title}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {card.detail}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section
         aria-label="Practise the workflow with exercises"
         className="space-y-3"
       >

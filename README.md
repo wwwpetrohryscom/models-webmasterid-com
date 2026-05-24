@@ -474,6 +474,65 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+21. **AI Usage Lab — playbooks + templates + export endpoint (Sprint
+    31).** The curriculum extends from Learn → Apply → Verify into
+    Learn → Apply → Verify → Test. A new
+    [`lib/lab-playbooks.ts`](apps/models/lib/lab-playbooks.ts)
+    registry defines six testing playbooks
+    (`prompt-testing-basics`, `structured-output-testing`,
+    `long-context-testing`, `multimodal-input-testing`,
+    `automation-workflow-testing`, `model-regression-testing`) and
+    three paste-ready Markdown templates (`model-evaluation-plan`,
+    `prompt-test-matrix`, `automation-risk-checklist`). Each
+    playbook lists `goal`, `whenToUse`, `prerequisites`,
+    `testSetup`, `minimumTestSet`, `promptVariants`,
+    `observationsToRecord`, `failureModes`, `stopConditions`,
+    `outputs`, related templates, related routes, and a
+    `policyNote`. Templates are typed `LabTemplate` with structured
+    Markdown sections and a deterministic
+    `labTemplateToMarkdown()` serialiser. Five new server
+    components in [`components/lab/`](apps/models/components/lab/)
+    (`LabPlaybookCard`, `LabTemplateCard`, `LabPolicyNote`,
+    `LabChecklistSection`, `LabWorkflowStrip`) keep surfaces
+    consistent. A new [`/lab`](apps/models/app/lab/page.tsx) hub
+    renders the four-step lab workflow strip + playbooks grid +
+    templates grid + the explicit "what the lab does not promise"
+    callout. Dynamic
+    [`/lab/[slug]`](apps/models/app/lab/%5Bslug%5D/page.tsx)
+    prerenders all six playbook detail pages.
+    [`/lab/templates`](apps/models/app/lab/templates/page.tsx)
+    hubs the templates;
+    [`/lab/templates/[slug]`](apps/models/app/lab/templates/%5Bslug%5D/page.tsx)
+    renders the body inline as Markdown-styled sections with a
+    direct "open raw Markdown" link to the export API. A new
+    [`/api/lab/templates/[slug]`](apps/models/app/api/lab/templates/%5Bslug%5D/route.ts)
+    endpoint returns `text/markdown; charset=utf-8` with
+    `X-Robots-Tag: noindex` — pure local derivation (no fetch, no
+    env, no Date.now, no user input). The developer path adds the
+    prompt-testing playbook as its final step; the
+    automation-specialist path adds the automation-workflow
+    playbook. Homepage gains a "Test before production" section;
+    `/learn` Learn → Apply → Verify expands to four cards with the
+    Test card linking to `/lab`; `/how-it-works` adds a
+    "Learn → Apply → Verify → Test" section. `/briefs/build` and
+    `/demos` link to `/lab`. SiteFooter Workflow column adds Lab +
+    Lab templates. `ROUTE_SET_VERSION` bumps to `content-v13`. Twelve
+    new integrity guards enforce: registry has all 9 required
+    exports, all 6 playbook slugs + 3 template slugs registered,
+    hub + dynamic playbook detail + templates hub + template detail
+    all exist, export endpoint sets `X-Robots-Tag: noindex` +
+    `text/markdown` + calls `labTemplateToMarkdown()` + has no
+    Date.now / no process.env / no fetch, 5 lab components exist,
+    registry has no score / rank / recommend / winner phrasing, lab
+    pages contain no benchmark literals, lab pages contain no
+    production-readiness / certification / SEO-ranking guarantee
+    phrasing, OpenAI no-metrics re-checked, `/how-it-works`
+    surfaces the Test framing, every entry-point links to `/lab`,
+    and route contract + sitemap + llms.txt + smoke + indexing
+    advertise all 11 page routes + 3 API endpoints. Smoke also
+    learns to accept `text/markdown` as a valid API response
+    alongside JSON / plain text.
+
 20. **Role-based learning paths + AI usage curriculum positioning
     (Sprint 30).** The learning layer becomes a guided curriculum.
     A new

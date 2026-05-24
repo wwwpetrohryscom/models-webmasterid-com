@@ -81,6 +81,58 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Test before production */}
+      <section
+        aria-label="Test before production"
+        className="container-page mt-12"
+      >
+        <SectionHeader
+          eyebrow="Lab"
+          title="Test before production"
+          description="The AI Usage Lab extends Learn → Apply → Verify into Test. Six playbooks teach prompt testing, structured-output validation, long-context trials, multimodal trials, automation-risk reviews, and regression checks. Templates and playbooks are planning tools, never safety certifications."
+          cta={{ label: "Open the lab", href: "/lab" }}
+        />
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            {
+              href: "/lab/prompt-testing-basics",
+              title: "Prompt testing basics",
+              detail:
+                "Minimum prompt-testing routine before integration. Beginner · 25 min.",
+            },
+            {
+              href: "/lab/structured-output-testing",
+              title: "Structured output testing",
+              detail:
+                "Validate JSON mode, structured output, and tool calls against your real schema.",
+            },
+            {
+              href: "/lab/automation-workflow-testing",
+              title: "Automation workflow testing",
+              detail:
+                "Test the model inside an automation loop before it runs unattended.",
+            },
+          ].map((card) => (
+            <li key={card.href}>
+              <Link
+                href={card.href}
+                className="card-surface block h-full p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-sm font-semibold text-foreground">
+                  {card.title}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {card.detail}
+                </p>
+                <p className="mt-2 text-[10px] text-muted-foreground">
+                  Ends with a Markdown evidence brief · no scoring.
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* Choose a learning path */}
       <section
         aria-label="Choose a learning path"

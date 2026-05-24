@@ -187,6 +187,16 @@ export default async function BriefsBuildPage({
           (pre-built from the long-context-analysis demo).
         </p>
         <p className="text-xs">
+          Plan the tests that produce the evidence in this brief at{" "}
+          <Link
+            href="/lab"
+            className="text-primary hover:underline"
+          >
+            /lab
+          </Link>{" "}
+          — six testing playbooks + paste-ready Markdown templates.
+        </p>
+        <p className="text-xs">
           Confused by what to put in a brief?{" "}
           <Link
             href="/learn/testing-ai-models"
