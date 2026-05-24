@@ -1,1 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 64" role="img" aria-label="WebmasterID Models"><defs><linearGradient id="wmidGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2563EB"/><stop offset="100%" stop-color="#7C3AED"/></linearGradient></defs><g><line x1="32" y1="10" x2="32" y2="22" stroke="url(#wmidGrad)" stroke-width="1.25" stroke-linecap="round" opacity="0.45"/><path d="M 10 18 L 20 46 L 32 24 L 44 46 L 54 18" stroke="url(#wmidGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="10" cy="18" r="3" fill="url(#wmidGrad)"/><circle cx="20" cy="46" r="3" fill="url(#wmidGrad)"/><circle cx="32" cy="24" r="3" fill="url(#wmidGrad)"/><circle cx="44" cy="46" r="3" fill="url(#wmidGrad)"/><circle cx="54" cy="18" r="3" fill="url(#wmidGrad)"/><circle cx="32" cy="8" r="2.5" fill="url(#wmidGrad)" opacity="0.7"/></g><g font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"><text x="76" y="34" font-size="22" font-weight="700" fill="#111827" letter-spacing="-0.5">WebmasterID</text><text x="76" y="34" font-size="22" font-weight="700" fill="url(#wmidGrad)" letter-spacing="-0.5" dx="166">Models</text><text x="76" y="52" font-size="11" font-weight="500" fill="#6B7280" letter-spacing="0">AI Model Infrastructure Intelligence</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 96" role="img" aria-label="AiModels WebmasterID">
+  <defs>
+    <linearGradient id="wmidFullGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E5BC7"/>
+      <stop offset="55%" stop-color="#2BA6C6"/>
+      <stop offset="100%" stop-color="#3DD68A"/>
+    </linearGradient>
+    <linearGradient id="wmidIdGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2BA6C6"/>
+      <stop offset="100%" stop-color="#3DD68A"/>
+    </linearGradient>
+  </defs>
+  <!-- Mark tile -->
+  <rect x="6" y="6" width="84" height="84" rx="18" ry="18" fill="url(#wmidFullGrad)"/>
+  <path d="M 22 48 Q 33 36 44 48" stroke="#FFFFFF" stroke-width="3.6" stroke-linecap="round" fill="none"/>
+  <path d="M 27 43 Q 33 36 39 43" stroke="#FFFFFF" stroke-width="3.6" stroke-linecap="round" fill="none"/>
+  <circle cx="33" cy="34" r="2.2" fill="#FFFFFF"/>
+  <path d="M 24 56 L 35 78 L 48 60 L 61 78 L 72 56"
+    stroke="#FFFFFF" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Wordmark -->
+  <text x="108" y="40" font-family="'Inter','SF Pro Text','Segoe UI',Helvetica,Arial,sans-serif"
+    font-size="18" font-weight="500" letter-spacing="2.4" fill="#1E5BC7">A i M o d e l s</text>
+  <text x="108" y="78" font-family="'Inter','SF Pro Display','Segoe UI',Helvetica,Arial,sans-serif"
+    font-size="38" font-weight="800" letter-spacing="-0.8" fill="#0B1E3A">Webmaster<tspan fill="url(#wmidIdGrad)">ID</tspan></text>
+</svg>

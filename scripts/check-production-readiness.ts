@@ -5292,6 +5292,208 @@ const checks: Check[] = [
       return failures.length ? failures.join("\n") : null;
     },
   },
+  // ---------------------------------------------------------------------
+  // Brand Sprint — AiModels WebmasterID v2 logo promoted into the
+  // live brand system. Guards confirm the canonical assets exist,
+  // the Logo component renders the v2 design, the favicon + OG
+  // image use the v2 palette, the brand-source directory carries a
+  // README, and BRAND_ASSETS.md documents the v2 source policy.
+  // Provider lettermarks (public/brands/) are intentionally left
+  // alone — the brand sprint touches the product identity only.
+  // ---------------------------------------------------------------------
+  {
+    name: "AiModels WebmasterID v2 brand assets exist (Brand Sprint)",
+    run: () => {
+      const required: { rel: string; label: string }[] = [
+        {
+          rel: "apps/models/public/logo.svg",
+          label: "logo.svg (full lockup)",
+        },
+        {
+          rel: "apps/models/public/logo-mark.svg",
+          label: "logo-mark.svg (icon only)",
+        },
+        {
+          rel: "apps/models/public/logo-mono.svg",
+          label: "logo-mono.svg (single-colour)",
+        },
+        {
+          rel: "apps/models/app/icon.svg",
+          label: "app/icon.svg (favicon)",
+        },
+        {
+          rel: "apps/models/public/brand-source/README.md",
+          label: "public/brand-source/README.md",
+        },
+      ];
+      const failures: string[] = [];
+      for (const r of required) {
+        if (!fileExists(r.rel)) {
+          failures.push(`Missing ${r.label} (${r.rel}).`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Live logo files render the v2 design (Brand Sprint)",
+    run: () => {
+      // The v2 design uses the brand gradient stops 1E5BC7 → 2BA6C6 →
+      // 3DD68A and the rounded-tile <rect rx="14">. The legacy mark
+      // was a stroked W with no tile. Verify each canonical SVG
+      // carries the v2 fingerprints.
+      const targets = [
+        "apps/models/public/logo.svg",
+        "apps/models/public/logo-mark.svg",
+        "apps/models/app/icon.svg",
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (!/#1E5BC7/i.test(src) || !/#3DD68A/i.test(src)) {
+          failures.push(
+            `${rel} does not carry the v2 brand gradient stops (#1E5BC7 → #3DD68A).`
+          );
+        }
+        if (!/rx="14"|rx="18"|rx="13"|rounded/i.test(src)) {
+          failures.push(
+            `${rel} does not appear to render the rounded brand tile.`
+          );
+        }
+      }
+      // logo-mono.svg uses currentColor (no gradient) — check the
+      // outlined-tile fingerprint separately.
+      const mono = "apps/models/public/logo-mono.svg";
+      if (fileExists(mono)) {
+        const src = readRel(mono);
+        if (!/currentColor/.test(src)) {
+          failures.push(
+            "logo-mono.svg must use currentColor for tinting on dark / single-colour contexts."
+          );
+        }
+        if (!/rx="13"|rx="14"/.test(src)) {
+          failures.push(
+            "logo-mono.svg must render the outlined brand tile."
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Logo component renders the v2 mark inline (Brand Sprint)",
+    run: () => {
+      const src = readRel("apps/models/components/Logo.tsx");
+      const failures: string[] = [];
+      // The inline mark uses the v2 gradient stops + the rounded
+      // tile rect.
+      if (!/#1E5BC7/.test(src) || !/#3DD68A/.test(src)) {
+        failures.push(
+          "components/Logo.tsx must render the v2 gradient stops (#1E5BC7 → #3DD68A) inline."
+        );
+      }
+      if (!/rx="14"|ry="14"/.test(src)) {
+        failures.push(
+          "components/Logo.tsx must render the rounded brand tile."
+        );
+      }
+      // Wordmark must include the AiModels / WebmasterID lockup.
+      if (!/AiModels/.test(src)) {
+        failures.push(
+          "components/Logo.tsx must include the 'AiModels' wordmark label."
+        );
+      }
+      if (!/Webmaster/.test(src)) {
+        failures.push(
+          "components/Logo.tsx must include the 'Webmaster' wordmark."
+        );
+      }
+      // Strip comments before scanning the banned legacy gradient.
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      if (/#7C3AED/.test(stripped)) {
+        failures.push(
+          "components/Logo.tsx still references the legacy violet gradient stop #7C3AED — it should be removed in v2."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "OpenGraph image uses the v2 brand palette (Brand Sprint)",
+    run: () => {
+      const src = readRel("apps/models/app/opengraph-image.tsx");
+      const failures: string[] = [];
+      if (!/#1E5BC7/.test(src) || !/#3DD68A/.test(src)) {
+        failures.push(
+          "opengraph-image.tsx must use the v2 gradient stops (#1E5BC7 → #3DD68A)."
+        );
+      }
+      // Strip comments before scanning the banned legacy gradient.
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      if (/#7C3AED/.test(stripped)) {
+        failures.push(
+          "opengraph-image.tsx still references the legacy violet gradient stop #7C3AED."
+        );
+      }
+      if (!/AiModels/.test(src)) {
+        failures.push(
+          "opengraph-image.tsx must include the 'AiModels' brand label."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "BRAND_ASSETS.md documents the AiModels WebmasterID v2 source (Brand Sprint)",
+    run: () => {
+      const src = readRel("BRAND_ASSETS.md");
+      const failures: string[] = [];
+      if (!/AiModels WebmasterID/i.test(src)) {
+        failures.push(
+          "BRAND_ASSETS.md must document the AiModels WebmasterID brand."
+        );
+      }
+      if (!/brand-source/.test(src)) {
+        failures.push(
+          "BRAND_ASSETS.md must reference the public/brand-source/ directory."
+        );
+      }
+      if (!/Vector recreation|vector recreation|recreations/i.test(src)) {
+        failures.push(
+          "BRAND_ASSETS.md must disclose that the SVG files are vector recreations of the user-supplied source."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "public/brand-source/ stays separate from provider brand assets",
+    run: () => {
+      // Brand-source must hold first-party product brand only. Any
+      // file with a provider name in the path is a misplacement;
+      // provider lettermarks belong in public/brands/.
+      const dir = "apps/models/public/brand-source";
+      const ROOT = resolve(__dirname, "..");
+      const path = resolve(ROOT, dir);
+      try {
+        const entries = readdirSync(path);
+        const providerLike =
+          /(anthropic|openai|gpt|claude|google|gemini|meta|llama|mistral|deepseek|groq|together|qwen|bedrock|vertex)/i;
+        const offending = entries.filter((e) => providerLike.test(e));
+        if (offending.length) {
+          return `public/brand-source/ contains entries that look like provider assets: ${offending.join(", ")}. Provider marks belong in public/brands/, not public/brand-source/.`;
+        }
+        return null;
+      } catch {
+        return null; // Directory missing — the "assets exist" guard reports it.
+      }
+    },
+  },
   {
     name: "WebmasterID tracker is loaded once, not duplicated",
     run: () => {

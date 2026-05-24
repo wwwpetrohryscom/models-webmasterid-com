@@ -1,33 +1,75 @@
 # Brand assets policy
 
-## WebmasterID Models logo (first-party)
+## AiModels WebmasterID logo (first-party, v2 — live)
 
-Status: internally authored. Not a third-party provider mark.
+Status: internally authored vector recreation of the user-supplied official mark. Not a third-party provider mark.
 
-- **Component:** [`apps/models/components/Logo.tsx`](apps/models/components/Logo.tsx) — variants `full`, `mark`, `compact`, `mono`.
-- **Static files:** [`apps/models/public/logo.svg`](apps/models/public/logo.svg) (full lockup), [`apps/models/public/logo-mark.svg`](apps/models/public/logo-mark.svg) (icon only), [`apps/models/public/logo-mono.svg`](apps/models/public/logo-mono.svg) (single-colour, uses `currentColor`).
-- **Favicon:** [`apps/models/app/icon.svg`](apps/models/app/icon.svg) — Next.js file-convention icon, picked up automatically.
+- **Component:** [`apps/models/components/Logo.tsx`](apps/models/components/Logo.tsx) — variants `full`, `mark`, `compact`, `mono`. Renders the brand mark inline (no `<img>` request, no FOUC).
+- **Static files:**
+  - [`apps/models/public/logo.svg`](apps/models/public/logo.svg) — full lockup (mark + "AiModels" + "WebmasterID" with gradient "ID").
+  - [`apps/models/public/logo-mark.svg`](apps/models/public/logo-mark.svg) — icon-only (rounded gradient tile + white W + Wi-Fi arcs, 64×64).
+  - [`apps/models/public/logo-mono.svg`](apps/models/public/logo-mono.svg) — single-colour outline variant; uses `currentColor` so it tints to the container.
+  - [`apps/models/public/logo-v2.svg`](apps/models/public/logo-v2.svg), [`apps/models/public/logo-v2-mark.svg`](apps/models/public/logo-v2-mark.svg) — legacy aliases retained from the Sprint 24 staging commit; same content as the canonical files. Safe to delete once no external link depends on them.
+- **Favicon:** [`apps/models/app/icon.svg`](apps/models/app/icon.svg) — Next.js file-convention icon (rounded tile + W + arcs).
+- **OpenGraph image:** [`apps/models/app/opengraph-image.tsx`](apps/models/app/opengraph-image.tsx) — dynamically rendered via `next/og`. Tile + wordmark use the v2 palette.
+- **Source asset:** see [`apps/models/public/brand-source/README.md`](apps/models/public/brand-source/README.md) for where the user-supplied original belongs.
 
-Visual direction (approved Concept 1):
+### Visual direction (v2)
 
-- W/M monogram drawn as a single stroked path so it reads as W upright and as M when flipped vertically.
-- Blue → violet linear gradient: `#2563EB → #7C3AED`. Five filled nodes sit at the joints; one smaller accent node above the central peak hints at the network/intelligence layer.
-- Wordmark: "WebmasterID Models" with "Models" tinted by the gradient. Optional descriptor "AI Model Infrastructure Intelligence" available on the `full` variant when height permits.
+- Rounded square tile, blue → teal → green linear gradient (`#1E5BC7` → `#2BA6C6` → `#3DD68A`).
+- White stylised W stroke; two white Wi-Fi arcs above the top-left peak with a small dot accent — the "signal" metaphor in the source mark.
+- Wordmark: small `AiModels` label above heavier `WebmasterID` with a gradient teal-green `ID`. The `compact` variant shows only the `WebmasterID` lockup so the navbar stays tight.
+- The `mono` variant outlines the tile in `currentColor`, leaves the centre transparent, and renders the W + arcs in `currentColor`. Use on dark backgrounds, print, or anywhere a single-tone mark is preferable.
 - No glow, no drop shadow, no neon. Clean light-enterprise feel.
 
-This is a **first-party brand asset**. It is authored in this repository and is safe to redistribute alongside the codebase. It does not require trademark clearance because no third-party brand is referenced. The footer trademark / non-affiliation disclaimer still applies to every provider logo / lettermark in `public/brands/`.
+### Source asset
 
-`check:production` enforces that the four logo files and the `<Logo>` component exist and that both `SiteHeader` and `SiteFooter` render the component.
+The user-supplied raster source belongs at:
 
-### v2 brand mark (new official lockup)
+```
+apps/models/public/brand-source/aimodels-webmasterid-logo-official.jpg
+```
 
-A second official lockup is available as SVG approximations alongside the original. Direction: rounded square tile with a blue → green gradient, white stylised "W" with Wi-Fi arcs above the left peak, and a "AiModels / WebmasterID" wordmark with a teal-green tint on "ID".
+(or whatever extension the original was delivered in). **The SVG files above are vector recreations from that source — geometry approximated by eye.** If the original vector master (Figma, Illustrator, etc.) is available, drop it into `public/brand-source/` and re-export cleaner SVGs to replace `logo.svg` / `logo-mark.svg` / `logo-mono.svg`.
 
-- **Files:** [`apps/models/public/logo-v2-mark.svg`](apps/models/public/logo-v2-mark.svg) (mark only), [`apps/models/public/logo-v2.svg`](apps/models/public/logo-v2.svg) (full lockup with wordmark).
-- **Status:** SVG recreations from the provided source image — geometry approximated. If the original source files (Figma, PNG, SVG) are available, swap them in to replace these recreations before promoting the v2 mark to the default `<Logo>` variant.
-- **Not yet wired into `<Logo>`:** the existing component, `SiteHeader`, and `SiteFooter` continue to render the original lockup. Promote the v2 files by either renaming over `logo.svg` / `logo-mark.svg` once approved, or by extending the `<Logo>` component with a `variant="v2"` option and updating the surfaces that should switch.
+The brand-source directory is not bundled or shipped to the browser at runtime — it is the canonical reference for any future re-derivation. See [`apps/models/public/brand-source/README.md`](apps/models/public/brand-source/README.md).
+
+### Raster derivatives (not generated)
+
+No PNG / Apple Touch Icon / OG-PNG derivatives are committed alongside the SVGs. Reasoning:
+
+- The favicon uses SVG (modern browsers support SVG favicons everywhere we care about) via Next's `app/icon.svg` file-convention.
+- The OpenGraph image is dynamically rendered at request time by [`opengraph-image.tsx`](apps/models/app/opengraph-image.tsx) using `next/og`, so no static `og.png` is required.
+- No PWA manifest exists, so no `icon-192.png` / `icon-512.png` are required.
+
+If a future surface needs PNG derivatives (e.g. a Web App Manifest, an email signature, a press kit), rasterise from `logo-mark.svg` (or the source file in `brand-source/`) at the target resolution. Do not commit binary PNG/JPG files generated by hand from a screenshot — produce them from the canonical source.
+
+### Usage rules
+
+- **Mark only** (`logo-mark.svg`, favicon, `<Logo variant="mark">`): app icon, small contexts, anywhere the wordmark would not be readable.
+- **Compact lockup** (`<Logo variant="compact">`): site header. Renders the mark + `WebmasterID` wordmark inline so the navbar stays short.
+- **Full lockup** (`<Logo variant="full">`, `logo.svg`): footer, brand surfaces, About / press contexts. Optional `showDescriptor` adds the "AI Model Infrastructure Intelligence" line.
+- **Mono** (`<Logo variant="mono">`, `logo-mono.svg`): dark backgrounds, print, low-colour contexts. Tile becomes an outline; the W + arcs render in `currentColor`.
+
+### Product name vs visual identity
+
+The visual identity displays "AiModels WebmasterID" (per the v2 lockup). The internal product name in `lib/site-config.ts` (`name`, `ecosystem`, `shortName`) is unchanged from prior sprints — the rename is intentionally scoped to the visual mark to avoid a cascading change across JSON-LD, meta titles, and the entity graph. A future "product-name sprint" can rotate the strings if and when that scope is opened.
+
+### Provider brand assets stay separate
+
+This is a **first-party brand asset**. Provider lettermarks (Anthropic, OpenAI, Google, Meta, Mistral, DeepSeek, Groq, Together AI) live in [`apps/models/public/brands/`](apps/models/public/brands/) and follow the rules in the [provider brand section below](#provider-brand-marks). The integrity guards refuse any reference that tries to use a provider mark as the product mark, and they refuse any official provider-trademark file dropped into `public/` outside `public/brands/`.
+
+`check:production` enforces that:
+- the four canonical logo files exist (`logo.svg`, `logo-mark.svg`, `logo-mono.svg`, `app/icon.svg`),
+- the `<Logo>` component exists and is rendered by both `SiteHeader` and `SiteFooter`,
+- `BRAND_ASSETS.md` documents the AiModels WebmasterID v2 source policy,
+- `public/brand-source/` exists with its README,
+- the OpenGraph image uses the v2 palette.
 
 ---
+
+<a id="provider-brand-marks"></a>
+
 
 
 

@@ -36,36 +36,29 @@ export default function OpenGraphImage() {
         >
           <div
             style={{
-              width: 56,
-              height: 56,
+              width: 64,
+              height: 64,
               borderRadius: 14,
               background:
-                "linear-gradient(135deg, #2F5BEA 0%, #7C3AED 100%)",
+                "linear-gradient(135deg, #1E5BC7 0%, #2BA6C6 55%, #3DD68A 100%)",
               color: "white",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 28,
+              fontSize: 32,
               fontWeight: 800,
               boxShadow: "0 8px 16px -6px rgba(15,23,42,0.18)",
             }}
           >
             W
           </div>
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <span>{siteConfig.ecosystem}</span>
-            <span
-              style={{
-                fontSize: 16,
-                fontWeight: 600,
-                padding: "6px 12px",
-                borderRadius: 999,
-                background: "rgba(47, 91, 234, 0.12)",
-                color: "#2F5BEA",
-                border: "1px solid rgba(47, 91, 234, 0.25)",
-              }}
-            >
-              {siteConfig.shortName}
+          <div style={{ display: "flex", gap: 12, alignItems: "baseline" }}>
+            <span style={{ color: "#1E5BC7", letterSpacing: 2 }}>
+              AiModels
+            </span>
+            <span style={{ fontWeight: 800, color: "#0B1E3A" }}>
+              Webmaster
+              <span style={{ color: "#2BA6C6" }}>ID</span>
             </span>
           </div>
         </div>
@@ -94,7 +87,7 @@ export default function OpenGraphImage() {
             <span
               style={{
                 background:
-                  "linear-gradient(135deg, #2F5BEA 0%, #7C3AED 100%)",
+                  "linear-gradient(135deg, #1E5BC7 0%, #2BA6C6 55%, #3DD68A 100%)",
                 backgroundClip: "text",
                 color: "transparent",
               }}
