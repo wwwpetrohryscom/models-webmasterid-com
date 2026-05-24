@@ -99,6 +99,60 @@ const INDEXABLE_PAGES = [
   { path: "/learn/pricing-references", expectJsonLd: true, kind: "detail" },
   { path: "/learn/model-lifecycle", expectJsonLd: true, kind: "detail" },
   { path: "/learn/testing-ai-models", expectJsonLd: true, kind: "detail" },
+  { path: "/learn/multimodal-input", expectJsonLd: true, kind: "detail" },
+  { path: "/learn/structured-output", expectJsonLd: true, kind: "detail" },
+  {
+    path: "/learn/status-aware-selection",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/learn/benchmark-limitations",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  { path: "/learn/path/beginner", expectJsonLd: true, kind: "hub" },
+  { path: "/learn/exercises", expectJsonLd: true, kind: "hub" },
+  {
+    path: "/learn/exercises/build-first-shortlist",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/learn/exercises/compare-context-windows",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/learn/exercises/map-hosted-provider",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/learn/exercises/review-pricing-reference",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/learn/exercises/inspect-model-lifecycle",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/learn/exercises/create-decision-brief",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/learn/exercises/check-source-freshness",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/learn/exercises/plan-external-model-test",
+    expectJsonLd: true,
+    kind: "detail",
+  },
 ];
 
 const FILTERED_NOINDEX_PAGES = [

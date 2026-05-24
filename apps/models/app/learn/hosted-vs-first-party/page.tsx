@@ -4,6 +4,7 @@ import { LessonLayout } from "@/components/learn/LessonLayout";
 import { ConceptChecklist } from "@/components/learn/ConceptChecklist";
 import { CommonMistakes } from "@/components/learn/CommonMistakes";
 import { LessonApplyPanel } from "@/components/learn/LessonApplyPanel";
+import { LessonExercisesPanel } from "@/components/learn/LessonExercisesPanel";
 import { buildMetadata } from "@/lib/seo";
 import { getLesson, getRelatedLessons } from "@/lib/lessons";
 
@@ -130,6 +131,8 @@ export default function HostedVsFirstPartyLesson() {
 
       <h2>Apply this workflow</h2>
       <LessonApplyPanel routes={lesson.applyRoutes} />
+
+      <LessonExercisesPanel lessonSlug="hosted-vs-first-party" />
 
       <h2>Data gaps to watch</h2>
       <p>

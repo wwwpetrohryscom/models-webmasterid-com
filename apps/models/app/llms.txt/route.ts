@@ -83,6 +83,43 @@ export function GET() {
   buf.push(line("## Core sections"));
   for (const item of [
     { label: "Learn AI model selection (hub)", path: "/learn" },
+    { label: "Beginner learning path", path: "/learn/path/beginner" },
+    {
+      label: "Practical exercises (hub)",
+      path: "/learn/exercises",
+    },
+    {
+      label: "Exercise — build first shortlist",
+      path: "/learn/exercises/build-first-shortlist",
+    },
+    {
+      label: "Exercise — compare context windows",
+      path: "/learn/exercises/compare-context-windows",
+    },
+    {
+      label: "Exercise — map hosted provider",
+      path: "/learn/exercises/map-hosted-provider",
+    },
+    {
+      label: "Exercise — review pricing reference",
+      path: "/learn/exercises/review-pricing-reference",
+    },
+    {
+      label: "Exercise — inspect model lifecycle",
+      path: "/learn/exercises/inspect-model-lifecycle",
+    },
+    {
+      label: "Exercise — create decision brief",
+      path: "/learn/exercises/create-decision-brief",
+    },
+    {
+      label: "Exercise — check source freshness",
+      path: "/learn/exercises/check-source-freshness",
+    },
+    {
+      label: "Exercise — plan external model test",
+      path: "/learn/exercises/plan-external-model-test",
+    },
     {
       label: "Lesson — how to choose an AI model",
       path: "/learn/how-to-choose-ai-model",
@@ -98,6 +135,19 @@ export function GET() {
     },
     { label: "Lesson — model lifecycle", path: "/learn/model-lifecycle" },
     { label: "Lesson — testing AI models", path: "/learn/testing-ai-models" },
+    { label: "Lesson — multimodal input", path: "/learn/multimodal-input" },
+    {
+      label: "Lesson — structured output",
+      path: "/learn/structured-output",
+    },
+    {
+      label: "Lesson — status-aware selection",
+      path: "/learn/status-aware-selection",
+    },
+    {
+      label: "Lesson — benchmark limitations",
+      path: "/learn/benchmark-limitations",
+    },
     { label: "How it works (walkthrough)", path: "/how-it-works" },
     { label: "Guided demos", path: "/demos" },
     {

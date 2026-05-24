@@ -48,6 +48,20 @@ const PAGE_ROUTES = [
   "/learn/pricing-references",
   "/learn/model-lifecycle",
   "/learn/testing-ai-models",
+  "/learn/multimodal-input",
+  "/learn/structured-output",
+  "/learn/status-aware-selection",
+  "/learn/benchmark-limitations",
+  "/learn/path/beginner",
+  "/learn/exercises",
+  "/learn/exercises/build-first-shortlist",
+  "/learn/exercises/compare-context-windows",
+  "/learn/exercises/map-hosted-provider",
+  "/learn/exercises/review-pricing-reference",
+  "/learn/exercises/inspect-model-lifecycle",
+  "/learn/exercises/create-decision-brief",
+  "/learn/exercises/check-source-freshness",
+  "/learn/exercises/plan-external-model-test",
 ];
 
 const API_ROUTES = [

@@ -423,6 +423,60 @@ export default function HowItWorksPage() {
         </ul>
       </section>
 
+      <section
+        aria-label="Practise the workflow with exercises"
+        className="space-y-3"
+      >
+        <SectionHeader
+          eyebrow="Practise"
+          title="Practise the workflow with exercises"
+          description="Each exercise routes through one or more of the steps above and ends with a concrete artifact you can share with the team."
+          cta={{ label: "All exercises", href: "/learn/exercises" }}
+          as="h2"
+        />
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <li>
+            <Link
+              href="/learn/exercises/build-first-shortlist"
+              className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Build your first shortlist
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Beginner · 8 min · ends with a /select URL.
+              </p>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/learn/exercises/compare-context-windows"
+              className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Compare context windows
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Beginner · 7 min · ends with a /compare/build URL.
+              </p>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/learn/exercises/create-decision-brief"
+              className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Create a decision brief
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Intermediate · 10 min · ends with a Markdown brief.
+              </p>
+            </Link>
+          </li>
+        </ul>
+      </section>
+
       <section aria-label="Try this workflow" className="space-y-3">
         <SectionHeader
           eyebrow="Try this workflow"

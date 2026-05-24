@@ -147,6 +147,60 @@ export default function DemosHubPage() {
         </ul>
       </section>
 
+      <section
+        aria-label="After the demo, complete an exercise"
+        className="card-surface space-y-3 p-5 text-sm"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+          After the demo, complete an exercise
+        </p>
+        <p className="text-muted-foreground">
+          Demos walk the workflow; exercises ask you to produce the
+          artifact. Pair them in either order.
+        </p>
+        <ul className="grid gap-2 sm:grid-cols-3">
+          <li>
+            <Link
+              href="/learn/exercises/build-first-shortlist"
+              className="block rounded-lg border border-border bg-card p-3 transition hover:border-primary/30"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Build first shortlist →
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Pairs with the long-context-analysis demo.
+              </p>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/learn/exercises/map-hosted-provider"
+              className="block rounded-lg border border-border bg-card p-3 transition hover:border-primary/30"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Map hosted provider →
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Pairs with the hosted-inference demo.
+              </p>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/learn/exercises/check-source-freshness"
+              className="block rounded-lg border border-border bg-card p-3 transition hover:border-primary/30"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Check source freshness →
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Pairs with the governance-review demo.
+              </p>
+            </Link>
+          </li>
+        </ul>
+      </section>
+
       <aside
         className="card-surface p-5 text-sm text-muted-foreground"
         aria-label="Related references"

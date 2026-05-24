@@ -4,6 +4,7 @@ import { LessonLayout } from "@/components/learn/LessonLayout";
 import { ConceptChecklist } from "@/components/learn/ConceptChecklist";
 import { CommonMistakes } from "@/components/learn/CommonMistakes";
 import { LessonApplyPanel } from "@/components/learn/LessonApplyPanel";
+import { LessonExercisesPanel } from "@/components/learn/LessonExercisesPanel";
 import { buildMetadata } from "@/lib/seo";
 import { getLesson, getRelatedLessons } from "@/lib/lessons";
 
@@ -138,6 +139,8 @@ export default function PricingReferencesLesson() {
 
       <h2>Apply this workflow</h2>
       <LessonApplyPanel routes={lesson.applyRoutes} />
+
+      <LessonExercisesPanel lessonSlug="pricing-references" />
 
       <h2>Data gaps to watch</h2>
       <p>

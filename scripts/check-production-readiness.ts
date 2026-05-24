@@ -6458,6 +6458,428 @@ const checks: Check[] = [
       return failures.length ? failures.join("\n") : null;
     },
   },
+  // -------------------------------------------------------------------
+  // Sprint 29 — practical exercises + 4 more lessons + beginner path
+  // -------------------------------------------------------------------
+  {
+    name: "lib/learning-exercises.ts exists with required exports (Sprint 29)",
+    run: () => {
+      const rel = "apps/models/lib/learning-exercises.ts";
+      if (!fileExists(rel)) return `Missing ${rel}.`;
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const sym of [
+        "export const learningExercises",
+        "export function getLearningExercise",
+        "export function getExercisesForLesson",
+        "export function getLearningExerciseGroups",
+      ]) {
+        if (!src.includes(sym)) {
+          failures.push(`${rel} must include \`${sym}\`.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "all 8 exercise slugs exist in registry (Sprint 29)",
+    run: () => {
+      const src = readRel("apps/models/lib/learning-exercises.ts");
+      const failures: string[] = [];
+      for (const slug of [
+        "build-first-shortlist",
+        "compare-context-windows",
+        "map-hosted-provider",
+        "review-pricing-reference",
+        "inspect-model-lifecycle",
+        "create-decision-brief",
+        "check-source-freshness",
+        "plan-external-model-test",
+      ]) {
+        if (!src.includes(`slug: "${slug}"`)) {
+          failures.push(`Registry missing exercise slug "${slug}".`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/learn/exercises hub + dynamic detail route exist (Sprint 29)",
+    run: () => {
+      const failures: string[] = [];
+      if (!fileExists("apps/models/app/learn/exercises/page.tsx")) {
+        failures.push("Missing /learn/exercises hub page.");
+      }
+      if (
+        !fileExists("apps/models/app/learn/exercises/[slug]/page.tsx")
+      ) {
+        failures.push("Missing /learn/exercises/[slug] detail page.");
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "exercise components exist (Sprint 29)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/components/learn/ExerciseLayout.tsx",
+        "apps/models/components/learn/ExerciseCard.tsx",
+        "apps/models/components/learn/ExerciseStepList.tsx",
+        "apps/models/components/learn/ExerciseChecklist.tsx",
+        "apps/models/components/learn/LessonExercisesPanel.tsx",
+      ]) {
+        if (!fileExists(rel)) failures.push(`Missing component ${rel}.`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "4 new lesson pages exist (Sprint 29)",
+    run: () => {
+      const failures: string[] = [];
+      for (const slug of [
+        "multimodal-input",
+        "structured-output",
+        "status-aware-selection",
+        "benchmark-limitations",
+      ]) {
+        const rel = `apps/models/app/learn/${slug}/page.tsx`;
+        if (!fileExists(rel)) failures.push(`Missing lesson page ${rel}.`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lessons registry includes 10 lesson slugs (Sprint 29)",
+    run: () => {
+      const src = readRel("apps/models/lib/lessons.ts");
+      const failures: string[] = [];
+      const required = [
+        "how-to-choose-ai-model",
+        "context-window",
+        "hosted-vs-first-party",
+        "pricing-references",
+        "model-lifecycle",
+        "testing-ai-models",
+        "multimodal-input",
+        "structured-output",
+        "status-aware-selection",
+        "benchmark-limitations",
+      ];
+      for (const slug of required) {
+        if (!src.includes(`slug: "${slug}"`)) {
+          failures.push(`lessons.ts must register lesson slug "${slug}".`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "every lesson page surfaces related exercises (Sprint 29)",
+    run: () => {
+      const lessonFiles = [
+        "apps/models/app/learn/how-to-choose-ai-model/page.tsx",
+        "apps/models/app/learn/context-window/page.tsx",
+        "apps/models/app/learn/hosted-vs-first-party/page.tsx",
+        "apps/models/app/learn/pricing-references/page.tsx",
+        "apps/models/app/learn/model-lifecycle/page.tsx",
+        "apps/models/app/learn/testing-ai-models/page.tsx",
+        "apps/models/app/learn/multimodal-input/page.tsx",
+        "apps/models/app/learn/structured-output/page.tsx",
+        "apps/models/app/learn/status-aware-selection/page.tsx",
+        "apps/models/app/learn/benchmark-limitations/page.tsx",
+      ];
+      const failures: string[] = [];
+      for (const rel of lessonFiles) {
+        if (!fileExists(rel)) {
+          failures.push(`${rel} missing.`);
+          continue;
+        }
+        const src = readRel(rel);
+        if (!src.includes("LessonExercisesPanel")) {
+          failures.push(
+            `${rel} must render <LessonExercisesPanel> to surface related exercises.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "exercises link to related lessons + workflow routes (Sprint 29)",
+    run: () => {
+      // The registry encodes related-lesson slugs and step routes; the
+      // /learn/exercises/[slug] page renders both. Confirm both paths
+      // wire through.
+      const registry = readRel("apps/models/lib/learning-exercises.ts");
+      const detail = readRel(
+        "apps/models/app/learn/exercises/[slug]/page.tsx"
+      );
+      const failures: string[] = [];
+      // Registry must reference at least one workflow surface in step
+      // routes for the canonical workflow pages.
+      for (const route of [
+        "/select",
+        "/compare/build",
+        "/briefs/build",
+        "/sources",
+        "/reverification",
+      ]) {
+        if (!registry.includes(`"${route}"`)) {
+          failures.push(
+            `Exercise registry must include route "${route}" in at least one step.`
+          );
+        }
+      }
+      // Detail page must surface ExerciseStepList (which renders the
+      // step routes) and link to related lessons via the layout.
+      if (!/ExerciseStepList/.test(detail)) {
+        failures.push(
+          "/learn/exercises/[slug] must render <ExerciseStepList> to surface step routes."
+        );
+      }
+      if (!/ExerciseLayout/.test(detail)) {
+        failures.push(
+          "/learn/exercises/[slug] must wrap content in <ExerciseLayout> so related lessons render."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "exercise pages carry an explicit no-recommendation policy note (Sprint 29)",
+    run: () => {
+      // Each exercise in the registry must carry a policyNote, and the
+      // detail page must render the layout's "does not recommend" copy.
+      const registry = readRel("apps/models/lib/learning-exercises.ts");
+      const detail = readRel(
+        "apps/models/app/learn/exercises/[slug]/page.tsx"
+      );
+      const failures: string[] = [];
+      // Quick sanity: every exercise object must include the policyNote
+      // key. Eight objects → eight occurrences.
+      const policyMatches = registry.match(/policyNote:/g) ?? [];
+      if (policyMatches.length < 8) {
+        failures.push(
+          `Exercise registry must include 8 policyNote entries (found ${policyMatches.length}).`
+        );
+      }
+      if (!/does not recommend a model/i.test(detail)) {
+        failures.push(
+          "/learn/exercises/[slug] must state explicitly that the exercise does not recommend a model."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no quiz/scoring/ranking language on Sprint 29 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/learning-exercises.ts",
+        "apps/models/app/learn/page.tsx",
+        "apps/models/app/learn/exercises/page.tsx",
+        "apps/models/app/learn/exercises/[slug]/page.tsx",
+        "apps/models/app/learn/path/beginner/page.tsx",
+        "apps/models/app/learn/multimodal-input/page.tsx",
+        "apps/models/app/learn/structured-output/page.tsx",
+        "apps/models/app/learn/status-aware-selection/page.tsx",
+        "apps/models/app/learn/benchmark-limitations/page.tsx",
+        "apps/models/components/learn/ExerciseLayout.tsx",
+        "apps/models/components/learn/ExerciseCard.tsx",
+        "apps/models/components/learn/ExerciseStepList.tsx",
+        "apps/models/components/learn/ExerciseChecklist.tsx",
+        "apps/models/components/learn/LessonExercisesPanel.tsx",
+      ];
+      // Only flag *positive* assertions; the policy notes are allowed
+      // to mention the banned terms as things the surfaces do not do.
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\byour\s+score\s+is\b/i,
+          label: "your score is",
+        },
+        {
+          pattern: /\bgrade\s+(?:yourself|your\s+answer|your\s+results)\b/i,
+          label: "grade yourself / your answer / your results",
+        },
+        {
+          pattern: /\bthe\s+correct\s+answer\s+is\b/i,
+          label: "the correct answer is",
+        },
+        {
+          pattern: /\bis\s+(?:the\s+)?best\s+(?:model|ai|provider)\b/i,
+          label: "is the best model/ai/provider",
+        },
+        {
+          pattern: /\bour\s+recommended\s+model\b/i,
+          label: "our recommended model",
+        },
+        {
+          pattern: /\bwe\s+recommend\s+(?:the\s+)?model\b/i,
+          label: "we recommend the model",
+        },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\bcheapest\s+(?:ai\s+)?(?:model|provider|platform|inference)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:ai\s+)?(?:model|provider|inference)\b/i,
+          label: "fastest <noun>",
+        },
+        {
+          pattern: /\bguaranteed\s+to\s+(?:work|meet|pass|satisfy)\b/i,
+          label: "guaranteed to <verb>",
+        },
+        {
+          pattern: /\bcertified\s+(?:for|compliant|by)\b/i,
+          label: "certified for/compliant/by",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no benchmark numeric score appears on Sprint 29 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/learning-exercises.ts",
+        "apps/models/app/learn/page.tsx",
+        "apps/models/app/learn/exercises/page.tsx",
+        "apps/models/app/learn/exercises/[slug]/page.tsx",
+        "apps/models/app/learn/path/beginner/page.tsx",
+        "apps/models/app/learn/multimodal-input/page.tsx",
+        "apps/models/app/learn/structured-output/page.tsx",
+        "apps/models/app/learn/status-aware-selection/page.tsx",
+        "apps/models/app/learn/benchmark-limitations/page.tsx",
+      ];
+      const benchmarkLiteral =
+        /\b(?:MMLU|GPQA|HumanEval|HellaSwag|ARC-AGI|TruthfulQA|GSM8K|SWE-?Bench)\b[^"<>]{0,40}\b\d+(?:\.\d+)?\b/;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        if (benchmarkLiteral.test(stripped)) {
+          failures.push(
+            `${rel} contains a benchmark name alongside a numeric literal — Sprint 29 surfaces must not publish benchmark scores.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric appears on Sprint 29 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/learning-exercises.ts",
+        "apps/models/app/learn/page.tsx",
+        "apps/models/app/learn/exercises/page.tsx",
+        "apps/models/app/learn/exercises/[slug]/page.tsx",
+        "apps/models/app/learn/path/beginner/page.tsx",
+        "apps/models/app/learn/multimodal-input/page.tsx",
+        "apps/models/app/learn/structured-output/page.tsx",
+        "apps/models/app/learn/status-aware-selection/page.tsx",
+        "apps/models/app/learn/benchmark-limitations/page.tsx",
+      ];
+      const banned = /"[^"]*\bgpt-5\b[^"]*"/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} references GPT-5 — no OpenAI metrics are verified yet.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract + sitemap + llms.txt + smoke + indexing advertise Sprint 29 routes",
+    run: () => {
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+
+      const versionMatch = contract.match(
+        /ROUTE_SET_VERSION\s*=\s*"content-v(\d+)"/
+      );
+      if (!versionMatch || Number(versionMatch[1]) < 11) {
+        failures.push(
+          'ROUTE_SET_VERSION must be "content-v11" or later for Sprint 29.'
+        );
+      }
+
+      // Route contract must advertise the new hubs.
+      for (const hub of ['"/learn/exercises"', '"/learn/path/beginner"']) {
+        if (!contract.includes(hub)) {
+          failures.push(`route-contract must include ${hub}.`);
+        }
+      }
+
+      // Sprint 29 routes: 4 new lessons + beginner path + exercises
+      // hub + 8 exercise details = 14 routes.
+      const newRoutes = [
+        "/learn/multimodal-input",
+        "/learn/structured-output",
+        "/learn/status-aware-selection",
+        "/learn/benchmark-limitations",
+        "/learn/path/beginner",
+        "/learn/exercises",
+        "/learn/exercises/build-first-shortlist",
+        "/learn/exercises/compare-context-windows",
+        "/learn/exercises/map-hosted-provider",
+        "/learn/exercises/review-pricing-reference",
+        "/learn/exercises/inspect-model-lifecycle",
+        "/learn/exercises/create-decision-brief",
+        "/learn/exercises/check-source-freshness",
+        "/learn/exercises/plan-external-model-test",
+      ];
+      for (const path of newRoutes) {
+        const quoted = `"${path}"`;
+        if (!sitemap.includes(quoted)) {
+          failures.push(`sitemap must include ${quoted}.`);
+        }
+        if (!smoke.includes(quoted)) {
+          failures.push(`scripts/lib/smoke.mjs must include ${quoted}.`);
+        }
+        if (!indexing.includes(quoted)) {
+          failures.push(`scripts/indexing-qa.mjs must include ${quoted}.`);
+        }
+        if (!llms.includes(quoted)) {
+          failures.push(`llms.txt must list ${quoted}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
 ];
 
 function main(): void {

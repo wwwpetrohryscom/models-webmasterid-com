@@ -474,6 +474,53 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+19. **Practical exercises + 4 lessons + beginner path (Sprint
+    29).** The learning layer gains a practical workflow tier. A new
+    [`lib/learning-exercises.ts`](apps/models/lib/learning-exercises.ts)
+    registry defines eight exercises (build-first-shortlist,
+    compare-context-windows, map-hosted-provider, review-pricing-
+    reference, inspect-model-lifecycle, create-decision-brief,
+    check-source-freshness, plan-external-model-test) split into
+    beginner / intermediate tiers. Each exercise is a route plan
+    through the existing workspaces and ends with a concrete
+    evidence artifact — a shortlist URL, a comparison URL, a brief
+    export, or a freshness checklist. The new
+    [`/learn/exercises`](apps/models/app/learn/exercises/page.tsx)
+    hub renders the exercises in difficulty groups; a dynamic
+    [`/learn/exercises/[slug]`](apps/models/app/learn/exercises/%5Bslug%5D/page.tsx)
+    route renders each exercise as goal · prerequisites · numbered
+    steps with route links · completion checklist · evidence
+    artifact · policy note. Four new exercise components in
+    [`components/learn/`](apps/models/components/learn/) (`Exercise
+    Layout`, `ExerciseCard`, `ExerciseStepList`, `ExerciseChecklist`)
+    plus a `LessonExercisesPanel` that every lesson page now renders
+    to link the reader from concept to practice. Four new lesson
+    pages ship — [multimodal-input](apps/models/app/learn/multimodal-input/page.tsx),
+    [structured-output](apps/models/app/learn/structured-output/page.tsx),
+    [status-aware-selection](apps/models/app/learn/status-aware-selection/page.tsx),
+    [benchmark-limitations](apps/models/app/learn/benchmark-limitations/page.tsx)
+    — bringing the lesson registry to 10. A new curated
+    [`/learn/path/beginner`](apps/models/app/learn/path/beginner/page.tsx)
+    page sequences two readings + three exercises + one freshness
+    review into a ~35-40 minute path; it uses schema.org `Course`
+    JSON-LD. The `/learn` hub is restructured into five sections
+    (Start here · Concept lessons · Practical exercises · Apply
+    with workflows · Advanced reading). Homepage adds a "Learn by
+    doing" card; `/how-it-works` adds a "Practise the workflow"
+    section; `/demos` adds an "After the demo, complete an
+    exercise" panel; footer Learn column expands with the new
+    lessons + beginner path + exercises. `ROUTE_SET_VERSION` bumps
+    to `content-v11`. Thirteen new integrity guards enforce: the
+    registry exists with the right exports, all 8 exercise slugs
+    are present, hub + dynamic detail page exist, the 5 exercise
+    components exist, the 4 new lesson pages exist, the lessons
+    registry has 10 lesson slugs, every lesson page renders the
+    exercises panel, exercise pages carry an explicit "does not
+    recommend a model" note, no quiz/scoring/ranking language leaks
+    in, no benchmark literals, no OpenAI metrics, route contract
+    bumps to v11, and sitemap + llms.txt + smoke + indexing all
+    advertise the 14 new routes.
+
 18. **Learning platform repositioning + /learn hub + 6 lessons
     (Sprint 28).** The catalogue gains a learning layer that teaches
     practical AI model selection and connects every lesson to the

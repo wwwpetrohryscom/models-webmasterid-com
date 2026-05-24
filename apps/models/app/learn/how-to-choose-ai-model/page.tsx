@@ -5,6 +5,7 @@ import { ConceptChecklist } from "@/components/learn/ConceptChecklist";
 import { CommonMistakes } from "@/components/learn/CommonMistakes";
 import { VerifiedExamplesTable } from "@/components/learn/VerifiedExamplesTable";
 import { LessonApplyPanel } from "@/components/learn/LessonApplyPanel";
+import { LessonExercisesPanel } from "@/components/learn/LessonExercisesPanel";
 import { buildMetadata } from "@/lib/seo";
 import { getLesson, getRelatedLessons } from "@/lib/lessons";
 
@@ -121,6 +122,8 @@ export default function HowToChooseAiModelLesson() {
         carries the use case forward so you only fill the form once.
       </p>
       <LessonApplyPanel routes={lesson.applyRoutes} />
+
+      <LessonExercisesPanel lessonSlug="how-to-choose-ai-model" />
 
       <h2>Data gaps to watch</h2>
       <p>

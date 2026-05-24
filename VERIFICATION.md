@@ -803,6 +803,129 @@ The lesson surfaces and the integrity guards behind them are
 the contract that keeps the learning layer educational rather
 than promotional.
 
+**Sprint 29 — practical exercises + 4 lessons + beginner path.**
+Sprint 29 makes the learning layer practical. The catalogue
+gains an exercise tier that walks the reader from concept to
+artifact: read the lesson, perform the exercise, end with a
+shortlist URL / comparison URL / brief Markdown / freshness
+checklist.
+
+[`lib/learning-exercises.ts`](apps/models/lib/learning-exercises.ts)
+is the single source of truth for exercises. The registry
+exports `learningExercises`, `getLearningExercise`,
+`getExercisesForLesson`, `getLearningExerciseGroups`, and
+`getLearningExerciseRoutes`. Each exercise carries:
+- slug + title + summary
+- `difficulty` (beginner | intermediate) + `estimatedMinutes`
+- `relatedLessonSlugs` (which lessons this exercise applies)
+- `goal` (what the user will learn)
+- `prerequisites` (with links to related lessons)
+- `steps` (title + instruction + route + expectedOutcome)
+- `completionChecklist` (Markdown-style)
+- `policyNote` (explicit no-recommendation clause)
+- `evidenceArtifact` (the concrete output)
+
+Eight exercises ship: build-first-shortlist (beginner, 8 min),
+compare-context-windows (beginner, 7 min), map-hosted-provider
+(intermediate, 10 min), review-pricing-reference (beginner,
+6 min), inspect-model-lifecycle (beginner, 5 min),
+create-decision-brief (intermediate, 10 min),
+check-source-freshness (beginner, 5 min),
+plan-external-model-test (intermediate, 12 min).
+
+Five new server-rendered components in
+`apps/models/components/learn/`:
+- `ExerciseLayout` — shared shell (breadcrumbs, hero, related
+  lessons sidebar, evidence-artifact card, policy note,
+  workflow routes, "what this exercise does not produce"
+  footer) + `TechArticle` + `BreadcrumbList` JSON-LD.
+- `ExerciseCard` — summary card with difficulty chip + minutes
+  + primary-route preview.
+- `ExerciseStepList` — numbered step list with route link and
+  expected-outcome callout per step.
+- `ExerciseChecklist` — Markdown-style checklist (no client
+  state — completion is the evidence artifact, not a UI
+  toggle).
+- `LessonExercisesPanel` — surfaces the exercises tagged with
+  a given lesson slug; rendered inside every lesson body so
+  the reader can jump from concept to practice.
+
+[`/learn/exercises`](apps/models/app/learn/exercises/page.tsx)
+hub renders the exercises grouped by difficulty, plus the
+five-step learning path flow (read lesson → complete exercise
+→ build shortlist → compare fields → export brief). The
+dynamic
+[`/learn/exercises/[slug]`](apps/models/app/learn/exercises/%5Bslug%5D/page.tsx)
+route uses `generateStaticParams()` to prerender all 8 exercise
+detail pages from the registry.
+
+Four new lesson pages bring the lesson registry to 10:
+- `/learn/multimodal-input` — modality channels, why marketing
+  copy is not enough.
+- `/learn/structured-output` — JSON mode vs structured output
+  vs tool calling.
+- `/learn/status-aware-selection` — vendor status vs
+  independent probe, when status gates selection.
+- `/learn/benchmark-limitations` — contamination, prompt
+  variance, version drift, no benchmark scores published.
+
+A curated
+[`/learn/path/beginner`](apps/models/app/learn/path/beginner/page.tsx)
+page sequences 2 readings + 3 exercises + 1 freshness review
+into a ~35–40 minute path. Uses schema.org `Course` JSON-LD.
+No quizzes, no scoring, no progress tracking, no accounts —
+completion is the evidence artifacts in the reader's hands.
+
+The `/learn` hub is restructured into five sections:
+- **Start here** — beginner path strip
+- **Concept lessons** — split into Foundations + Going deeper
+- **Practical exercises** — first four exercises with full
+  link to the exercises hub
+- **Apply with workflows** — the six canonical workspaces
+- **Advanced reading** — research + docs + intelligence
+
+Flow integrations: homepage Learn-first card grid expands to
+four cards (adds "Learn by doing" → `/learn/exercises`);
+`/how-it-works` adds a "Practise the workflow with exercises"
+section featuring three beginner exercises; `/demos` adds an
+"After the demo, complete an exercise" panel pairing each
+demo with a matching exercise; SiteFooter Learn column expands
+to include the beginner path, the exercises hub, and all 10
+lessons.
+
+`ROUTE_SET_VERSION` bumps to `content-v11`. Thirteen new
+integrity guards enforce: the exercises registry exists with
+all required exports, all 8 exercise slugs are present, the
+hub + dynamic detail route exist, the 5 exercise components
+exist, the 4 new lesson pages exist, the lessons registry has
+10 lesson slugs, every lesson page renders the
+`LessonExercisesPanel`, exercises link to related lessons and
+the canonical workflow routes, exercise pages carry an
+explicit "does not recommend a model" note, no
+quiz/scoring/ranking language (`your score is`, `grade
+yourself`, `the correct answer is`, `is the best`, `winner`,
+`cheapest`, `fastest`, `guaranteed`, `certified`) appears on
+any Sprint 29 surface, no benchmark literals leak in, OpenAI
+no-metrics re-checked, and the route contract + sitemap +
+llms.txt + smoke + indexing all advertise the 14 new routes.
+
+**Exercise integrity policy.** Exercises produce evidence,
+not endorsements. They:
+- Do not score or grade the reader.
+- Do not contain "the correct answer is..." copy.
+- Do not pick a model for the reader.
+- Do not assert latency, throughput, uptime, or compliance.
+- Do route through the existing workspaces — they never
+  introduce a parallel UI for the same workflow.
+- Do end with a concrete, paste-ready artifact (URL,
+  Markdown, JSON) that any teammate can open or read
+  independently.
+
+**Beginner path policy.** The beginner path is a sequenced
+list of existing pages. It does not introduce a curriculum
+with grades, an account system, or any progress-tracking
+state. Completion is the artifacts in the reader's hands.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,

@@ -8,6 +8,8 @@ const sections: { label: string; links: { label: string; href: string }[] }[] =
       label: "Learn",
       links: [
         { label: "Learn hub", href: "/learn" },
+        { label: "Beginner path", href: "/learn/path/beginner" },
+        { label: "Exercises", href: "/learn/exercises" },
         {
           label: "How to choose an AI model",
           href: "/learn/how-to-choose-ai-model",
@@ -19,6 +21,16 @@ const sections: { label: string; links: { label: string; href: string }[] }[] =
         },
         { label: "Pricing references", href: "/learn/pricing-references" },
         { label: "Model lifecycle", href: "/learn/model-lifecycle" },
+        { label: "Multimodal input", href: "/learn/multimodal-input" },
+        { label: "Structured output", href: "/learn/structured-output" },
+        {
+          label: "Status-aware selection",
+          href: "/learn/status-aware-selection",
+        },
+        {
+          label: "Benchmark limitations",
+          href: "/learn/benchmark-limitations",
+        },
         { label: "Testing AI models", href: "/learn/testing-ai-models" },
       ],
     },

@@ -34,7 +34,11 @@ export type LessonSlug =
   | "hosted-vs-first-party"
   | "pricing-references"
   | "model-lifecycle"
-  | "testing-ai-models";
+  | "testing-ai-models"
+  | "multimodal-input"
+  | "structured-output"
+  | "status-aware-selection"
+  | "benchmark-limitations";
 
 export interface LearningPath {
   slug: LearningPathSlug;
@@ -193,6 +197,62 @@ export const lessons: LessonSummary[] = [
     ],
     updatedDate: "2026-05-24",
   },
+  {
+    slug: "multimodal-input",
+    title: "Multimodal input: image, audio, video, PDF",
+    oneLine:
+      "How the catalogue records which models accept image, audio, video, or PDF input — and why marketing copy is not enough to assume support.",
+    path: "model-fundamentals",
+    applyRoutes: [APPLY_SELECT, APPLY_COMPARE, APPLY_SOURCES],
+    relatedLessonSlugs: [
+      "how-to-choose-ai-model",
+      "context-window",
+      "structured-output",
+    ],
+    updatedDate: "2026-05-24",
+  },
+  {
+    slug: "structured-output",
+    title: "Structured output, JSON mode, and tool use",
+    oneLine:
+      "The difference between structured output, JSON mode, and tool/function calling — and what is currently verified in the catalogue.",
+    path: "model-fundamentals",
+    applyRoutes: [APPLY_COMPARE, APPLY_SOURCES, APPLY_COVERAGE],
+    relatedLessonSlugs: [
+      "multimodal-input",
+      "how-to-choose-ai-model",
+      "testing-ai-models",
+    ],
+    updatedDate: "2026-05-24",
+  },
+  {
+    slug: "status-aware-selection",
+    title: "Status-aware model selection",
+    oneLine:
+      "Why vendor-reported status pages and independent probes are kept separate — and when status should gate a model decision.",
+    path: "governance-and-sources",
+    applyRoutes: [APPLY_SELECT, APPLY_SOURCES, APPLY_REVERIFICATION],
+    relatedLessonSlugs: [
+      "model-lifecycle",
+      "how-to-choose-ai-model",
+      "testing-ai-models",
+    ],
+    updatedDate: "2026-05-24",
+  },
+  {
+    slug: "benchmark-limitations",
+    title: "Why benchmark scores can mislead",
+    oneLine:
+      "Contamination, prompt variance, version drift, and why the catalogue does not publish provider-reported benchmark scores casually.",
+    path: "comparison-methodology",
+    applyRoutes: [APPLY_COMPARE, APPLY_SOURCES, APPLY_DEMOS],
+    relatedLessonSlugs: [
+      "how-to-choose-ai-model",
+      "testing-ai-models",
+      "structured-output",
+    ],
+    updatedDate: "2026-05-24",
+  },
 ];
 
 export const learningPaths: LearningPath[] = [
@@ -201,7 +261,12 @@ export const learningPaths: LearningPath[] = [
     title: "Model fundamentals",
     description:
       "What a model record actually contains — identifiers, context window, output limits, modalities, lifecycle, citations.",
-    lessonSlugs: ["how-to-choose-ai-model", "context-window"],
+    lessonSlugs: [
+      "how-to-choose-ai-model",
+      "context-window",
+      "multimodal-input",
+      "structured-output",
+    ],
   },
   {
     slug: "pricing-and-hosted",
@@ -215,14 +280,18 @@ export const learningPaths: LearningPath[] = [
     title: "Comparison methodology",
     description:
       "How verified-field comparisons are constructed, why the catalogue never declares a winner, and how to read missing values.",
-    lessonSlugs: ["how-to-choose-ai-model", "context-window"],
+    lessonSlugs: [
+      "how-to-choose-ai-model",
+      "context-window",
+      "benchmark-limitations",
+    ],
   },
   {
     slug: "governance-and-sources",
     title: "Governance and source verification",
     description:
       "Lifecycle status, freshness states, the reverification queue, and what a citation actually attests to.",
-    lessonSlugs: ["model-lifecycle"],
+    lessonSlugs: ["model-lifecycle", "status-aware-selection"],
   },
   {
     slug: "testing-workflow",

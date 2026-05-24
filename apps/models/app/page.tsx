@@ -92,7 +92,7 @@ export default function HomePage() {
           description="The catalogue is a verified-data backbone. Start with a lesson on what the underlying fields actually mean, then apply the lesson in the selection, comparison, and decision-brief workflows."
           cta={{ label: "All lessons", href: "/learn" }}
         />
-        <ul className="mt-6 grid gap-3 sm:grid-cols-3">
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             {
               href: "/learn/how-to-choose-ai-model",
@@ -111,6 +111,12 @@ export default function HomePage() {
               title: "Hosted vs first-party AI models",
               detail:
                 "Why the model creator and the billing provider are usually different.",
+            },
+            {
+              href: "/learn/exercises",
+              title: "Learn by doing",
+              detail:
+                "Eight practical exercises that end with a shortlist URL, brief Markdown, or freshness checklist.",
             },
           ].map((card) => (
             <li key={card.href}>

@@ -107,6 +107,76 @@ const STATIC_ROUTES: StaticRoute[] = [
     changeFrequency: "monthly",
     priority: 0.7,
   },
+  {
+    path: "/learn/multimodal-input",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/learn/structured-output",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/learn/status-aware-selection",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/learn/benchmark-limitations",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/learn/path/beginner",
+    changeFrequency: "monthly",
+    priority: 0.8,
+  },
+  {
+    path: "/learn/exercises",
+    changeFrequency: "monthly",
+    priority: 0.8,
+  },
+  {
+    path: "/learn/exercises/build-first-shortlist",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/learn/exercises/compare-context-windows",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/learn/exercises/map-hosted-provider",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/learn/exercises/review-pricing-reference",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/learn/exercises/inspect-model-lifecycle",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/learn/exercises/create-decision-brief",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/learn/exercises/check-source-freshness",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/learn/exercises/plan-external-model-test",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
