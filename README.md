@@ -474,6 +474,46 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+18. **Learning platform repositioning + /learn hub + 6 lessons
+    (Sprint 28).** The catalogue gains a learning layer that teaches
+    practical AI model selection and connects every lesson to the
+    verified-data workflows. A new
+    [`/learn`](apps/models/app/learn/page.tsx) hub groups the
+    lessons into five learning paths (model fundamentals, pricing +
+    hosted, comparison methodology, governance + sources, testing
+    workflow). Six initial lesson pages ship under `/learn/<slug>`:
+    [how-to-choose-ai-model](apps/models/app/learn/how-to-choose-ai-model/page.tsx),
+    [context-window](apps/models/app/learn/context-window/page.tsx),
+    [hosted-vs-first-party](apps/models/app/learn/hosted-vs-first-party/page.tsx),
+    [pricing-references](apps/models/app/learn/pricing-references/page.tsx),
+    [model-lifecycle](apps/models/app/learn/model-lifecycle/page.tsx),
+    [testing-ai-models](apps/models/app/learn/testing-ai-models/page.tsx).
+    Lessons explain how to inspect verified catalogue fields and
+    never tell the reader which model to pick. A new
+    [`lib/lessons.ts`](apps/models/lib/lessons.ts) registry is the
+    single source of truth for lesson metadata; five reusable server
+    components in [`components/learn/`](apps/models/components/learn/)
+    (`LessonLayout`, `LessonApplyPanel`, `ConceptChecklist`,
+    `CommonMistakes`, `VerifiedExamplesTable`) keep the lesson
+    surfaces consistent. `VerifiedExamplesTable` pulls real verified
+    fields from the data layer — no fabricated values, no benchmark
+    scores. The primary nav is repositioned around the
+    learn → workflow → catalogue flow (Learn · Use Cases · Select ·
+    Compare · Briefs · Models · Sources · Docs). The footer gains a
+    dedicated Learn column listing every lesson. The homepage gains
+    a "Learn first, then compare" section directly below the
+    workflow strip; `/how-it-works`, `/select`, `/compare/build`,
+    `/briefs/build`, `/use-cases`, `/demos`, and `/docs` all surface
+    targeted learning links. `ROUTE_SET_VERSION` bumps to
+    `content-v10`. Ten new integrity guards enforce: hub + lesson
+    files exist, registry exports the expected helpers, lessons link
+    to at least one workflow surface, no `best`/`recommended`/
+    `winner`/`cheapest`/`fastest`/`guaranteed`/`certified`/
+    `official partner` phrases appear on lesson surfaces, no
+    benchmark literals appear in lessons, OpenAI numeric metrics
+    stay out, and route-contract + sitemap + llms.txt + smoke +
+    indexing all advertise the new routes.
+
 17. **Visual proof + guided demos + example evidence brief (Sprint
     27).** Three predefined route plans live at
     [`/demos`](apps/models/app/demos/page.tsx) — long-context

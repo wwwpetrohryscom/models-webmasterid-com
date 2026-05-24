@@ -81,6 +81,58 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Learn first, then compare */}
+      <section
+        aria-label="Learn first, then compare"
+        className="container-page mt-12"
+      >
+        <SectionHeader
+          eyebrow="Learn first"
+          title="Learn first, then compare"
+          description="The catalogue is a verified-data backbone. Start with a lesson on what the underlying fields actually mean, then apply the lesson in the selection, comparison, and decision-brief workflows."
+          cta={{ label: "All lessons", href: "/learn" }}
+        />
+        <ul className="mt-6 grid gap-3 sm:grid-cols-3">
+          {[
+            {
+              href: "/learn/how-to-choose-ai-model",
+              title: "How to choose an AI model",
+              detail:
+                "Workflow for picking which model to test next — use case → shortlist → compare → brief.",
+            },
+            {
+              href: "/learn/context-window",
+              title: "Context windows explained",
+              detail:
+                "What context window means, what it does not guarantee, which fields to check.",
+            },
+            {
+              href: "/learn/hosted-vs-first-party",
+              title: "Hosted vs first-party AI models",
+              detail:
+                "Why the model creator and the billing provider are usually different.",
+            },
+          ].map((card) => (
+            <li key={card.href}>
+              <Link
+                href={card.href}
+                className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-sm font-semibold text-foreground">
+                  {card.title}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {card.detail}
+                </p>
+                <p className="mt-2 text-[10px] text-muted-foreground">
+                  Plain-language read · ends in an apply-this-workflow panel.
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* Who / What this is not */}
       <section
         aria-label="Who this is for and what it is not"

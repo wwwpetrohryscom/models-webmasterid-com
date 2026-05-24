@@ -82,6 +82,22 @@ export function GET() {
 
   buf.push(line("## Core sections"));
   for (const item of [
+    { label: "Learn AI model selection (hub)", path: "/learn" },
+    {
+      label: "Lesson — how to choose an AI model",
+      path: "/learn/how-to-choose-ai-model",
+    },
+    { label: "Lesson — context windows", path: "/learn/context-window" },
+    {
+      label: "Lesson — hosted vs first-party",
+      path: "/learn/hosted-vs-first-party",
+    },
+    {
+      label: "Lesson — pricing references",
+      path: "/learn/pricing-references",
+    },
+    { label: "Lesson — model lifecycle", path: "/learn/model-lifecycle" },
+    { label: "Lesson — testing AI models", path: "/learn/testing-ai-models" },
     { label: "How it works (walkthrough)", path: "/how-it-works" },
     { label: "Guided demos", path: "/demos" },
     {

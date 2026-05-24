@@ -182,6 +182,16 @@ export default async function SelectPage({ searchParams }: PageProps) {
           shortlist in the builder for a side-by-side view.
         </p>
         <p className="text-xs">
+          New to model selection? Start with{" "}
+          <Link
+            href="/learn/how-to-choose-ai-model"
+            className="text-primary hover:underline"
+          >
+            /learn/how-to-choose-ai-model
+          </Link>{" "}
+          before opening the shortlist.
+        </p>
+        <p className="text-xs">
           Or start from a guided demo:{" "}
           <Link
             href="/demos/long-context-analysis"

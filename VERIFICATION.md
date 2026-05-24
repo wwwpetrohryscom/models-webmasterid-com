@@ -690,6 +690,119 @@ the new routes, no recommendation language appears on Sprint-27
 surfaces, no fake screenshot references and no benchmark numeric
 literals leak into demo surfaces, OpenAI no-metrics re-checked.
 
+**Sprint 28 — learning platform repositioning + /learn hub +
+education-to-workflow bridge.** Sprint 28 adds a teaching layer
+on top of the verified-data backbone. Lessons explain how to
+inspect each verified catalogue field; every lesson surfaces the
+canonical workflow surfaces the reader should walk next. No
+lesson tells the reader which model to pick, declares a winner,
+ranks by price, asserts latency / throughput / uptime, or
+certifies compliance.
+
+A new [`lib/lessons.ts`](apps/models/lib/lessons.ts) registry is
+the single source of truth for lesson metadata and learning
+paths. The registry exports a `lessons` array, a
+`learningPaths` array (model-fundamentals, pricing-and-hosted,
+comparison-methodology, governance-and-sources,
+testing-workflow), and helpers (`getLesson`,
+`getLessonsForPath`, `getRelatedLessons`). Each lesson carries
+its title, one-liner, learning-path slug, an `applyRoutes` list
+of workflow surfaces (`/select`, `/compare/build`,
+`/briefs/build`, `/sources`, `/reverification`, `/coverage`,
+`/demos`), a list of related lessons, and the last-reviewed
+date.
+
+Five reusable server-rendered components in
+[`components/learn/`](apps/models/components/learn/):
+- `LessonLayout` — shared shell: breadcrumbs, hero, body,
+  apply-this-workflow sidebar, related lessons, "what this
+  lesson does not teach" footer, and JSON-LD (`TechArticle` +
+  `BreadcrumbList`).
+- `LessonApplyPanel` — full-width apply-this-workflow card
+  surfaced inline in the lesson body.
+- `ConceptChecklist` — "what to verify" / "what to inspect"
+  bullet list with semantic markup.
+- `CommonMistakes` — mistake + why-it-hurts pair list.
+- `VerifiedExamplesTable` — renders the requested verified
+  field (`contextWindow`, `maxOutputTokens`, `lifecycle`) for a
+  given list of model slugs, pulling values directly from the
+  typed local data layer. Unverified rows render the canonical
+  unverified-data label. The table never asserts ranking.
+
+[`/learn`](apps/models/app/learn/page.tsx) hub renders the
+hero, five learning-path cards, the full lessons grid, the
+apply-this-workflow surface map, and JSON-LD
+(`CollectionPage` + `BreadcrumbList`). Six lesson pages ship
+under `/learn/<slug>`:
+- `/learn/how-to-choose-ai-model` — the workflow in plain
+  language.
+- `/learn/context-window` — what context window means, what it
+  does not guarantee.
+- `/learn/hosted-vs-first-party` — creator vs billing provider,
+  hosted availability vs pricing reference.
+- `/learn/pricing-references` — references not quotes,
+  first-party vs hosted, volatility, no price ranking.
+- `/learn/model-lifecycle` — active/preview/deprecated/retired,
+  why lifecycle gates integration.
+- `/learn/testing-ai-models` — the work the catalogue cannot
+  do for you (prompt tests, latency, rate limits, cost
+  validation, compliance review).
+
+Each lesson surfaces:
+- H1 + plain-language explanation
+- "Why it matters" prose
+- A `ConceptChecklist` of what to verify
+- A `VerifiedExamplesTable` (or equivalent verified-data
+  surface) for the relevant field
+- A `CommonMistakes` block
+- An inline `LessonApplyPanel` listing the workflow routes
+- A "data gaps to watch" callout
+- A related-pages list
+- A sources / freshness note
+
+Primary nav is repositioned around the learning flow:
+**Learn · Use Cases · Select · Compare · Briefs · Models ·
+Sources · Docs**. The footer gains a dedicated `Learn` column
+listing every lesson; a `Workflow` column groups use-cases /
+select / compare / briefs / demos / example brief / how it
+works; the `Intelligence` column keeps intelligence / models /
+providers / pricing / coverage / sources / reverification /
+status / research / docs.
+
+Flow integrations: the homepage gains a "Learn first, then
+compare" section directly below the workflow strip; `/select`,
+`/compare/build`, `/briefs/build`, `/use-cases`, `/how-it-works`,
+`/demos`, and `/docs` all surface targeted learning links.
+
+`ROUTE_SET_VERSION` bumps to `content-v10`. Ten new integrity
+guards enforce: hub + lesson files exist, registry exports the
+expected helpers, lesson components exist, homepage + nav +
+footer + every key surface links to `/learn`, every lesson
+links to at least one workflow surface, no
+`best`/`recommended`/`winner`/`cheapest`/`fastest`/`guaranteed`/
+`certified`/`official partner` phrasing appears on lesson
+surfaces, no benchmark literals leak into lessons, OpenAI
+no-metrics re-checked across lesson surfaces, route contract +
+sitemap + llms.txt + smoke + indexing advertise the new routes.
+
+**Lesson integrity policy.** Lessons explain catalogue fields
+and link to catalogue workflows. They:
+- Do not declare any model the best for any workload.
+- Do not rank models by price, latency, throughput, or uptime.
+- Do not publish benchmark scores or fabricated metrics.
+- Do not recommend specific models or specific hosting
+  platforms.
+- Do not assert compliance / certification.
+- Do not include AI news, "Top 10 AI tools" lists, or any
+  affiliate-style ranking copy.
+- Do render verified examples directly from the typed local
+  data layer, with the unverified-data label for any field the
+  catalogue has not yet sourced.
+
+The lesson surfaces and the integrity guards behind them are
+the contract that keeps the learning layer educational rather
+than promotional.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,

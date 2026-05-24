@@ -5,34 +5,47 @@ import { siteConfig } from "@/lib/site-config";
 const sections: { label: string; links: { label: string; href: string }[] }[] =
   [
     {
-      label: "Intelligence",
+      label: "Learn",
       links: [
-        { label: "Models", href: "/models" },
-        { label: "Providers", href: "/providers" },
-        { label: "Compare", href: "/compare" },
-        { label: "Benchmarks", href: "/benchmarks" },
+        { label: "Learn hub", href: "/learn" },
+        {
+          label: "How to choose an AI model",
+          href: "/learn/how-to-choose-ai-model",
+        },
+        { label: "Context windows", href: "/learn/context-window" },
+        {
+          label: "Hosted vs first-party",
+          href: "/learn/hosted-vs-first-party",
+        },
+        { label: "Pricing references", href: "/learn/pricing-references" },
+        { label: "Model lifecycle", href: "/learn/model-lifecycle" },
+        { label: "Testing AI models", href: "/learn/testing-ai-models" },
       ],
     },
     {
-      label: "Infrastructure",
+      label: "Workflow",
       links: [
-        { label: "Pricing", href: "/pricing" },
-        { label: "Infra", href: "/infrastructure" },
-        { label: "Status", href: "/status" },
-      ],
-    },
-    {
-      label: "Content",
-      links: [
-        { label: "How it works", href: "/how-it-works" },
+        { label: "Use cases", href: "/use-cases" },
+        { label: "Select", href: "/select" },
+        { label: "Compare", href: "/compare/build" },
+        { label: "Briefs", href: "/briefs/build" },
         { label: "Demos", href: "/demos" },
         { label: "Example brief", href: "/examples/decision-brief" },
-        { label: "News", href: "/news" },
-        { label: "Research", href: "/research" },
+        { label: "How it works", href: "/how-it-works" },
+      ],
+    },
+    {
+      label: "Intelligence",
+      links: [
         { label: "Intelligence", href: "/intelligence" },
+        { label: "Models", href: "/models" },
+        { label: "Providers", href: "/providers" },
+        { label: "Pricing", href: "/pricing" },
         { label: "Coverage", href: "/coverage" },
         { label: "Sources", href: "/sources" },
         { label: "Reverification", href: "/reverification" },
+        { label: "Status", href: "/status" },
+        { label: "Research", href: "/research" },
         { label: "Docs", href: "/docs" },
       ],
     },

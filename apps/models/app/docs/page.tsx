@@ -65,6 +65,13 @@ export default function DocsHubPage() {
           </Link>{" "}
           for the foundational rules.
         </p>
+        <p className="text-xs">
+          Looking for a plain-language read instead of a schema reference?{" "}
+          <Link href="/learn" className="text-primary hover:underline">
+            /learn
+          </Link>{" "}
+          teaches the same fields without the data-model framing.
+        </p>
       </aside>
 
       {sections.map((section) => {

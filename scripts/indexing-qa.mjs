@@ -84,6 +84,21 @@ const INDEXABLE_PAGES = [
     expectJsonLd: true,
     kind: "detail",
   },
+  { path: "/learn", expectJsonLd: true, kind: "hub" },
+  {
+    path: "/learn/how-to-choose-ai-model",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  { path: "/learn/context-window", expectJsonLd: true, kind: "detail" },
+  {
+    path: "/learn/hosted-vs-first-party",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  { path: "/learn/pricing-references", expectJsonLd: true, kind: "detail" },
+  { path: "/learn/model-lifecycle", expectJsonLd: true, kind: "detail" },
+  { path: "/learn/testing-ai-models", expectJsonLd: true, kind: "detail" },
 ];
 
 const FILTERED_NOINDEX_PAGES = [

@@ -186,6 +186,16 @@ export default async function BriefsBuildPage({
           </Link>{" "}
           (pre-built from the long-context-analysis demo).
         </p>
+        <p className="text-xs">
+          Confused by what to put in a brief?{" "}
+          <Link
+            href="/learn/testing-ai-models"
+            className="text-primary hover:underline"
+          >
+            /learn/testing-ai-models
+          </Link>{" "}
+          explains how the brief pairs with your own tests.
+        </p>
       </aside>
 
       <DecisionWorkflow variant="card" highlightStep={6} />

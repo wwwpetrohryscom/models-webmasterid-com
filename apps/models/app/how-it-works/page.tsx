@@ -333,6 +333,96 @@ export default function HowItWorksPage() {
         </ul>
       </section>
 
+      <section aria-label="Start with a lesson" className="space-y-3">
+        <SectionHeader
+          eyebrow="Learn first"
+          title="Start with a lesson on the underlying field"
+          description="Each step of this workflow inspects a particular verified field. If the field itself is unfamiliar, the corresponding lesson explains what it means and what it does not guarantee."
+          cta={{ label: "All lessons", href: "/learn" }}
+          as="h2"
+        />
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <li>
+            <Link
+              href="/learn/how-to-choose-ai-model"
+              className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                How to choose an AI model
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                The workflow above, in plain language.
+              </p>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/learn/context-window"
+              className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Context windows explained
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                What it means, what it does not guarantee.
+              </p>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/learn/pricing-references"
+              className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Pricing references
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Why catalogue prices are references, not quotes.
+              </p>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/learn/hosted-vs-first-party"
+              className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Hosted vs first-party
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Creator vs billing provider.
+              </p>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/learn/model-lifecycle"
+              className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Model lifecycle
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Active, preview, deprecated, retired.
+              </p>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/learn/testing-ai-models"
+              className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                Testing AI models
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                The work the catalogue cannot do for you.
+              </p>
+            </Link>
+          </li>
+        </ul>
+      </section>
+
       <section aria-label="Try this workflow" className="space-y-3">
         <SectionHeader
           eyebrow="Try this workflow"

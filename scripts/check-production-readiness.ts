@@ -6109,6 +6109,355 @@ const checks: Check[] = [
       return null;
     },
   },
+  // -------------------------------------------------------------------
+  // Sprint 28 — learning layer
+  // -------------------------------------------------------------------
+  {
+    name: "/learn hub exists (Sprint 28)",
+    run: () => requireFile("apps/models/app/learn/page.tsx", "/learn hub"),
+  },
+  {
+    name: "6 lesson pages exist (Sprint 28)",
+    run: () => {
+      const lessons = [
+        "how-to-choose-ai-model",
+        "context-window",
+        "hosted-vs-first-party",
+        "pricing-references",
+        "model-lifecycle",
+        "testing-ai-models",
+      ];
+      const failures: string[] = [];
+      for (const slug of lessons) {
+        const rel = `apps/models/app/learn/${slug}/page.tsx`;
+        if (!fileExists(rel)) {
+          failures.push(`Missing lesson page ${rel}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lesson registry exists and exports lessons + paths (Sprint 28)",
+    run: () => {
+      const rel = "apps/models/lib/lessons.ts";
+      if (!fileExists(rel)) return `Missing ${rel}.`;
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const sym of [
+        "export const lessons",
+        "export const learningPaths",
+        "export function getLesson",
+        "export function getRelatedLessons",
+      ]) {
+        if (!src.includes(sym)) {
+          failures.push(`${rel} must include \`${sym}\`.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lesson components exist (Sprint 28)",
+    run: () => {
+      const components = [
+        "apps/models/components/learn/LessonLayout.tsx",
+        "apps/models/components/learn/LessonApplyPanel.tsx",
+        "apps/models/components/learn/ConceptChecklist.tsx",
+        "apps/models/components/learn/CommonMistakes.tsx",
+        "apps/models/components/learn/VerifiedExamplesTable.tsx",
+      ];
+      const failures: string[] = [];
+      for (const rel of components) {
+        if (!fileExists(rel)) {
+          failures.push(`Missing component ${rel}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "homepage + nav + footer + key surfaces link to /learn (Sprint 28)",
+    run: () => {
+      const failures: string[] = [];
+      const homepage = readRel("apps/models/app/page.tsx");
+      if (!/\/learn\b/.test(homepage)) {
+        failures.push(
+          "Homepage must link to /learn (Learn first, then compare section)."
+        );
+      }
+      const site = readRel("apps/models/lib/site-config.ts");
+      if (!/href:\s*"\/learn"/.test(site)) {
+        failures.push(
+          "site-config.ts primaryNav must include a /learn entry."
+        );
+      }
+      const footer = readRel("apps/models/components/SiteFooter.tsx");
+      if (!/"\/learn"/.test(footer)) {
+        failures.push("SiteFooter must link to /learn.");
+      }
+      // Footer must also list at least one lesson.
+      if (!/\/learn\/how-to-choose-ai-model/.test(footer)) {
+        failures.push(
+          "SiteFooter must list at least one specific lesson under the Learn column."
+        );
+      }
+      for (const rel of [
+        "apps/models/app/select/page.tsx",
+        "apps/models/app/compare/build/page.tsx",
+        "apps/models/app/briefs/build/page.tsx",
+        "apps/models/app/use-cases/page.tsx",
+        "apps/models/app/how-it-works/page.tsx",
+        "apps/models/app/demos/page.tsx",
+        "apps/models/app/docs/page.tsx",
+      ]) {
+        const src = readRel(rel);
+        if (!/\/learn\b/.test(src)) {
+          failures.push(`${rel} must link to /learn.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lessons link to /select, /compare/build, /briefs/build, /sources or /coverage (Sprint 28)",
+    run: () => {
+      const lessonFiles = [
+        "apps/models/app/learn/how-to-choose-ai-model/page.tsx",
+        "apps/models/app/learn/context-window/page.tsx",
+        "apps/models/app/learn/hosted-vs-first-party/page.tsx",
+        "apps/models/app/learn/pricing-references/page.tsx",
+        "apps/models/app/learn/model-lifecycle/page.tsx",
+        "apps/models/app/learn/testing-ai-models/page.tsx",
+      ];
+      const workflowRoutes = [
+        "/select",
+        "/compare/build",
+        "/briefs/build",
+        "/sources",
+        "/coverage",
+        "/reverification",
+        "/demos",
+      ];
+      const failures: string[] = [];
+      for (const rel of lessonFiles) {
+        const src = readRel(rel);
+        const linksAny = workflowRoutes.some((r) => src.includes(r));
+        if (!linksAny) {
+          failures.push(
+            `${rel} must link to at least one workflow surface (${workflowRoutes.join(", ")}).`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no banned recommendation phrases on lesson surfaces (Sprint 28)",
+    run: () => {
+      const targets = [
+        "apps/models/lib/lessons.ts",
+        "apps/models/app/learn/page.tsx",
+        "apps/models/app/learn/how-to-choose-ai-model/page.tsx",
+        "apps/models/app/learn/context-window/page.tsx",
+        "apps/models/app/learn/hosted-vs-first-party/page.tsx",
+        "apps/models/app/learn/pricing-references/page.tsx",
+        "apps/models/app/learn/model-lifecycle/page.tsx",
+        "apps/models/app/learn/testing-ai-models/page.tsx",
+        "apps/models/components/learn/LessonLayout.tsx",
+        "apps/models/components/learn/LessonApplyPanel.tsx",
+        "apps/models/components/learn/ConceptChecklist.tsx",
+        "apps/models/components/learn/CommonMistakes.tsx",
+        "apps/models/components/learn/VerifiedExamplesTable.tsx",
+      ];
+      const banned: { pattern: RegExp; label: string }[] = [
+        // "best <noun>" — only flag positive assertions, not disclaimers.
+        {
+          pattern: /\bis\s+(?:the\s+)?best\s+(?:model|ai|provider)\b/i,
+          label: "is the best model/ai/provider",
+        },
+        { pattern: /\bbest\s+(?:ai\s+)?model\s+(?:is|for)\b/i, label: "best model is/for" },
+        // "recommended model" as a positive claim.
+        {
+          pattern: /\bour\s+recommended\s+model\b/i,
+          label: "our recommended model",
+        },
+        { pattern: /\bwe\s+recommend\s+(?:the\s+)?model\b/i, label: "we recommend the model" },
+        // "winner" as a positive claim.
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        // Cheapest / fastest as positive claims.
+        {
+          pattern: /\bcheapest\s+(?:ai\s+)?(?:model|provider|platform|inference)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:ai\s+)?(?:model|provider|inference)\b/i,
+          label: "fastest <noun>",
+        },
+        // Hard endorsements lessons must not make.
+        {
+          pattern: /\bguaranteed\s+to\s+(?:work|meet|pass|satisfy)\b/i,
+          label: "guaranteed to <verb>",
+        },
+        {
+          pattern: /\bcertified\s+(?:for|compliant|by)\b/i,
+          label: "certified for/compliant/by",
+        },
+        {
+          pattern: /\bofficial\s+partner\b/i,
+          label: "official partner",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lesson pages do not include benchmark score literals (Sprint 28)",
+    run: () => {
+      const targets = [
+        "apps/models/app/learn/page.tsx",
+        "apps/models/app/learn/how-to-choose-ai-model/page.tsx",
+        "apps/models/app/learn/context-window/page.tsx",
+        "apps/models/app/learn/hosted-vs-first-party/page.tsx",
+        "apps/models/app/learn/pricing-references/page.tsx",
+        "apps/models/app/learn/model-lifecycle/page.tsx",
+        "apps/models/app/learn/testing-ai-models/page.tsx",
+        "apps/models/components/learn/LessonLayout.tsx",
+        "apps/models/components/learn/LessonApplyPanel.tsx",
+        "apps/models/components/learn/ConceptChecklist.tsx",
+        "apps/models/components/learn/CommonMistakes.tsx",
+        "apps/models/components/learn/VerifiedExamplesTable.tsx",
+      ];
+      // Case-sensitive benchmark name + numeric literal nearby — same
+      // pattern Sprint 27 uses for demo surfaces.
+      const benchmarkLiteral =
+        /\b(?:MMLU|GPQA|HumanEval|HellaSwag|ARC-AGI|TruthfulQA|GSM8K|SWE-?Bench)\b[^"<>]{0,40}\b\d+(?:\.\d+)?\b/;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        if (benchmarkLiteral.test(stripped)) {
+          failures.push(
+            `${rel} contains a benchmark name alongside a numeric literal — lessons must not publish fabricated benchmark scores.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric appears on lesson surfaces (Sprint 28)",
+    run: () => {
+      const targets = [
+        "apps/models/lib/lessons.ts",
+        "apps/models/app/learn/page.tsx",
+        "apps/models/app/learn/how-to-choose-ai-model/page.tsx",
+        "apps/models/app/learn/context-window/page.tsx",
+        "apps/models/app/learn/hosted-vs-first-party/page.tsx",
+        "apps/models/app/learn/pricing-references/page.tsx",
+        "apps/models/app/learn/model-lifecycle/page.tsx",
+        "apps/models/app/learn/testing-ai-models/page.tsx",
+        "apps/models/components/learn/VerifiedExamplesTable.tsx",
+      ];
+      // The VerifiedExamplesTable component never lists a GPT-5 slug
+      // (the slugs are passed in by each lesson). The page-level slug
+      // arrays must also never include gpt-5.
+      const banned = /"[^"]*\bgpt-5\b[^"]*"/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} references GPT-5 — no OpenAI metrics are verified yet, so lessons must not list it as a verified example.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract + sitemap + llms.txt + smoke + indexing advertise Sprint 28 lesson routes",
+    run: () => {
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+
+      const versionMatch = contract.match(
+        /ROUTE_SET_VERSION\s*=\s*"content-v(\d+)"/
+      );
+      if (!versionMatch || Number(versionMatch[1]) < 10) {
+        failures.push(
+          'ROUTE_SET_VERSION must be "content-v10" or later for Sprint 28.'
+        );
+      }
+
+      // /learn hub must appear everywhere.
+      for (const surface of [
+        { name: "route-contract", src: contract },
+        { name: "sitemap", src: sitemap },
+        { name: "llms.txt", src: llms },
+        { name: "smoke", src: smoke },
+        { name: "indexing", src: indexing },
+      ]) {
+        if (!surface.src.includes('"/learn"')) {
+          failures.push(`${surface.name} must include "/learn".`);
+        }
+      }
+
+      // Lesson detail routes must appear in sitemap, smoke, and indexing
+      // (not necessarily route-contract, since route-contract only lists
+      // the canonical hub surfaces the smoke + /api/site must reach).
+      const lessonRoutes = [
+        "/learn/how-to-choose-ai-model",
+        "/learn/context-window",
+        "/learn/hosted-vs-first-party",
+        "/learn/pricing-references",
+        "/learn/model-lifecycle",
+        "/learn/testing-ai-models",
+      ];
+      for (const path of lessonRoutes) {
+        const quoted = `"${path}"`;
+        if (!sitemap.includes(quoted)) {
+          failures.push(`sitemap must include ${quoted}.`);
+        }
+        if (!smoke.includes(quoted)) {
+          failures.push(`scripts/lib/smoke.mjs must include ${quoted}.`);
+        }
+        if (!indexing.includes(quoted)) {
+          failures.push(`scripts/indexing-qa.mjs must include ${quoted}.`);
+        }
+        if (!llms.includes(quoted)) {
+          failures.push(`llms.txt must list ${quoted}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
 ];
 
 function main(): void {

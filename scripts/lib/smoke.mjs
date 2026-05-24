@@ -41,6 +41,13 @@ const PAGE_ROUTES = [
   "/demos/hosted-inference",
   "/demos/governance-review",
   "/examples/decision-brief",
+  "/learn",
+  "/learn/how-to-choose-ai-model",
+  "/learn/context-window",
+  "/learn/hosted-vs-first-party",
+  "/learn/pricing-references",
+  "/learn/model-lifecycle",
+  "/learn/testing-ai-models",
 ];
 
 const API_ROUTES = [

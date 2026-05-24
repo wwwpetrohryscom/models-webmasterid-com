@@ -71,6 +71,17 @@ export default function DemosHubPage() {
           The visitor follows the route; the catalogue surfaces
           verified fields and explicit data gaps along the way.
         </p>
+        <p className="text-xs">
+          New to the concepts the demos walk through? Start at{" "}
+          <Link
+            href="/learn"
+            className="text-primary hover:underline"
+          >
+            /learn
+          </Link>{" "}
+          — the lessons explain each verified field the demos
+          inspect.
+        </p>
       </aside>
 
       <DecisionWorkflow variant="card" />

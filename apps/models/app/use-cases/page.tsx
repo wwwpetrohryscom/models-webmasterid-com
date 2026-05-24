@@ -66,6 +66,16 @@ export default function UseCasesHubPage() {
           common misreads to avoid, and the source-backed shortlist
           generated from the typed local data layer.
         </p>
+        <p className="text-xs">
+          New to AI model selection? Start with{" "}
+          <Link
+            href="/learn/how-to-choose-ai-model"
+            className="text-primary hover:underline"
+          >
+            /learn/how-to-choose-ai-model
+          </Link>{" "}
+          before picking a use case.
+        </p>
       </aside>
 
       <section aria-label="Detailed use cases" className="space-y-3">

@@ -309,6 +309,23 @@ export default async function CompareBuilderPage({
             not as picks.
           </p>
           <p className="mt-1 text-[11px]">
+            New to comparison methodology? Start with{" "}
+            <Link
+              href="/learn/how-to-choose-ai-model"
+              className="text-primary hover:underline"
+            >
+              /learn/how-to-choose-ai-model
+            </Link>{" "}
+            or{" "}
+            <Link
+              href="/learn/context-window"
+              className="text-primary hover:underline"
+            >
+              /learn/context-window
+            </Link>
+            .
+          </p>
+          <p className="mt-1 text-[11px]">
             Or try a guided comparison:{" "}
             <Link
               href="/demos/long-context-analysis"
