@@ -1241,6 +1241,157 @@ for the team's own production-readiness review. A
 filled-in template is evidence the planning work was
 done — not a sign-off.
 
+**Sprint 32 — evaluation prompt library + /lab/evaluation
+guide.** Sprint 32 extends the AI Usage Lab with a
+structured prompt library for testing model behaviour
+before production use. The library is positioned
+clearly: these are evaluation inputs, never production
+prompts, never a marketplace, never a "best prompts"
+list.
+
+[`lib/evaluation-prompts.ts`](apps/models/lib/evaluation-prompts.ts)
+is the single source of truth. The registry exports
+`evaluationPromptSets`, `getEvaluationPromptSet`,
+`getEvaluationPromptSets`, `getEvaluationPromptSetRoutes`,
+`getEvaluationPromptSetsByCategory`, and
+`promptSetToMarkdown`.
+
+Six prompt sets ship, five prompts each:
+
+- `summarization-quality` — beginner, 20 min.
+- `structured-extraction` — intermediate, 25 min.
+- `long-context-recall` — intermediate, 25 min.
+- `instruction-following` — beginner, 20 min.
+- `refusal-boundary` — intermediate, 25 min.
+- `automation-robustness` — intermediate, 25 min.
+
+Each `EvaluationPromptSet` carries: `category`,
+`difficulty`, `estimatedMinutes`, `whenToUse`, typed
+`prerequisites`, `evaluationGoal`, an array of typed
+`EvaluationPrompt` entries (each with `id`, `title`,
+`prompt`, `purpose`, `expectedObservation`,
+`failureLooksLike`, `whatToRecord`), `observationChecklist`,
+`comparisonNotes`, `relatedPlaybooks`,
+`relatedTemplates`, `relatedRoutes`, and `policyNote`.
+
+**Prompt safety policy.** Sample text uses fictional
+names + values (Atlas, Aurora, INV-2099-0007). No real
+PII. The refusal-boundary set requests benign
+behaviours the model should decline or redirect — no
+operational harm content, no jailbreak content, no
+bypass / exploit / credential / malware / phishing
+phrasing. A dedicated integrity guard (`no jailbreak /
+bypass / exploit / phishing / credential / malware
+phrasing on Sprint 32 surfaces`) scans every prompt
+surface for operational harm phrasing; a separate
+guard (`refusal-boundary prompts stay safe and
+non-operational`) scans the refusal-boundary slice of
+the registry specifically for forbidden prompt content.
+
+Four new server-rendered components in
+`apps/models/components/lab/`:
+
+- `PromptSetCard` — summary card with category +
+  difficulty + minutes + prompt count.
+- `PromptEvaluationTable` — renders the full prompt
+  array; each prompt sits inside a non-executable
+  `<pre>` block tagged "Evaluation input, not production
+  prompt." No copy-to-clipboard script, no live model
+  runner.
+- `PromptPolicyNote` — the explicit "evaluation inputs,
+  not production prompts" callout.
+- `PromptObservationChecklist` — observation /
+  comparison-note list with unchecked-box visual.
+
+[`/lab/prompts`](apps/models/app/lab/prompts/page.tsx)
+hub lists the six sets with `CollectionPage` JSON-LD
+that enumerates each set as `HowTo`.
+
+[`/lab/prompts/[slug]`](apps/models/app/lab/prompts/%5Bslug%5D/page.tsx)
+dynamic route prerenders the six detail pages via
+`generateStaticParams()`. Each page renders policy
+note, at-a-glance card, when-to-use, evaluation goal,
+prerequisites, export link, full prompt evaluation
+table, observation checklist, comparison notes, related
+playbooks + templates + workflows, and the
+`PromptPolicyNote`. JSON-LD: `TechArticle` +
+`BreadcrumbList`.
+
+[`/api/lab/prompts/[slug]`](apps/models/app/api/lab/prompts/%5Bslug%5D/route.ts)
+endpoint exports each set as `text/markdown;
+charset=utf-8` with `X-Robots-Tag: noindex` and
+`Cache-Control: public, max-age=300, s-maxage=300`.
+Uses `force-static` + `generateStaticParams()` — six
+endpoints prerendered. Pure local derivation: no fetch,
+no env, no Date.now, no user input beyond the slug.
+
+[`/lab/evaluation`](apps/models/app/lab/evaluation/page.tsx)
+is a long-form guide that explains:
+
+- What evaluation means here (small observation
+  routine, not a leaderboard).
+- Why prompt sets are not benchmarks.
+- How to run candidate model trials.
+- How to record observations honestly.
+- How to avoid overclaiming.
+- How to feed results into a decision brief.
+
+Flow integrations:
+
+- `/lab` adds an "Evaluation prompt library" section
+  with three featured prompt sets + a link to the
+  evaluation guide.
+- `/lab/templates/prompt-test-matrix` adds a
+  "Pair with evaluation prompt sets" panel linking the
+  hub + three sets.
+- The developer learning path appends
+  `/lab/prompts/structured-extraction` as a workflow
+  step.
+- The automation-specialist learning path appends
+  `/lab/prompts/automation-robustness`.
+- `/briefs/build` policy aside notes the prompt
+  library as the place to collect external
+  observations before finalising a brief.
+- `/demos` after-demo panel links to the prompt
+  library.
+- SiteFooter Workflow column adds `Lab prompts` +
+  `Evaluation guide`.
+
+`ROUTE_SET_VERSION` bumps to `content-v14`. The
+`REQUIRED_PAGE_ROUTES` array adds `/lab/prompts` and
+`/lab/evaluation`; the `REQUIRED_API_ROUTES` array adds
+the six prompt export endpoints. `/api/site` now
+advertises `labPrompts`, `labEvaluationGuide`, and
+`labPromptEndpoints` (an array of six absolute URLs).
+
+Twelve new integrity guards enforce:
+
+1. Registry exists with all 6 required exports.
+2. All 6 prompt set slugs registered.
+3. Hub + dynamic detail + evaluation guide exist.
+4. Export endpoint sets `X-Robots-Tag: noindex` +
+   `text/markdown` + calls `promptSetToMarkdown()` and
+   has no `Date.now`, `process.env`, or `fetch`.
+5. The 4 prompt components exist.
+6. Registry contains no score / rank / recommend /
+   winner / "best prompt" / "your score is" phrasing.
+7. Prompt pages explicitly state prompts are
+   "evaluation inputs, not production prompts".
+8. No jailbreak / bypass / exploit / phishing /
+   credential / malware operational phrasing on any
+   Sprint 32 surface.
+9. The refusal-boundary slice of the registry contains
+   no banned operational prompt content (no
+   "how to make a bomb", no "jailbreak instructions",
+   etc.).
+10. No benchmark numeric score literals on Sprint 32
+    surfaces.
+11. No OpenAI metrics.
+12. `/lab` links to `/lab/prompts`; the prompt-test-matrix
+    template detail links to the prompt library; route
+    contract + sitemap + llms.txt + smoke + indexing
+    advertise all 8 page routes + 6 API endpoints.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,

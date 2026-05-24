@@ -136,6 +136,7 @@ const PLAYBOOKS: LabPlaybook[] = [
     ],
     relatedTemplates: ["prompt-test-matrix", "model-evaluation-plan"],
     relatedRoutes: [
+      { label: "Evaluation prompt library", href: "/lab/prompts" },
       { label: "Decision brief builder", href: "/briefs/build" },
       { label: "Reverification queue", href: "/reverification" },
       { label: "Citation registry", href: "/sources" },

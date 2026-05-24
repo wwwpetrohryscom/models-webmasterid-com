@@ -78,6 +78,14 @@ const PAGE_ROUTES = [
   "/lab/templates/model-evaluation-plan",
   "/lab/templates/prompt-test-matrix",
   "/lab/templates/automation-risk-checklist",
+  "/lab/prompts",
+  "/lab/prompts/summarization-quality",
+  "/lab/prompts/structured-extraction",
+  "/lab/prompts/long-context-recall",
+  "/lab/prompts/instruction-following",
+  "/lab/prompts/refusal-boundary",
+  "/lab/prompts/automation-robustness",
+  "/lab/evaluation",
 ];
 
 const API_ROUTES = [
@@ -98,6 +106,12 @@ const API_ROUTES = [
   "/api/lab/templates/model-evaluation-plan",
   "/api/lab/templates/prompt-test-matrix",
   "/api/lab/templates/automation-risk-checklist",
+  "/api/lab/prompts/summarization-quality",
+  "/api/lab/prompts/structured-extraction",
+  "/api/lab/prompts/long-context-recall",
+  "/api/lab/prompts/instruction-following",
+  "/api/lab/prompts/refusal-boundary",
+  "/api/lab/prompts/automation-robustness",
 ];
 
 const FETCH_TIMEOUT_MS = 8_000;

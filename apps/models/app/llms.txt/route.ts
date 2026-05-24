@@ -200,6 +200,38 @@ export function GET() {
       label: "Lab template — automation risk checklist",
       path: "/lab/templates/automation-risk-checklist",
     },
+    {
+      label: "Evaluation prompt library (hub)",
+      path: "/lab/prompts",
+    },
+    {
+      label: "Prompt set — summarization quality",
+      path: "/lab/prompts/summarization-quality",
+    },
+    {
+      label: "Prompt set — structured extraction",
+      path: "/lab/prompts/structured-extraction",
+    },
+    {
+      label: "Prompt set — long-context recall",
+      path: "/lab/prompts/long-context-recall",
+    },
+    {
+      label: "Prompt set — instruction following",
+      path: "/lab/prompts/instruction-following",
+    },
+    {
+      label: "Prompt set — refusal boundary",
+      path: "/lab/prompts/refusal-boundary",
+    },
+    {
+      label: "Prompt set — automation robustness",
+      path: "/lab/prompts/automation-robustness",
+    },
+    {
+      label: "Lab evaluation guide",
+      path: "/lab/evaluation",
+    },
     { label: "How it works (walkthrough)", path: "/how-it-works" },
     { label: "Guided demos", path: "/demos" },
     {

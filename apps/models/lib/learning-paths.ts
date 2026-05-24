@@ -330,6 +330,12 @@ function buildDeveloperPath(): LearningPath {
       "Walk a minimal repeatable prompt-test routine against the shortlisted candidates and end with a Markdown evidence brief.",
       25
     ),
+    workflowStep(
+      "/lab/prompts/structured-extraction",
+      "Run the structured-extraction prompt set",
+      "Test schema-conformant extraction against your real schema before integration.",
+      25
+    ),
   ];
   return {
     slug: "developer",
@@ -621,6 +627,12 @@ function buildAutomationSpecialistPath(): LearningPath {
       "Run the automation workflow testing playbook",
       "Test the candidate model inside the automation loop — retries, downstream parsers, regression surface — before letting it run unattended.",
       40
+    ),
+    workflowStep(
+      "/lab/prompts/automation-robustness",
+      "Run the automation-robustness prompt set",
+      "Surface contract drift — allowed categories, missing-value handling, retry decisions, manual-review flags, exact-string fallbacks.",
+      25
     ),
   ];
   return {

@@ -216,6 +216,53 @@ export default async function LabTemplateDetailPage({
         )}
       </section>
 
+      {template.slug === "prompt-test-matrix" ? (
+        <section
+          aria-label="Pair with evaluation prompt sets"
+          className="card-surface space-y-2 p-5 text-sm"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            Pair with evaluation prompt sets
+          </p>
+          <p className="text-muted-foreground">
+            The matrix is generic by design. Fill the row IDs from
+            an evaluation prompt set so the column labels stay
+            traceable.
+          </p>
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {[
+              {
+                href: "/lab/prompts",
+                title: "All evaluation prompt sets",
+              },
+              {
+                href: "/lab/prompts/summarization-quality",
+                title: "Summarization quality",
+              },
+              {
+                href: "/lab/prompts/structured-extraction",
+                title: "Structured extraction",
+              },
+              {
+                href: "/lab/prompts/instruction-following",
+                title: "Instruction following",
+              },
+            ].map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="block rounded-lg border border-border bg-card p-3 transition hover:border-primary/30"
+                >
+                  <p className="text-sm font-semibold text-foreground">
+                    {item.title} →
+                  </p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <LabPolicyNote />
 
       <aside

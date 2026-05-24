@@ -213,6 +213,38 @@ const INDEXABLE_PAGES = [
     expectJsonLd: true,
     kind: "detail",
   },
+  { path: "/lab/prompts", expectJsonLd: true, kind: "hub" },
+  {
+    path: "/lab/prompts/summarization-quality",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/lab/prompts/structured-extraction",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/lab/prompts/long-context-recall",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/lab/prompts/instruction-following",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/lab/prompts/refusal-boundary",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/lab/prompts/automation-robustness",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  { path: "/lab/evaluation", expectJsonLd: true, kind: "detail" },
 ];
 
 const FILTERED_NOINDEX_PAGES = [

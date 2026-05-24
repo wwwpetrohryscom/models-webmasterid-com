@@ -75,6 +75,16 @@ export function GET() {
         absolute("/api/lab/templates/prompt-test-matrix"),
         absolute("/api/lab/templates/automation-risk-checklist"),
       ],
+      labPrompts: absolute("/lab/prompts"),
+      labEvaluationGuide: absolute("/lab/evaluation"),
+      labPromptEndpoints: [
+        absolute("/api/lab/prompts/summarization-quality"),
+        absolute("/api/lab/prompts/structured-extraction"),
+        absolute("/api/lab/prompts/long-context-recall"),
+        absolute("/api/lab/prompts/instruction-following"),
+        absolute("/api/lab/prompts/refusal-boundary"),
+        absolute("/api/lab/prompts/automation-robustness"),
+      ],
     },
     {
       status: 200,

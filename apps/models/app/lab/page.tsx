@@ -148,6 +148,70 @@ export default function LabHubPage() {
         </ul>
       </section>
 
+      <section
+        aria-label="Evaluation prompt library"
+        className="space-y-3"
+      >
+        <SectionHeader
+          eyebrow="Prompts"
+          title="Evaluation prompt library"
+          description="Six prompt sets — summarisation, structured extraction, long-context recall, instruction following, refusal boundary, automation robustness. Evaluation inputs you run in your own harness, not production prompts."
+          cta={{ label: "All prompt sets", href: "/lab/prompts" }}
+          as="h2"
+        />
+        <ul className="grid gap-3 md:grid-cols-3">
+          {[
+            {
+              href: "/lab/prompts/summarization-quality",
+              title: "Summarization quality",
+              detail: "Beginner · 20 min · faithful summarisation.",
+            },
+            {
+              href: "/lab/prompts/structured-extraction",
+              title: "Structured extraction",
+              detail: "Intermediate · 25 min · schema-conformant extraction.",
+            },
+            {
+              href: "/lab/prompts/automation-robustness",
+              title: "Automation robustness",
+              detail:
+                "Intermediate · 25 min · contract adherence in automations.",
+            },
+          ].map((card) => (
+            <li key={card.href}>
+              <Link
+                href={card.href}
+                className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-sm font-semibold text-foreground">
+                  {card.title}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {card.detail}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <p className="text-xs text-muted-foreground">
+          New here? Start at{" "}
+          <Link
+            href="/lab/prompt-testing-basics"
+            className="text-primary hover:underline"
+          >
+            /lab/prompt-testing-basics
+          </Link>{" "}
+          or read the{" "}
+          <Link
+            href="/lab/evaluation"
+            className="text-primary hover:underline"
+          >
+            evaluation guide
+          </Link>
+          .
+        </p>
+      </section>
+
       <section aria-label="Templates" className="space-y-3">
         <SectionHeader
           eyebrow="Templates"

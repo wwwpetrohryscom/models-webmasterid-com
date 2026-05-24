@@ -54,6 +54,8 @@ const sections: { label: string; links: { label: string; href: string }[] }[] =
         { label: "Briefs", href: "/briefs/build" },
         { label: "Lab", href: "/lab" },
         { label: "Lab templates", href: "/lab/templates" },
+        { label: "Lab prompts", href: "/lab/prompts" },
+        { label: "Evaluation guide", href: "/lab/evaluation" },
         { label: "Demos", href: "/demos" },
         { label: "Example brief", href: "/examples/decision-brief" },
         { label: "How it works", href: "/how-it-works" },

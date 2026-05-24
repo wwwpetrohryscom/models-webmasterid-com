@@ -18,7 +18,7 @@
  * commit (from VERCEL_GIT_COMMIT_SHA) does not start with this prefix.
  */
 
-export const ROUTE_SET_VERSION = "content-v13";
+export const ROUTE_SET_VERSION = "content-v14";
 
 /**
  * Short prefix of the latest commit on `main` that this version of the
@@ -58,6 +58,8 @@ export const REQUIRED_PAGE_ROUTES = [
   "/learn/path/automation-specialist",
   "/lab",
   "/lab/templates",
+  "/lab/prompts",
+  "/lab/evaluation",
 ] as const;
 export type RequiredPageRoute = (typeof REQUIRED_PAGE_ROUTES)[number];
 
@@ -80,6 +82,12 @@ export const REQUIRED_API_ROUTES = [
   "/api/lab/templates/model-evaluation-plan",
   "/api/lab/templates/prompt-test-matrix",
   "/api/lab/templates/automation-risk-checklist",
+  "/api/lab/prompts/summarization-quality",
+  "/api/lab/prompts/structured-extraction",
+  "/api/lab/prompts/long-context-recall",
+  "/api/lab/prompts/instruction-following",
+  "/api/lab/prompts/refusal-boundary",
+  "/api/lab/prompts/automation-robustness",
 ] as const;
 export type RequiredApiRoute = (typeof REQUIRED_API_ROUTES)[number];
 

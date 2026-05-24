@@ -7762,6 +7762,436 @@ const checks: Check[] = [
       return failures.length ? failures.join("\n") : null;
     },
   },
+  // -------------------------------------------------------------------
+  // Sprint 32 — evaluation prompt library + /lab/evaluation guide
+  // -------------------------------------------------------------------
+  {
+    name: "lib/evaluation-prompts.ts exists with required exports (Sprint 32)",
+    run: () => {
+      const rel = "apps/models/lib/evaluation-prompts.ts";
+      if (!fileExists(rel)) return `Missing ${rel}.`;
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const sym of [
+        "export const evaluationPromptSets",
+        "export function getEvaluationPromptSet",
+        "export function getEvaluationPromptSets",
+        "export function getEvaluationPromptSetRoutes",
+        "export function getEvaluationPromptSetsByCategory",
+        "export function promptSetToMarkdown",
+      ]) {
+        if (!src.includes(sym)) {
+          failures.push(`${rel} must include \`${sym}\`.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "all 6 evaluation prompt set slugs registered (Sprint 32)",
+    run: () => {
+      const src = readRel("apps/models/lib/evaluation-prompts.ts");
+      const failures: string[] = [];
+      for (const slug of [
+        "summarization-quality",
+        "structured-extraction",
+        "long-context-recall",
+        "instruction-following",
+        "refusal-boundary",
+        "automation-robustness",
+      ]) {
+        if (!src.includes(`slug: "${slug}"`)) {
+          failures.push(`Registry missing prompt set slug "${slug}".`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/lab/prompts hub + dynamic detail + /lab/evaluation guide exist (Sprint 32)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/app/lab/prompts/page.tsx",
+        "apps/models/app/lab/prompts/[slug]/page.tsx",
+        "apps/models/app/lab/evaluation/page.tsx",
+      ]) {
+        if (!fileExists(rel)) failures.push(`Missing ${rel}.`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/api/lab/prompts/[slug] export endpoint exists (Sprint 32)",
+    run: () => {
+      const rel = "apps/models/app/api/lab/prompts/[slug]/route.ts";
+      if (!fileExists(rel)) return `Missing ${rel}.`;
+      const src = readRel(rel);
+      const failures: string[] = [];
+      if (!/X-Robots-Tag/.test(src) || !/noindex/.test(src)) {
+        failures.push(
+          "/api/lab/prompts/[slug] must set X-Robots-Tag: noindex so generated prompt sets do not enter the index from outside."
+        );
+      }
+      if (!/text\/markdown/.test(src)) {
+        failures.push(
+          "/api/lab/prompts/[slug] must respond with text/markdown content type."
+        );
+      }
+      if (!/promptSetToMarkdown/.test(src)) {
+        failures.push(
+          "/api/lab/prompts/[slug] must call promptSetToMarkdown() to keep the serializer in lib."
+        );
+      }
+      if (/Date\.now\(/.test(src)) {
+        failures.push(
+          "/api/lab/prompts/[slug] must not call Date.now — the endpoint is pure local derivation."
+        );
+      }
+      if (/process\.env/.test(src)) {
+        failures.push(
+          "/api/lab/prompts/[slug] must not read process.env — the endpoint is secrets-free."
+        );
+      }
+      if (/fetch\(/.test(src)) {
+        failures.push(
+          "/api/lab/prompts/[slug] must not call fetch — the endpoint is offline-pure."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "4 prompt components exist (Sprint 32)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/components/lab/PromptSetCard.tsx",
+        "apps/models/components/lab/PromptEvaluationTable.tsx",
+        "apps/models/components/lab/PromptPolicyNote.tsx",
+        "apps/models/components/lab/PromptObservationChecklist.tsx",
+      ]) {
+        if (!fileExists(rel)) failures.push(`Missing component ${rel}.`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "prompt registry has no score / rank / recommend / winner / best-prompt language (Sprint 32)",
+    run: () => {
+      const src = readRel("apps/models/lib/evaluation-prompts.ts");
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bbest\s+prompt(?:s)?\b/i,
+          label: "best prompt(s)",
+        },
+        {
+          pattern: /\bis\s+(?:the\s+)?best\s+(?:model|ai|provider)\b/i,
+          label: "is the best model/ai/provider",
+        },
+        {
+          pattern: /\bour\s+recommended\s+model\b/i,
+          label: "our recommended model",
+        },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\bcheapest\s+(?:ai\s+)?(?:model|provider|platform)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:ai\s+)?(?:model|provider)\b/i,
+          label: "fastest <noun>",
+        },
+        {
+          pattern: /\byour\s+score\s+is\b/i,
+          label: "your score is",
+        },
+      ];
+      const failures: string[] = [];
+      for (const b of banned) {
+        if (b.pattern.test(stripped)) {
+          failures.push(
+            `lib/evaluation-prompts.ts contains banned phrase "${b.label}".`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "prompt pages frame prompts as evaluation inputs, not production prompts (Sprint 32)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/app/lab/prompts/page.tsx",
+        "apps/models/app/lab/prompts/[slug]/page.tsx",
+        "apps/models/components/lab/PromptPolicyNote.tsx",
+        "apps/models/components/lab/PromptEvaluationTable.tsx",
+      ]) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (!/evaluation\s+inputs?,?\s+not\s+production\s+prompts?/i.test(src)) {
+          failures.push(
+            `${rel} must state explicitly that prompts are evaluation inputs, not production prompts.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no jailbreak / bypass / exploit / phishing / credential / malware phrasing on Sprint 32 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/evaluation-prompts.ts",
+        "apps/models/app/lab/prompts/page.tsx",
+        "apps/models/app/lab/prompts/[slug]/page.tsx",
+        "apps/models/app/lab/evaluation/page.tsx",
+        "apps/models/components/lab/PromptSetCard.tsx",
+        "apps/models/components/lab/PromptEvaluationTable.tsx",
+        "apps/models/components/lab/PromptPolicyNote.tsx",
+        "apps/models/components/lab/PromptObservationChecklist.tsx",
+      ];
+      // Only flag *operational* uses. The PromptPolicyNote
+      // explicitly mentions these as things the library does NOT
+      // contain, so the regex requires verb context (write/produce/
+      // generate/teach + the harmful noun) to count as a violation.
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\b(?:write|generate|produce|create|teach)\s+(?:a\s+)?jailbreak\b/i,
+          label: "write/produce a jailbreak",
+        },
+        {
+          pattern: /\b(?:write|generate|produce|create|teach)\s+(?:a\s+)?(?:phishing|malware|exploit|payload)\b/i,
+          label: "write/produce phishing/malware/exploit/payload",
+        },
+        {
+          pattern: /\b(?:bypass|evade|defeat|circumvent)\s+(?:the\s+)?(?:safety|guardrail|filter|moderation)\b/i,
+          label: "bypass/evade safety/guardrail/filter/moderation",
+        },
+        {
+          pattern: /\b(?:steal|harvest|extract|obtain)\s+(?:user|customer|account)?\s*credentials?\b/i,
+          label: "steal/harvest credentials",
+        },
+        {
+          pattern: /\bingest\s+(?:and\s+)?leak\s+(?:secrets?|api\s+keys?)\b/i,
+          label: "ingest/leak secrets / api keys",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned operational phrasing "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "refusal-boundary prompts stay safe and non-operational (Sprint 32)",
+    run: () => {
+      const src = readRel("apps/models/lib/evaluation-prompts.ts");
+      // The refusal-boundary set must NOT include operational
+      // harmful prompts. The prompts themselves must request
+      // benign content that the model should REFUSE or redirect.
+      // Scan the registry for forbidden operational requests
+      // appearing inside prompt strings.
+      const sliceMatch = src.match(
+        /slug: "refusal-boundary"[\s\S]*?policyNote:/
+      );
+      const slice = sliceMatch ? sliceMatch[0] : "";
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bhow\s+to\s+make\s+(?:a\s+)?bomb\b/i,
+          label: "how to make a bomb (prompt content)",
+        },
+        {
+          pattern: /\bhow\s+to\s+steal\s+a\s+car\b/i,
+          label: "how to steal a car (prompt content)",
+        },
+        {
+          pattern: /\bjailbreak\s+instructions?\b/i,
+          label: "jailbreak instructions (prompt content)",
+        },
+        {
+          pattern: /\bgenerate\s+phishing\b/i,
+          label: "generate phishing (prompt content)",
+        },
+      ];
+      const failures: string[] = [];
+      for (const b of banned) {
+        if (b.pattern.test(slice)) {
+          failures.push(
+            `refusal-boundary set contains banned operational prompt content: "${b.label}".`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no benchmark numeric score literals on Sprint 32 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/evaluation-prompts.ts",
+        "apps/models/app/lab/prompts/page.tsx",
+        "apps/models/app/lab/prompts/[slug]/page.tsx",
+        "apps/models/app/lab/evaluation/page.tsx",
+        "apps/models/components/lab/PromptSetCard.tsx",
+        "apps/models/components/lab/PromptEvaluationTable.tsx",
+        "apps/models/components/lab/PromptPolicyNote.tsx",
+        "apps/models/components/lab/PromptObservationChecklist.tsx",
+      ];
+      const benchmarkLiteral =
+        /\b(?:MMLU|GPQA|HumanEval|HellaSwag|ARC-AGI|TruthfulQA|GSM8K|SWE-?Bench)\b[^"<>]{0,40}\b\d+(?:\.\d+)?\b/;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        if (benchmarkLiteral.test(stripped)) {
+          failures.push(
+            `${rel} contains a benchmark name alongside a numeric literal — Sprint 32 surfaces must not publish benchmark scores.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric appears on Sprint 32 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/evaluation-prompts.ts",
+        "apps/models/app/lab/prompts/page.tsx",
+        "apps/models/app/lab/prompts/[slug]/page.tsx",
+        "apps/models/app/lab/evaluation/page.tsx",
+        "apps/models/components/lab/PromptSetCard.tsx",
+        "apps/models/components/lab/PromptEvaluationTable.tsx",
+        "apps/models/components/lab/PromptPolicyNote.tsx",
+        "apps/models/components/lab/PromptObservationChecklist.tsx",
+      ];
+      const banned = /"[^"]*\bgpt-5\b[^"]*"/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} references GPT-5 — no OpenAI metrics are verified yet.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/lab links to /lab/prompts and /lab/templates/prompt-test-matrix links to prompt library (Sprint 32)",
+    run: () => {
+      const lab = readRel("apps/models/app/lab/page.tsx");
+      const templateDetail = readRel(
+        "apps/models/app/lab/templates/[slug]/page.tsx"
+      );
+      const failures: string[] = [];
+      if (!/\/lab\/prompts\b/.test(lab)) {
+        failures.push("/lab must link to /lab/prompts.");
+      }
+      if (!/\/lab\/prompts\b/.test(templateDetail)) {
+        failures.push(
+          "/lab/templates/[slug] must link to /lab/prompts at least once (for the prompt-test-matrix template integration)."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract + sitemap + llms.txt + smoke + indexing advertise Sprint 32 routes",
+    run: () => {
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+
+      const versionMatch = contract.match(
+        /ROUTE_SET_VERSION\s*=\s*"content-v(\d+)"/
+      );
+      if (!versionMatch || Number(versionMatch[1]) < 14) {
+        failures.push(
+          'ROUTE_SET_VERSION must be "content-v14" or later for Sprint 32.'
+        );
+      }
+
+      for (const hub of ['"/lab/prompts"', '"/lab/evaluation"']) {
+        if (!contract.includes(hub)) {
+          failures.push(`route-contract must include ${hub}.`);
+        }
+      }
+
+      const labPageRoutes = [
+        "/lab/prompts",
+        "/lab/prompts/summarization-quality",
+        "/lab/prompts/structured-extraction",
+        "/lab/prompts/long-context-recall",
+        "/lab/prompts/instruction-following",
+        "/lab/prompts/refusal-boundary",
+        "/lab/prompts/automation-robustness",
+        "/lab/evaluation",
+      ];
+      for (const path of labPageRoutes) {
+        const quoted = `"${path}"`;
+        if (!sitemap.includes(quoted)) {
+          failures.push(`sitemap must include ${quoted}.`);
+        }
+        if (!smoke.includes(quoted)) {
+          failures.push(`scripts/lib/smoke.mjs must include ${quoted}.`);
+        }
+        if (!indexing.includes(quoted)) {
+          failures.push(`scripts/indexing-qa.mjs must include ${quoted}.`);
+        }
+        if (!llms.includes(quoted)) {
+          failures.push(`llms.txt must list ${quoted}.`);
+        }
+      }
+
+      const labApiRoutes = [
+        "/api/lab/prompts/summarization-quality",
+        "/api/lab/prompts/structured-extraction",
+        "/api/lab/prompts/long-context-recall",
+        "/api/lab/prompts/instruction-following",
+        "/api/lab/prompts/refusal-boundary",
+        "/api/lab/prompts/automation-robustness",
+      ];
+      for (const path of labApiRoutes) {
+        const quoted = `"${path}"`;
+        if (!contract.includes(quoted)) {
+          failures.push(`route-contract must include ${quoted}.`);
+        }
+        if (!smoke.includes(quoted)) {
+          failures.push(`scripts/lib/smoke.mjs must include ${quoted}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
 ];
 
 function main(): void {

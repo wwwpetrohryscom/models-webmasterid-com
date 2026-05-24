@@ -474,6 +474,56 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+22. **Evaluation prompt library + /lab/evaluation guide (Sprint 32).**
+    The AI Usage Lab gains an evaluation prompt library. A new
+    [`lib/evaluation-prompts.ts`](apps/models/lib/evaluation-prompts.ts)
+    registry defines six prompt sets — `summarization-quality`,
+    `structured-extraction`, `long-context-recall`,
+    `instruction-following`, `refusal-boundary`,
+    `automation-robustness` — each carrying typed prompts with
+    `purpose`, `expectedObservation`, `failureLooksLike`, and
+    `whatToRecord` fields. Sets are generic + safe: sample text
+    uses fictional names and values, the refusal-boundary set
+    requests benign behaviours the model should decline or
+    redirect (no jailbreak, exploit, or operational harm content),
+    and every prompt is framed as an evaluation input rather than
+    a deployable production prompt. Four new server components in
+    [`components/lab/`](apps/models/components/lab/) —
+    `PromptSetCard`, `PromptEvaluationTable`, `PromptPolicyNote`,
+    `PromptObservationChecklist` — render the library. A new
+    [`/lab/prompts`](apps/models/app/lab/prompts/page.tsx) hub
+    lists the six sets; a dynamic
+    [`/lab/prompts/[slug]`](apps/models/app/lab/prompts/%5Bslug%5D/page.tsx)
+    prerenders every detail page with the full prompt evaluation
+    table. The [`/api/lab/prompts/[slug]`](apps/models/app/api/lab/prompts/%5Bslug%5D/route.ts)
+    endpoint exports each set as `text/markdown; charset=utf-8`
+    with `X-Robots-Tag: noindex` — pure local derivation (no
+    fetch, no env, no Date.now). A new
+    [`/lab/evaluation`](apps/models/app/lab/evaluation/page.tsx)
+    guide explains how playbooks, templates, and prompt sets fit
+    together. The developer learning path appends the
+    structured-extraction prompt set; the automation-specialist
+    path appends the automation-robustness set. `/lab`,
+    `/lab/templates/prompt-test-matrix`, `/briefs/build`, and
+    `/demos` link out to the library. SiteFooter Workflow column
+    adds Lab prompts + Evaluation guide. `ROUTE_SET_VERSION` bumps
+    to `content-v14`. Twelve new integrity guards enforce:
+    registry has all 6 required exports, all 6 prompt set slugs
+    registered, hub + dynamic detail + evaluation guide exist,
+    export endpoint sets `X-Robots-Tag: noindex` + `text/markdown`
+    + calls `promptSetToMarkdown()` + has no Date.now / no
+    process.env / no fetch, 4 prompt components exist, registry
+    contains no score / rank / recommend / winner / "best prompt"
+    phrasing, prompt pages explicitly state prompts are
+    "evaluation inputs, not production prompts", no jailbreak /
+    bypass / exploit / phishing / credential / malware operational
+    phrasing on any lab surface, refusal-boundary prompt content
+    is safe and non-operational, no benchmark numeric scores, no
+    OpenAI metrics, /lab and the prompt-test-matrix template link
+    to the prompt library, and route contract + sitemap + llms.txt
+    + smoke + indexing advertise all 8 new page routes + 6 new
+    API endpoints.
+
 21. **AI Usage Lab — playbooks + templates + export endpoint (Sprint
     31).** The curriculum extends from Learn → Apply → Verify into
     Learn → Apply → Verify → Test. A new

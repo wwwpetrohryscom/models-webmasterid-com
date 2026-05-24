@@ -181,6 +181,13 @@ export default function DemosHubPage() {
           <Link href="/lab" className="text-primary hover:underline">
             lab playbook
           </Link>{" "}
+          and an{" "}
+          <Link
+            href="/lab/prompts"
+            className="text-primary hover:underline"
+          >
+            evaluation prompt set
+          </Link>{" "}
           before integration.
         </p>
         <ul className="grid gap-2 sm:grid-cols-3">

@@ -253,6 +253,42 @@ const STATIC_ROUTES: StaticRoute[] = [
     changeFrequency: "monthly",
     priority: 0.7,
   },
+  { path: "/lab/prompts", changeFrequency: "monthly", priority: 0.8 },
+  {
+    path: "/lab/prompts/summarization-quality",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/lab/prompts/structured-extraction",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/lab/prompts/long-context-recall",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/lab/prompts/instruction-following",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/lab/prompts/refusal-boundary",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/lab/prompts/automation-robustness",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/lab/evaluation",
+    changeFrequency: "monthly",
+    priority: 0.75,
+  },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

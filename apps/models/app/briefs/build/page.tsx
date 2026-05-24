@@ -195,6 +195,15 @@ export default async function BriefsBuildPage({
             /lab
           </Link>{" "}
           — six testing playbooks + paste-ready Markdown templates.
+          Use{" "}
+          <Link
+            href="/lab/prompts"
+            className="text-primary hover:underline"
+          >
+            /lab/prompts
+          </Link>{" "}
+          to collect external observations before finalising this
+          brief.
         </p>
         <p className="text-xs">
           Confused by what to put in a brief?{" "}
