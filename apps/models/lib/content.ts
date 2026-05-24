@@ -251,6 +251,33 @@ export const contentPages: ContentPage[] = [
     jsonLdType: "TechArticle",
   },
   {
+    slug: "/docs/decision-briefs",
+    title: "Decision briefs",
+    description:
+      "What a decision brief is, how it differs from a recommendation, the verified fields it captures, the data gaps it surfaces, the source trail and freshness notes it carries, and the Markdown / JSON export formats.",
+    section: "data-verification",
+    updatedDate: "2026-05-24",
+    relatedRoutes: [
+      "/briefs/build",
+      "/select",
+      "/compare/build",
+      "/docs/decision-workflow",
+      "/research/source-verification-methodology",
+      "/coverage",
+      "/sources",
+    ],
+    keywords: [
+      "decision brief",
+      "evidence pack",
+      "model selection report",
+      "markdown export",
+      "json export",
+      "no recommendation",
+    ],
+    indexable: true,
+    jsonLdType: "TechArticle",
+  },
+  {
     slug: "/docs/decision-workflow",
     title: "Decision workflow",
     description:

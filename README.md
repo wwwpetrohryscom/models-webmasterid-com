@@ -474,6 +474,34 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+15. **Decision briefs + shareable evidence exports (Sprint 25).** A
+    new [`/briefs/build`](apps/models/app/briefs/build/page.tsx)
+    workspace renders a shareable evidence pack from 2–4 selected
+    models — verified evidence rows, explicit data gaps, the source
+    trail, freshness notes, hosted availability, and a checklist of
+    external tests the reader still needs to run. Same filter shape
+    as `/compare/build` (`?models`, `?useCase`, `?fields`).
+    [`lib/decision-briefs.ts`](apps/models/lib/decision-briefs.ts)
+    exposes `buildDecisionBrief`, `decisionBriefToMarkdown`,
+    `decisionBriefToJson`, `getDecisionBriefDefaults`,
+    `decisionBriefUrl` — an integrity guard refuses any
+    `score|rank|winner|recommend` identifier and requires
+    `siteConfig.buildDate` for the deterministic `generatedAt`. The
+    [`/api/briefs/decision`](apps/models/app/api/briefs/decision/route.ts)
+    endpoint returns the same payload as Markdown by default
+    (`text/markdown; charset=utf-8`) or JSON via `?format=json`,
+    always with `X-Robots-Tag: noindex`.
+    [`/docs/decision-briefs`](apps/models/app/docs/decision-briefs/page.tsx)
+    documents the evidence-vs-recommendation policy, the verified
+    fields, the data-gaps surfacing, the source trail, and the
+    export formats. `/select`, `/compare/build`, every use-case
+    detail page, `/intelligence`, and `/docs/decision-workflow` now
+    deep-link into the brief builder; `/api/site` advertises the
+    builder + export URLs. `ROUTE_SET_VERSION` bumped to
+    `content-v8`. Twelve new integrity guards enforce the
+    no-recommendation policy and re-check the OpenAI
+    no-metrics rule across every Sprint-25 surface.
+
 14. **Comparison builder + decision workflow (Sprint 24).** A new
     [`/compare/build`](apps/models/app/compare/build/page.tsx)
     workspace renders 2–4 selected models side by side from verified

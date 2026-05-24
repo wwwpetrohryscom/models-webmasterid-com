@@ -15,6 +15,7 @@ import {
   type ModelShortlistFilters,
 } from "@/lib/model-shortlists";
 import { comparisonBuilderUrl } from "@/lib/comparison-builder";
+import { decisionBriefUrl } from "@/lib/decision-briefs";
 import { DecisionWorkflow } from "@/components/DecisionWorkflow";
 import { modelUseCases, type ModelUseCaseSlug } from "@/lib/use-cases";
 import {
@@ -379,6 +380,23 @@ export default async function SelectPage({ searchParams }: PageProps) {
           }
           as="h2"
         />
+        {shortlist.length >= 2 ? (
+          <p className="text-xs text-muted-foreground">
+            <Link
+              href={decisionBriefUrl({
+                modelSlugs: shortlist
+                  .slice(0, 4)
+                  .map((e) => e.model.slug),
+                useCase: useCaseFilter ?? undefined,
+              })}
+              className="text-primary hover:underline"
+            >
+              Create evidence brief for top shortlist →
+            </Link>{" "}
+            Briefs preserve evidence and data gaps; they do not
+            choose for you.
+          </p>
+        ) : null}
         {shortlist.length ? (
           <div className="overflow-x-auto rounded-2xl border border-border">
             <table className="w-full text-sm">

@@ -31,6 +31,7 @@ const STATIC_ROUTES: StaticRoute[] = [
   { path: "/select", changeFrequency: "weekly", priority: 0.8 },
   { path: "/use-cases", changeFrequency: "weekly", priority: 0.7 },
   { path: "/compare/build", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/briefs/build", changeFrequency: "weekly", priority: 0.7 },
   {
     path: "/use-cases/long-context-analysis",
     changeFrequency: "weekly",

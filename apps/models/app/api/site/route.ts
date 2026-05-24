@@ -66,6 +66,8 @@ export function GET() {
       intelligenceWorkspace: absolute("/intelligence"),
       intelligenceApi: absolute("/api/intelligence"),
       intelligenceEndpoints: INTELLIGENCE_ENDPOINTS.map(absolute),
+      decisionBriefBuilder: absolute("/briefs/build"),
+      decisionBriefApi: absolute("/api/briefs/decision"),
     },
     {
       status: 200,

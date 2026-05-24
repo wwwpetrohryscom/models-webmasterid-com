@@ -534,6 +534,61 @@ applies the filtered-noindex policy, every entry-point links to
 every Sprint-24 surface, and the OpenAI no-metrics policy is
 re-checked across the new files.
 
+**Sprint 25 — decision briefs + shareable evidence reports.**
+Sprint 25 turns the selection workflow into a shareable artifact.
+[`lib/decision-briefs.ts`](apps/models/lib/decision-briefs.ts)
+constructs a typed `DecisionBrief` from 2–4 selected models:
+`selectedModels`, `verifiedEvidence` (per-model field + value +
+source-ID refs), `dataGaps` (explicit unverified fields with the
+reason they are missing), `sourceTrail` (every primary-source
+citation referenced), `freshnessNotes` (records or citations past
+the fresh window), `hostedAvailability`, a `nextExternalTests`
+checklist, and `policyNotes`. Pure local read; no fetch, no
+`process.env`, no `Date.now` — `generatedAt` comes from
+`siteConfig.buildDate` so the same build produces the same brief.
+
+The brief is rendered at
+[`/briefs/build`](apps/models/app/briefs/build/page.tsx) (server-
+rendered, GET filters identical to `/compare/build`) and exported
+at
+[`/api/briefs/decision`](apps/models/app/api/briefs/decision/route.ts)
+in two formats:
+- `text/markdown; charset=utf-8` (default) — paste-ready table of
+  evidence rows, data gaps, source trail, freshness notes, hosted
+  availability, the external-tests checklist, and the policy
+  notes.
+- `application/json; charset=utf-8` (via `?format=json`) — same
+  payload as a structured object for tooling.
+
+Both responses set `X-Robots-Tag: noindex`. The base
+`/briefs/build` page is indexable; every filtered URL is
+`noindex, follow`.
+
+Flow connections added this sprint:
+- `/select` shortlist header gained a "Create evidence brief for
+  top shortlist" link.
+- `/compare/build` "Next actions" panel gained a "Create decision
+  brief from this comparison" link.
+- Every use-case detail page (via `<UseCaseDetailLayout>`) gained
+  a "Create evidence brief for this use case" link pre-seeded with
+  the use-case shortlist's top 4 candidates.
+- `/intelligence` workspace links list gained a "Decision briefs"
+  card.
+- `/docs/decision-workflow` related-links list gained a
+  "Decision brief builder" entry.
+- [`/docs/decision-briefs`](apps/models/app/docs/decision-briefs/page.tsx)
+  documents the evidence-vs-recommendation policy in long form
+  (joined the content registry so sitemap + llms.txt + /api/site
+  advertise it automatically).
+
+`ROUTE_SET_VERSION` bumps to `content-v8`. `INTELLIGENCE_ENDPOINTS`
+extended with `/api/briefs/decision`. Twelve new integrity guards
+enforce: helper is deterministic + score-free, builder applies
+filtered-noindex, export endpoint sets X-Robots-Tag and reads no
+secret env, every entry-point links to `/briefs/build`, banned
+recommendation language stays out of every Sprint-25 surface, and
+the OpenAI no-metrics policy is re-checked.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,

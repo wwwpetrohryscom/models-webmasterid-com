@@ -70,6 +70,8 @@ const INDEXABLE_PAGES = [
   },
   { path: "/compare/build", expectJsonLd: true, kind: "hub" },
   { path: "/docs/decision-workflow", expectJsonLd: true, kind: "detail" },
+  { path: "/briefs/build", expectJsonLd: true, kind: "hub" },
+  { path: "/docs/decision-briefs", expectJsonLd: true, kind: "detail" },
 ];
 
 const FILTERED_NOINDEX_PAGES = [
@@ -80,6 +82,7 @@ const FILTERED_NOINDEX_PAGES = [
   "/reverification?priority=high",
   "/select?useCase=long-context-analysis",
   "/compare/build?useCase=long-context-analysis",
+  "/briefs/build?useCase=long-context-analysis",
 ];
 
 const MACHINE_ENDPOINTS = [

@@ -33,6 +33,8 @@ const PAGE_ROUTES = [
   "/use-cases/governance-review",
   "/compare/build",
   "/docs/decision-workflow",
+  "/briefs/build",
+  "/docs/decision-briefs",
 ];
 
 const API_ROUTES = [
@@ -49,6 +51,7 @@ const API_ROUTES = [
   "/api/reverification",
   "/api/reverification/checklist?format=json",
   "/api/intelligence",
+  "/api/briefs/decision?format=json",
 ];
 
 const FETCH_TIMEOUT_MS = 8_000;

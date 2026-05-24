@@ -13,6 +13,7 @@ import {
 } from "@/lib/source-freshness";
 import { getUseCaseShortlist } from "@/lib/model-shortlists";
 import { comparisonBuilderUrl } from "@/lib/comparison-builder";
+import { decisionBriefUrl } from "@/lib/decision-briefs";
 import type { ModelUseCase } from "@/lib/use-cases";
 import { isVerified } from "@/lib/verified";
 
@@ -118,21 +119,38 @@ export function UseCaseDetailLayout({
           as="h2"
         />
         {shortlist.length >= 2 ? (
-          <p className="text-xs text-muted-foreground">
-            <Link
-              href={comparisonBuilderUrl({
-                modelSlugs: shortlist
-                  .slice(0, 4)
-                  .map((e) => e.model.slug),
-                useCase: useCase.slug,
-              })}
-              className="text-primary hover:underline"
-            >
-              Open comparison builder for this use case →
-            </Link>{" "}
-            Pre-seeded with the top 4 shortlist candidates; these are
-            candidates, not picks.
-          </p>
+          <div className="space-y-1 text-xs text-muted-foreground">
+            <p>
+              <Link
+                href={comparisonBuilderUrl({
+                  modelSlugs: shortlist
+                    .slice(0, 4)
+                    .map((e) => e.model.slug),
+                  useCase: useCase.slug,
+                })}
+                className="text-primary hover:underline"
+              >
+                Open comparison builder for this use case →
+              </Link>{" "}
+              Pre-seeded with the top 4 shortlist candidates; these are
+              candidates, not picks.
+            </p>
+            <p>
+              <Link
+                href={decisionBriefUrl({
+                  modelSlugs: shortlist
+                    .slice(0, 4)
+                    .map((e) => e.model.slug),
+                  useCase: useCase.slug,
+                })}
+                className="text-primary hover:underline"
+              >
+                Create evidence brief for this use case →
+              </Link>{" "}
+              Markdown or JSON export of the same selection — evidence,
+              not a recommendation.
+            </p>
+          </div>
         ) : null}
         {shortlist.length ? (
           <div className="overflow-x-auto rounded-2xl border border-border">

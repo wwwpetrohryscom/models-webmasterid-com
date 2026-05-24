@@ -4915,6 +4915,383 @@ const checks: Check[] = [
       return failures.length ? failures.join("\n") : null;
     },
   },
+  // ---------------------------------------------------------------------
+  // Sprint 25 — decision briefs + shareable evidence exports.
+  // ---------------------------------------------------------------------
+  {
+    name: "lib/decision-briefs.ts exists with required exports (Sprint 25)",
+    run: () => {
+      const rel = "apps/models/lib/decision-briefs.ts";
+      if (!fileExists(rel)) {
+        return "Missing lib/decision-briefs.ts (Sprint 25).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const token of [
+        "buildDecisionBrief",
+        "decisionBriefToMarkdown",
+        "decisionBriefToJson",
+        "getDecisionBriefDefaults",
+        "decisionBriefUrl",
+        "DecisionBrief",
+        "DecisionBriefInput",
+        "DECISION_BRIEF_MAX_MODELS",
+      ]) {
+        if (!new RegExp(`\\b${token}\\b`).test(src)) {
+          failures.push(
+            `lib/decision-briefs.ts must export \`${token}\`.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lib/decision-briefs.ts is deterministic + score-free (Sprint 25)",
+    run: () => {
+      const src = readRel("apps/models/lib/decision-briefs.ts");
+      // Strip comments AND string literals before scanning for
+      // banned identifiers. Disclaimer text ("does not declare a
+      // winner", "does not rank by price") lives in string
+      // constants and is allowed; the rule only forbids identifier-
+      // shaped usage.
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1")
+        .replace(/"(?:\\.|[^"\\])*"/g, "")
+        .replace(/'(?:\\.|[^'\\])*'/g, "")
+        .replace(/`(?:\\.|[^`\\])*`/g, "");
+      const failures: string[] = [];
+      if (/\bfetch\s*\(/.test(stripped)) {
+        failures.push("lib/decision-briefs.ts must not call fetch().");
+      }
+      if (/\bprocess\.env\b/.test(stripped)) {
+        failures.push(
+          "lib/decision-briefs.ts must not read process.env."
+        );
+      }
+      if (/\bDate\.now\s*\(/.test(stripped)) {
+        failures.push(
+          "lib/decision-briefs.ts must not call Date.now() — generatedAt must come from siteConfig.buildDate."
+        );
+      }
+      // No scoring / ranking / recommendation identifiers.
+      const bannedIdent =
+        /\b(score|rank|ranking|rankBy|ranked|weightedScore|fitnessScore|winner|recommend|recommended)\b/i;
+      if (bannedIdent.test(stripped)) {
+        failures.push(
+          "lib/decision-briefs.ts must not contain score/rank/winner/recommend identifiers."
+        );
+      }
+      if (!/siteConfig\.buildDate/.test(src)) {
+        failures.push(
+          "lib/decision-briefs.ts must read siteConfig.buildDate for generatedAt."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/briefs/build page exists with filtered-noindex policy (Sprint 25)",
+    run: () => {
+      const rel = "apps/models/app/briefs/build/page.tsx";
+      if (!fileExists(rel)) {
+        return "Missing /briefs/build page (Sprint 25).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      if (!/Decision Brief Builder/i.test(src)) {
+        failures.push(
+          "/briefs/build must render the 'Decision Brief Builder' title."
+        );
+      }
+      if (!/buildDecisionBrief/.test(src)) {
+        failures.push(
+          "/briefs/build must call buildDecisionBrief()."
+        );
+      }
+      if (!/isFilteredRoute/.test(src) || !/robotsMetadata/.test(src)) {
+        failures.push(
+          "/briefs/build must apply the filtered-noindex policy via isFilteredRoute + robotsMetadata."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/api/briefs/decision endpoint exists + noindex + secrets-free (Sprint 25)",
+    run: () => {
+      const rel = "apps/models/app/api/briefs/decision/route.ts";
+      if (!fileExists(rel)) {
+        return "Missing /api/briefs/decision endpoint (Sprint 25).";
+      }
+      const src = readRel(rel);
+      const failures: string[] = [];
+      if (!/buildDecisionBrief/.test(src)) {
+        failures.push(
+          "/api/briefs/decision must call buildDecisionBrief()."
+        );
+      }
+      if (!/text\/markdown/.test(src)) {
+        failures.push(
+          "/api/briefs/decision must default to text/markdown output."
+        );
+      }
+      if (!/X-Robots-Tag/.test(src)) {
+        failures.push(
+          "/api/briefs/decision must set X-Robots-Tag: noindex on every response."
+        );
+      }
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      if (/\bfetch\s*\(/.test(stripped)) {
+        failures.push("/api/briefs/decision must not call fetch().");
+      }
+      const bannedEnv =
+        /process\.env\.(?:CRON_SECRET|KV_REST_API_TOKEN|VERCEL_OIDC_TOKEN|REDIS|SUPABASE|OPENAI|ANTHROPIC|GROQ|TOGETHER|GOOGLE|MISTRAL|DEEPSEEK)[A-Z_0-9]*\b/;
+      if (bannedEnv.test(stripped)) {
+        failures.push(
+          "/api/briefs/decision must not reference any secret env var."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/docs/decision-briefs page exists (Sprint 25)",
+    run: () => {
+      const rel = "apps/models/app/docs/decision-briefs/page.tsx";
+      if (!fileExists(rel)) {
+        return "Missing /docs/decision-briefs (Sprint 25).";
+      }
+      const src = readRel(rel);
+      const inlineTitle = /Decision briefs/i.test(src);
+      const usesRegistry = /getContentPage\(/.test(src);
+      const referencesSlug = /"\/docs\/decision-briefs"/.test(src);
+      const content = readRel("apps/models/lib/content.ts");
+      const registryTitle =
+        /"\/docs\/decision-briefs"[\s\S]*?title:\s*"Decision briefs"/i.test(
+          content
+        );
+      if (
+        !inlineTitle &&
+        !(usesRegistry && referencesSlug && registryTitle)
+      ) {
+        return "/docs/decision-briefs must render the 'Decision briefs' title.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/select + /compare/build + use-case pages + /intelligence link to /briefs/build (Sprint 25)",
+    run: () => {
+      const failures: string[] = [];
+      const select = readRel("apps/models/app/select/page.tsx");
+      if (!/decisionBriefUrl|\/briefs\/build/.test(select)) {
+        failures.push("/select must link to /briefs/build.");
+      }
+      const compareBuild = readRel(
+        "apps/models/app/compare/build/page.tsx"
+      );
+      if (!/decisionBriefUrl|\/briefs\/build/.test(compareBuild)) {
+        failures.push("/compare/build must link to /briefs/build.");
+      }
+      const useCaseLayout = readRel(
+        "apps/models/components/UseCaseDetailLayout.tsx"
+      );
+      if (!/decisionBriefUrl|\/briefs\/build/.test(useCaseLayout)) {
+        failures.push(
+          "components/UseCaseDetailLayout.tsx must link to /briefs/build."
+        );
+      }
+      const intel = readRel(
+        "apps/models/lib/intelligence-summary.ts"
+      );
+      if (!/"\/briefs\/build"/.test(intel)) {
+        failures.push(
+          "lib/intelligence-summary.ts must include a workspace link to /briefs/build."
+        );
+      }
+      const workflowDocs = readRel(
+        "apps/models/app/docs/decision-workflow/page.tsx"
+      );
+      if (!/\/briefs\/build/.test(workflowDocs)) {
+        failures.push(
+          "/docs/decision-workflow must reference /briefs/build."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract advertises Sprint 25 routes",
+    run: () => {
+      const src = readRel("apps/models/lib/route-contract.ts");
+      const failures: string[] = [];
+      // Sprint 25 introduced content-v8. Later sprints may bump.
+      const versionMatch = src.match(
+        /ROUTE_SET_VERSION\s*=\s*"content-v(\d+)"/
+      );
+      if (!versionMatch || Number(versionMatch[1]) < 8) {
+        failures.push(
+          "ROUTE_SET_VERSION must be \"content-v8\" or later (Sprint 25 introduced content-v8)."
+        );
+      }
+      if (!/"\/briefs\/build"/.test(src)) {
+        failures.push(
+          "lib/route-contract.ts REQUIRED_PAGE_ROUTES must include /briefs/build."
+        );
+      }
+      if (!/"\/api\/briefs\/decision"/.test(src)) {
+        failures.push(
+          "lib/route-contract.ts REQUIRED_API_ROUTES + INTELLIGENCE_ENDPOINTS must include /api/briefs/decision."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "sitemap + llms.txt advertise Sprint 25 brief surfaces",
+    run: () => {
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const content = readRel("apps/models/lib/content.ts");
+      const failures: string[] = [];
+      if (!/"\/briefs\/build"/.test(sitemap)) {
+        failures.push("sitemap must include /briefs/build.");
+      }
+      if (!/"\/briefs\/build"/.test(llms)) {
+        failures.push("llms.txt must list /briefs/build.");
+      }
+      if (!/"\/docs\/decision-briefs"/.test(content)) {
+        failures.push(
+          "lib/content.ts must register /docs/decision-briefs so sitemap + llms.txt + /api/site advertise it."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/api/site advertises brief builder + export endpoints (Sprint 25)",
+    run: () => {
+      const src = readRel("apps/models/app/api/site/route.ts");
+      const failures: string[] = [];
+      for (const t of ["decisionBriefBuilder", "decisionBriefApi"]) {
+        if (!new RegExp(`\\b${t}\\b`).test(src)) {
+          failures.push(`/api/site response must include \`${t}\`.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "smoke + indexing scripts include Sprint 25 routes",
+    run: () => {
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+      for (const path of [
+        '"/briefs/build"',
+        '"/docs/decision-briefs"',
+      ]) {
+        if (!smoke.includes(path)) {
+          failures.push(
+            `scripts/lib/smoke.mjs must include ${path} in PAGE_ROUTES.`
+          );
+        }
+      }
+      if (!/"\/api\/briefs\/decision\?format=json"/.test(smoke)) {
+        failures.push(
+          "scripts/lib/smoke.mjs must include /api/briefs/decision?format=json in API_ROUTES."
+        );
+      }
+      if (!/"\/briefs\/build"/.test(indexing)) {
+        failures.push(
+          "scripts/indexing-qa.mjs must include /briefs/build as an indexable page."
+        );
+      }
+      if (!/"\/docs\/decision-briefs"/.test(indexing)) {
+        failures.push(
+          "scripts/indexing-qa.mjs must include /docs/decision-briefs as a detail page."
+        );
+      }
+      if (!/"\/briefs\/build\?useCase=long-context-analysis"/.test(indexing)) {
+        failures.push(
+          "scripts/indexing-qa.mjs must spot-check one filtered /briefs/build URL for the noindex policy."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no recommendation language on Sprint 25 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/app/briefs/build/page.tsx",
+        "apps/models/app/api/briefs/decision/route.ts",
+        "apps/models/app/docs/decision-briefs/page.tsx",
+        "apps/models/lib/decision-briefs.ts",
+      ];
+      const banned: { pattern: RegExp; label: string }[] = [
+        { pattern: /\bbest model\b/i, label: "best model" },
+        { pattern: /\bwe recommend\b/i, label: "we recommend" },
+        { pattern: /\brecommended model\b/i, label: "recommended model" },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\bcheapest\s+(?:model|provider|platform|inference)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:model|provider|inference)\b/i,
+          label: "fastest <noun>",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned recommendation phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric appears on Sprint 25 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/app/briefs/build/page.tsx",
+        "apps/models/app/api/briefs/decision/route.ts",
+        "apps/models/app/docs/decision-briefs/page.tsx",
+        "apps/models/lib/decision-briefs.ts",
+      ];
+      const banned =
+        /"[^"]*\bgpt-5\b[^"]*"[\s\S]{0,200}?\b\d{4,}\b/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} mentions GPT-5 alongside a numeric literal — no OpenAI metrics are verified yet.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
   {
     name: "WebmasterID tracker is loaded once, not duplicated",
     run: () => {

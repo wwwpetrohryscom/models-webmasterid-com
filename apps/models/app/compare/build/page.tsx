@@ -9,6 +9,7 @@ import { DecisionWorkflow } from "@/components/DecisionWorkflow";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { isFilteredRoute, robotsMetadata } from "@/lib/should-index";
 import { siteConfig } from "@/lib/site-config";
+import { decisionBriefUrl } from "@/lib/decision-briefs";
 import {
   buildModelComparison,
   comparisonBuilderUrl,
@@ -866,6 +867,24 @@ export default async function CompareBuilderPage({
             </Link>{" "}
             for why WebmasterID Models never picks a model for you.
           </li>
+          {hasColumns ? (
+            <li>
+              <Link
+                href={decisionBriefUrl({
+                  modelSlugs: result.columns
+                    .filter((c) => c.model !== null)
+                    .map((c) => c.slug),
+                  useCase: useCaseFilter ?? undefined,
+                  fields: undefined,
+                })}
+                className="text-primary hover:underline"
+              >
+                Create decision brief from this comparison →
+              </Link>{" "}
+              Exports the same selection as a shareable evidence pack
+              (Markdown or JSON).
+            </li>
+          ) : null}
         </ul>
         <p className="mt-3 text-[11px]">
           The builder is a workspace, not a recommendation engine.

@@ -110,6 +110,7 @@ export function GET() {
       label: "Use case — governance review",
       path: "/use-cases/governance-review",
     },
+    { label: "Decision brief builder", path: "/briefs/build" },
     { label: "Docs", path: "/docs" },
   ]) {
     buf.push(line(`- [${item.label}](${siteConfig.url}${item.path})`));

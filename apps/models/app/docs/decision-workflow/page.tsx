@@ -50,6 +50,11 @@ export default function DecisionWorkflowDocsPage() {
           description: "2–4 models side by side from verified fields.",
         },
         {
+          href: "/briefs/build",
+          label: "Decision brief builder",
+          description: "Export a source-backed evidence pack (Markdown or JSON).",
+        },
+        {
           href: "/docs/comparison-methodology",
           label: "Comparison methodology",
           description: "How curated comparison pages render verified fields.",

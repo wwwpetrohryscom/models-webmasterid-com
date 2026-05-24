@@ -314,6 +314,12 @@ export interface WorkspaceLink {
 export function getWorkspaceLinks(): WorkspaceLink[] {
   return [
     {
+      label: "Decision briefs",
+      href: "/briefs/build",
+      description:
+        "Export source-backed evidence packs from selected models. Markdown or JSON.",
+    },
+    {
       label: "Model catalogue",
       href: "/models",
       description:
