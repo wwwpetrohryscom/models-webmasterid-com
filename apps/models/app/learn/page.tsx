@@ -236,6 +236,49 @@ export default function LearnHubPage() {
 
       <aside
         role="note"
+        aria-label="Choose by audience"
+        className="card-surface space-y-2 p-5 text-sm text-muted-foreground"
+      >
+        <p className="font-medium text-foreground">
+          Not sure where to start? Choose an audience path.
+        </p>
+        <p>
+          The <Link href="/for" className="text-primary hover:underline">/for</Link>{" "}
+          hub sequences the right lessons, lab playbook, demo, and
+          workspaces for{" "}
+          <Link
+            href="/for/developers"
+            className="text-primary hover:underline"
+          >
+            developers
+          </Link>
+          ,{" "}
+          <Link
+            href="/for/product-teams"
+            className="text-primary hover:underline"
+          >
+            product teams
+          </Link>
+          ,{" "}
+          <Link
+            href="/for/automation-specialists"
+            className="text-primary hover:underline"
+          >
+            automation specialists
+          </Link>
+          , and{" "}
+          <Link
+            href="/for/governance-teams"
+            className="text-primary hover:underline"
+          >
+            governance teams
+          </Link>
+          .
+        </p>
+      </aside>
+
+      <aside
+        role="note"
         aria-label="Learning policy"
         className="card-surface space-y-2 p-5 text-sm text-muted-foreground"
       >

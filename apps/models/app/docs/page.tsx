@@ -70,7 +70,15 @@ export default function DocsHubPage() {
           <Link href="/learn" className="text-primary hover:underline">
             /learn
           </Link>{" "}
-          teaches the same fields without the data-model framing.
+          teaches the same fields without the data-model framing. New
+          here? Start at{" "}
+          <Link
+            href="/docs/platform-positioning"
+            className="text-primary hover:underline"
+          >
+            /docs/platform-positioning
+          </Link>
+          .
         </p>
       </aside>
 

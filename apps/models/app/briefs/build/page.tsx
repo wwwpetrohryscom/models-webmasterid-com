@@ -163,6 +163,21 @@ export default async function BriefsBuildPage({
 
       <aside
         role="note"
+        aria-label="Need a clearer path first?"
+        className="card-surface space-y-1 p-5 text-sm text-muted-foreground"
+      >
+        <p className="font-medium text-foreground">
+          Need a clearer path first?
+        </p>
+        <p>
+          Open the <Link href="/for" className="text-primary hover:underline">audience hub</Link>{" "}
+          to pick the role-specific path, lab playbook, and demo
+          before generating a brief.
+        </p>
+      </aside>
+
+      <aside
+        role="note"
         aria-label="Brief policy"
         className="card-surface space-y-2 p-4 text-sm text-muted-foreground"
       >

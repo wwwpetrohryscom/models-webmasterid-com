@@ -130,6 +130,23 @@ export default function LabHubPage() {
         </ul>
       </section>
 
+      <aside
+        role="note"
+        aria-label="Use the lab with a role path"
+        className="card-surface space-y-1 p-5 text-sm text-muted-foreground"
+      >
+        <p className="font-medium text-foreground">
+          Use the lab with a role path.
+        </p>
+        <p>
+          The <Link href="/for" className="text-primary hover:underline">/for</Link>{" "}
+          hub matches each audience to the right playbook + template +
+          prompt set. Developers, product teams, automation
+          specialists, and governance teams each get a sequenced
+          entry.
+        </p>
+      </aside>
+
       <LabWorkflowStrip />
 
       <section aria-label="Playbooks" className="space-y-3">

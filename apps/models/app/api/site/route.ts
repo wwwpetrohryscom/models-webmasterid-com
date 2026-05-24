@@ -85,6 +85,14 @@ export function GET() {
         absolute("/api/lab/prompts/refusal-boundary"),
         absolute("/api/lab/prompts/automation-robustness"),
       ],
+      audienceHub: absolute("/for"),
+      audiences: [
+        absolute("/for/developers"),
+        absolute("/for/product-teams"),
+        absolute("/for/automation-specialists"),
+        absolute("/for/governance-teams"),
+      ],
+      platformPositioning: absolute("/docs/platform-positioning"),
     },
     {
       status: 200,

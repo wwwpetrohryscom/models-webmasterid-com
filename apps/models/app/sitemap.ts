@@ -289,6 +289,32 @@ const STATIC_ROUTES: StaticRoute[] = [
     changeFrequency: "monthly",
     priority: 0.75,
   },
+  { path: "/for", changeFrequency: "monthly", priority: 0.9 },
+  {
+    path: "/for/developers",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
+  {
+    path: "/for/product-teams",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
+  {
+    path: "/for/automation-specialists",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
+  {
+    path: "/for/governance-teams",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
+  {
+    path: "/docs/platform-positioning",
+    changeFrequency: "monthly",
+    priority: 0.8,
+  },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

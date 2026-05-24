@@ -245,6 +245,24 @@ const INDEXABLE_PAGES = [
     kind: "detail",
   },
   { path: "/lab/evaluation", expectJsonLd: true, kind: "detail" },
+  { path: "/for", expectJsonLd: true, kind: "hub" },
+  { path: "/for/developers", expectJsonLd: true, kind: "detail" },
+  { path: "/for/product-teams", expectJsonLd: true, kind: "detail" },
+  {
+    path: "/for/automation-specialists",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/for/governance-teams",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/docs/platform-positioning",
+    expectJsonLd: true,
+    kind: "detail",
+  },
 ];
 
 const FILTERED_NOINDEX_PAGES = [

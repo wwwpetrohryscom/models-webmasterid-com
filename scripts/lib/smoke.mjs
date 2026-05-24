@@ -86,6 +86,12 @@ const PAGE_ROUTES = [
   "/lab/prompts/refusal-boundary",
   "/lab/prompts/automation-robustness",
   "/lab/evaluation",
+  "/for",
+  "/for/developers",
+  "/for/product-teams",
+  "/for/automation-specialists",
+  "/for/governance-teams",
+  "/docs/platform-positioning",
 ];
 
 const API_ROUTES = [

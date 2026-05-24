@@ -1392,6 +1392,171 @@ Twelve new integrity guards enforce:
     contract + sitemap + llms.txt + smoke + indexing
     advertise all 8 page routes + 6 API endpoints.
 
+**Sprint 33 — learning product landing + audience
+conversion architecture.** Sprint 33 turns the platform
+into a self-serving landing product. A cold visitor can
+self-select into the right path inside 30 seconds via
+the new audience entry points; the homepage spells out
+the Learn → Apply → Verify → Test loop, the artifacts
+each surface produces, and an explicit "Not another AI
+ranking site" differentiation.
+
+[`lib/audiences.ts`](apps/models/lib/audiences.ts) is
+the single source of truth for audience entry points.
+The registry exports `audiences`, `getAudience`,
+`getAudiences`, and `getAudienceRoutes`.
+
+Four audiences ship:
+
+- `developers` — engineers preparing an integration.
+- `product-teams` — product managers / technical
+  buyers turning a use case into a defensible decision.
+- `automation-specialists` — automation builders, SEO
+  operators, technical consultants using AI models
+  inside workflows.
+- `governance-teams` — risk / compliance / governance
+  reviewers preparing internal approval discussions.
+
+Each `AudiencePage` carries `title`, `headline`,
+`summary`, `whoThisIsFor`, `commonProblems`,
+`whatYouCanDo` (typed capability cards),
+`artifactsYouCanProduce`, `suggestedPath`,
+`suggestedLab`, `guidedDemo`, `evidenceRoutes`, and a
+mandatory `doesNotPromise` list. The audience pages
+share lessons, exercises, lab playbooks, and
+workspaces — only the starting order changes.
+
+Five new server-rendered components in
+`apps/models/components/audience/`:
+
+- `AudienceCard` — summary card with artifact chips.
+- `AudienceHero` — positioning callout block on
+  audience detail pages.
+- `AudienceArtifactList` — chip list of paste-ready
+  artifacts the audience produces.
+- `AudienceWorkflow` — five-step Learn / Apply / Test /
+  Brief / Verify strip per audience.
+- `AudienceDoesNotPromise` — explicit "what this page
+  does not promise" callout.
+
+[`/for`](apps/models/app/for/page.tsx) hub lists the
+four audiences with `CollectionPage` JSON-LD that
+enumerates each as `WebPage`.
+
+[`/for/[slug]`](apps/models/app/for/%5Bslug%5D/page.tsx)
+dynamic route prerenders the four audience detail
+pages via `generateStaticParams()`. Each detail page
+renders the audience hero, who-this-is-for,
+common-problems, what-you-can-do capability grid,
+artifact list, suggested workflow, "what this page
+does not promise" callout, and a related-routes aside.
+JSON-LD: `TechArticle` + `BreadcrumbList`.
+
+[`/docs/platform-positioning`](apps/models/app/docs/platform-positioning/page.tsx)
+is the long-form positioning reference. The page
+covers what the platform is, what it is not, the
+Learn → Apply → Verify → Test loop, audience paths,
+evidence artifacts, the verified-data backbone, the
+no-rankings / no-recommendations / no-guarantees
+policy, and a numbered "how to use this platform
+responsibly" workflow. Uses `PageShell` directly
+(not the content-registry shell, since it is a bespoke
+positioning page rather than a registry-managed doc).
+
+The homepage is restructured:
+
+- Hero CTAs lead with "Choose your learning path" →
+  `/for`. Secondary CTAs: "Start beginner path", "Try
+  guided demo", "Open AI Usage Lab", "How it works".
+- New four-card "Learn → Apply → Verify → Test" core
+  loop section sits directly below the Hero.
+- New audience picker uses `AudienceCard`.
+- New "What you can produce here" section surfaces six
+  concrete artifacts (shortlist URL, comparison URL,
+  decision brief, model evaluation plan, prompt test
+  matrix, source freshness checklist).
+- New "Not another AI ranking site" differentiation
+  section explicitly states what the platform is and
+  is not.
+- Existing data sections (coverage, providers, verified
+  preview, recently verified, dashboard, useful
+  content, trust, explanatory) preserved.
+
+Primary nav reshaped: **Learn · Lab · Demos · Select ·
+Compare · Briefs · Models · Sources**. The footer
+gains a dedicated `For` column (audience hub + 4
+audience pages + platform positioning); the grid
+expands from 5 to 6 columns on large viewports.
+
+Conversion CTAs added across the product:
+
+- `/learn` — "Not sure where to start? Choose an
+  audience path." callout linking `/for`.
+- `/lab` — "Use the lab with a role path." callout.
+- `/demos` — "Pick the demo that matches your role."
+  callout.
+- `/briefs/build` — "Need a clearer path first?"
+  callout.
+- `/how-it-works` — "Choose your role." callout.
+- `/docs` — positioning-doc shortcut inline.
+
+`/api/site` exposes `audienceHub`, `audiences[]`, and
+`platformPositioning`.
+
+`ROUTE_SET_VERSION` bumps to `content-v15`. Fourteen
+new integrity guards enforce:
+
+1. `lib/audiences.ts` exists with all 4 required
+   exports.
+2. All 4 audience slugs registered.
+3. The 5 audience components exist.
+4. `/for` hub + dynamic detail +
+   `/docs/platform-positioning` exist.
+5. Homepage links to `/for` + `/learn/path/beginner` +
+   `/demos` + `/lab`.
+6. Homepage surfaces the
+   `Learn → Apply → Verify → Test` framing literally.
+7. Homepage contains "Not another AI ranking site" or
+   the "Not a model leaderboard" equivalent.
+8. Footer links to all 4 audience pages + the
+   positioning doc.
+9. `/learn`, `/lab`, `/demos`, `/briefs/build`, and
+   `/how-it-works` each link to `/for`.
+10. No banned landing-page phrasing on any Sprint 33
+    surface (`is the best <noun>`, `is the winner`,
+    `cheapest <noun>`, `fastest <noun>`,
+    `guaranteed to <verb>`, `certified for/compliant/by`,
+    `official partner`, `is production ready`,
+    `compliance approved`, `increase (seo) traffic`,
+    `rank #1`).
+11. The `automation-specialists` slice of the registry
+    contains no SEO ranking guarantee phrasing.
+12. The `governance-teams` slice of the registry
+    contains no compliance certification phrasing.
+13. No OpenAI numeric metric appears on any Sprint 33
+    surface.
+14. Route contract + sitemap + llms.txt + smoke +
+    indexing advertise all 6 new routes.
+
+Two legacy guards updated:
+
+- Sprint 26 Hero guard now accepts
+  `Choose your learning path` (Sprint 33 phrasing)
+  alongside the previous `Choose your path`.
+- Sprint 16 ContentPageShell guard now exempts
+  `/docs/platform-positioning` — it is a bespoke
+  positioning page driven by `PageShell` directly,
+  not by the `lib/content.ts` registry.
+
+**Audience policy.** The platform never declares a
+winner, ranks models, certifies compliance, guarantees
+SEO outcomes, or asserts production readiness — the
+`AudienceDoesNotPromise` callout on every audience
+page spells this out per audience, and dedicated
+integrity guards scan the `automation-specialists` and
+`governance-teams` slices specifically for the most
+likely overclaiming language.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,

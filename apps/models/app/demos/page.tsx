@@ -56,6 +56,22 @@ export default function DemosHubPage() {
 
       <aside
         role="note"
+        aria-label="Pick the demo that matches your role"
+        className="card-surface space-y-1 p-5 text-sm text-muted-foreground"
+      >
+        <p className="font-medium text-foreground">
+          Pick the demo that matches your role.
+        </p>
+        <p>
+          The <Link href="/for" className="text-primary hover:underline">/for</Link>{" "}
+          hub recommends a specific demo per audience — developers,
+          product teams, automation specialists, governance teams —
+          alongside the matching learning path and lab playbook.
+        </p>
+      </aside>
+
+      <aside
+        role="note"
         aria-label="Demo policy"
         className="card-surface space-y-2 p-4 text-sm text-muted-foreground"
       >

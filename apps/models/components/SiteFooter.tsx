@@ -5,6 +5,23 @@ import { siteConfig } from "@/lib/site-config";
 const sections: { label: string; links: { label: string; href: string }[] }[] =
   [
     {
+      label: "For",
+      links: [
+        { label: "Audience hub", href: "/for" },
+        { label: "Developers", href: "/for/developers" },
+        { label: "Product teams", href: "/for/product-teams" },
+        {
+          label: "Automation specialists",
+          href: "/for/automation-specialists",
+        },
+        { label: "Governance teams", href: "/for/governance-teams" },
+        {
+          label: "Platform positioning",
+          href: "/docs/platform-positioning",
+        },
+      ],
+    },
+    {
       label: "Learn",
       links: [
         { label: "Learn hub", href: "/learn" },
@@ -88,7 +105,7 @@ const sections: { label: string; links: { label: string; href: string }[] }[] =
 export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-border bg-card/40">
-      <div className="container-page grid gap-10 py-12 md:grid-cols-5">
+      <div className="container-page grid gap-10 py-12 md:grid-cols-3 lg:grid-cols-6">
         <div className="md:col-span-1">
           <Logo variant="full" size={28} showDescriptor />
           <p className="mt-3 max-w-xs text-sm text-muted-foreground">

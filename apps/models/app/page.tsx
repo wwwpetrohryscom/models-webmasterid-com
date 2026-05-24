@@ -11,7 +11,9 @@ import { JsonLd } from "@/components/JsonLd";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { VerifiedField } from "@/components/VerifiedField";
 import { ContentStatCard } from "@/components/content/ContentStatCard";
+import { AudienceCard } from "@/components/audience/AudienceCard";
 import { siteConfig } from "@/lib/site-config";
+import { getAudiences } from "@/lib/audiences";
 import {
   buildMetadata,
   organizationJsonLd,
@@ -57,6 +59,7 @@ const trustItems = [
 ];
 
 export default function HomePage() {
+  const audiences = getAudiences();
   return (
     <>
       <JsonLd
@@ -64,6 +67,219 @@ export default function HomePage() {
       />
 
       <Hero />
+
+      {/* Core loop — Learn → Apply → Verify → Test */}
+      <section
+        aria-label="Learn, apply, verify, test"
+        className="container-page mt-10"
+      >
+        <SectionHeader
+          eyebrow="The core loop"
+          title="Learn → Apply → Verify → Test"
+          description="Four stages, all built on a verified-data backbone. Concept lessons explain each field; workflow workspaces produce the artifacts; sources anchor every claim; the AI Usage Lab teaches workload-specific testing before integration."
+        />
+        <ul className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            {
+              eyebrow: "Learn",
+              title: "Learn concepts",
+              body: "10 lessons on context, pricing references, hosted vs first-party, lifecycle, status, structured output, benchmark limits.",
+              cta: { label: "Open /learn", href: "/learn" },
+            },
+            {
+              eyebrow: "Apply",
+              title: "Apply workflows",
+              body: "Selection workspace, comparison builder, decision brief builder — each route produces a paste-ready artifact.",
+              cta: { label: "Open /select", href: "/select" },
+            },
+            {
+              eyebrow: "Verify",
+              title: "Verify evidence",
+              body: "Every claim links to a primary-source citation with a retrievedAt date. The reverification queue surfaces what is due for re-check.",
+              cta: { label: "Open /sources", href: "/sources" },
+            },
+            {
+              eyebrow: "Test",
+              title: "Test behaviour",
+              body: "AI Usage Lab — 6 playbooks, 3 templates, 6 evaluation prompt sets. Markdown exports with X-Robots-Tag: noindex.",
+              cta: { label: "Open /lab", href: "/lab" },
+            },
+          ].map((card) => (
+            <li key={card.title}>
+              <Link
+                href={card.cta.href}
+                className="card-surface block h-full space-y-2 p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                  {card.eyebrow}
+                </p>
+                <p className="text-base font-semibold text-foreground">
+                  {card.title}
+                </p>
+                <p className="text-sm text-muted-foreground">{card.body}</p>
+                <p className="text-xs font-medium text-primary">
+                  {card.cta.label} →
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* Choose your path — audience picker */}
+      <section
+        aria-label="Choose the path that matches your work"
+        className="container-page mt-12"
+      >
+        <SectionHeader
+          eyebrow="For"
+          title="Choose the path that matches your work"
+          description="Four audience entry points. Each opens a sequenced learning path, a matching lab playbook or template, a guided demo, and the workspaces that produce a paste-ready evidence brief."
+          cta={{ label: "All audiences", href: "/for" }}
+        />
+        <ul className="mt-6 grid gap-3 md:grid-cols-2">
+          {audiences.map((a) => (
+            <li key={a.slug}>
+              <AudienceCard audience={a} />
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* What you can produce here */}
+      <section
+        aria-label="What you can produce here"
+        className="container-page mt-12"
+      >
+        <SectionHeader
+          eyebrow="Evidence artifacts"
+          title="What you can produce here"
+          description="Every workspace ends with a concrete artifact — a URL, a Markdown export, or a structured checklist. No generated scores, no model rankings."
+        />
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            {
+              href: "/select",
+              title: "Model shortlist",
+              detail:
+                "A /select URL that opens the same source-backed shortlist for any teammate.",
+            },
+            {
+              href: "/compare/build",
+              title: "Side-by-side comparison",
+              detail:
+                "A /compare/build URL with up to four candidate models rendered against verified fields.",
+            },
+            {
+              href: "/briefs/build",
+              title: "Decision evidence brief",
+              detail:
+                "Markdown brief listing verified fields, data gaps, source trail, freshness, and hosted availability.",
+            },
+            {
+              href: "/lab/templates/model-evaluation-plan",
+              title: "Model evaluation plan",
+              detail:
+                "Paste-ready Markdown plan covering scope, test plan, observations, and decision sections.",
+            },
+            {
+              href: "/lab/templates/prompt-test-matrix",
+              title: "Prompt test matrix",
+              detail:
+                "Row-per-prompt scaffold for capturing per-candidate observations without collapsing to a score.",
+            },
+            {
+              href: "/reverification",
+              title: "Source freshness checklist",
+              detail:
+                "JSON or Markdown checklist of citations due for re-check, scoped per provider.",
+            },
+          ].map((card) => (
+            <li key={card.href}>
+              <Link
+                href={card.href}
+                className="card-surface block h-full p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-sm font-semibold text-foreground">
+                  {card.title}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {card.detail}
+                </p>
+                <p className="mt-2 text-[10px] text-muted-foreground">
+                  Open the surface that produces this artifact →
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* Differentiation — not another AI ranking site */}
+      <section
+        aria-label="Not another AI ranking site"
+        className="container-page mt-12"
+      >
+        <SectionHeader
+          eyebrow="Differentiation"
+          title="Not another AI ranking site"
+          description="This is a learning + evidence platform — not a leaderboard, not a news feed, not a prompt marketplace, not a live quote engine, not a certification authority."
+        />
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <article className="card-surface space-y-2 p-5 text-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              This platform is
+            </p>
+            <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+              <li>
+                <strong className="text-foreground">Learning-led</strong> —
+                a curriculum that teaches how AI model fields behave,
+                not a leaderboard.
+              </li>
+              <li>
+                <strong className="text-foreground">Source-backed</strong>{" "}
+                — every claim links to a primary-source citation with a
+                retrievedAt date.
+              </li>
+              <li>
+                <strong className="text-foreground">Workflow-oriented</strong>{" "}
+                — selection, comparison, brief, and lab workspaces
+                stitched together.
+              </li>
+              <li>
+                <strong className="text-foreground">Evidence-producing</strong>{" "}
+                — every walk ends with a paste-ready artifact a
+                reviewer can read.
+              </li>
+            </ul>
+          </article>
+          <article className="card-surface space-y-2 p-5 text-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              This platform is not
+            </p>
+            <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+              <li>An AI news feed or newsletter site.</li>
+              <li>A prompt pack or prompt marketplace.</li>
+              <li>A model leaderboard or scoring engine.</li>
+              <li>A live pricing-quote engine or affiliate site.</li>
+              <li>
+                A compliance certification, regulatory sign-off, or
+                vendor endorsement.
+              </li>
+            </ul>
+            <p className="text-xs">
+              Long-form positioning at{" "}
+              <Link
+                href="/docs/platform-positioning"
+                className="text-primary hover:underline"
+              >
+                /docs/platform-positioning
+              </Link>
+              .
+            </p>
+          </article>
+        </div>
+      </section>
 
       {/* How to use this — workflow strip */}
       <section

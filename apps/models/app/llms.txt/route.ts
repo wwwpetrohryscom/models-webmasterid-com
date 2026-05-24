@@ -82,6 +82,18 @@ export function GET() {
 
   buf.push(line("## Core sections"));
   for (const item of [
+    { label: "Audience hub (Who this is for)", path: "/for" },
+    { label: "For developers", path: "/for/developers" },
+    { label: "For product teams", path: "/for/product-teams" },
+    {
+      label: "For automation specialists",
+      path: "/for/automation-specialists",
+    },
+    { label: "For governance teams", path: "/for/governance-teams" },
+    {
+      label: "Platform positioning (what this is / is not)",
+      path: "/docs/platform-positioning",
+    },
     { label: "Learn AI model selection (hub)", path: "/learn" },
     { label: "All learning paths", path: "/learn/paths" },
     { label: "Beginner learning path", path: "/learn/path/beginner" },

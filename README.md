@@ -474,6 +474,69 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+23. **Learning product landing + audience conversion architecture
+    (Sprint 33).** The platform gains audience-specific entry points
+    so a cold visitor can self-select into the right path within 30
+    seconds. A new
+    [`lib/audiences.ts`](apps/models/lib/audiences.ts) registry
+    defines four audiences — `developers`, `product-teams`,
+    `automation-specialists`, `governance-teams` — each carrying a
+    headline, who-this-is-for, common-problems, what-you-can-do
+    capabilities, artifacts-you-can-produce, a suggested learning
+    path, a matching lab playbook or template, a guided demo, and an
+    explicit `doesNotPromise` list. Five new server components in
+    [`components/audience/`](apps/models/components/audience/)
+    (`AudienceCard`, `AudienceHero`, `AudienceArtifactList`,
+    `AudienceWorkflow`, `AudienceDoesNotPromise`) render the
+    audience surfaces. A new [`/for`](apps/models/app/for/page.tsx)
+    hub lists the four audiences; a dynamic
+    [`/for/[slug]`](apps/models/app/for/%5Bslug%5D/page.tsx)
+    prerenders every audience detail page. The
+    [`/docs/platform-positioning`](apps/models/app/docs/platform-positioning/page.tsx)
+    long-form doc explains what the platform is, what it is not, and
+    how to use it responsibly — covering the
+    Learn → Apply → Verify → Test loop, audience paths, evidence
+    artifacts, and the verified-data backbone. The homepage is
+    restructured around the new positioning: Hero CTAs lead with
+    "Choose your learning path" → `/for`; a new four-card
+    Learn → Apply → Verify → Test core loop section sits directly
+    below the Hero; a new audience picker uses
+    `AudienceCard`; a new "what you can produce here" section
+    surfaces six concrete artifacts; a new "Not another AI ranking
+    site" differentiation section spells out what the platform is
+    and is not. The primary nav is reshaped (Learn · Lab · Demos ·
+    Select · Compare · Briefs · Models · Sources). The footer adds
+    a dedicated `For` column listing the audience hub + 4 audience
+    pages + platform positioning. `/learn`, `/lab`, `/demos`,
+    `/briefs/build`, and `/how-it-works` each surface a small "Not
+    sure where to start? Choose an audience path" callout linking
+    `/for`. `/docs` hub adds a positioning-doc shortcut. `/api/site`
+    exposes `audienceHub`, `audiences[]`, and `platformPositioning`.
+    `ROUTE_SET_VERSION` bumps to `content-v15`. Fourteen new
+    integrity guards enforce: registry has all 4 required exports,
+    all 4 audience slugs registered, 5 audience components exist,
+    `/for` hub + dynamic detail + `/docs/platform-positioning`
+    exist, homepage links to `/for` + `/learn/path/beginner` +
+    `/demos` + `/lab`, homepage surfaces the
+    Learn → Apply → Verify → Test framing literally, homepage
+    contains "Not another AI ranking site" (or the leaderboard
+    equivalent), footer links to all 4 audience pages + positioning
+    doc, key surfaces (`/learn`, `/lab`, `/demos`, `/briefs/build`,
+    `/how-it-works`) all link to `/for`, no banned landing-page
+    phrasing on any Sprint 33 surface (`is the best`, `winner`,
+    `cheapest`, `fastest`, `guaranteed to <verb>`,
+    `certified for/compliant/by`, `official partner`,
+    `is production ready`, `compliance approved`, `increase
+    (seo) traffic`, `rank #1`), automation-specialists slice
+    contains no SEO ranking guarantee phrasing, governance-teams
+    slice contains no compliance certification phrasing, OpenAI
+    no-metrics re-checked, route contract + sitemap + llms.txt +
+    smoke + indexing advertise all 6 new routes. Two legacy guards
+    updated (Hero CTA accepts "Choose your learning path";
+    ContentPageShell guard exempts platform-positioning which
+    uses `PageShell` directly instead of the content-registry
+    shell).
+
 22. **Evaluation prompt library + /lab/evaluation guide (Sprint 32).**
     The AI Usage Lab gains an evaluation prompt library. A new
     [`lib/evaluation-prompts.ts`](apps/models/lib/evaluation-prompts.ts)

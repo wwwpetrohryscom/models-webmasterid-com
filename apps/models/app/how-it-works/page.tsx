@@ -54,6 +54,21 @@ export default function HowItWorksPage() {
         ]}
       />
 
+      <aside
+        role="note"
+        aria-label="Choose your role"
+        className="card-surface space-y-1 p-5 text-sm text-muted-foreground"
+      >
+        <p className="font-medium text-foreground">Choose your role.</p>
+        <p>
+          The <Link href="/for" className="text-primary hover:underline">/for</Link>{" "}
+          hub matches the workflow below to a sequenced learning
+          path, lab playbook, and guided demo per audience —
+          developers, product teams, automation specialists, governance
+          teams.
+        </p>
+      </aside>
+
       <DecisionWorkflow variant="card" />
 
       <section

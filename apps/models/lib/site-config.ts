@@ -23,13 +23,13 @@ export const siteConfig = {
   ],
   primaryNav: [
     { label: "Learn", href: "/learn" },
-    { label: "Use Cases", href: "/use-cases" },
+    { label: "Lab", href: "/lab" },
+    { label: "Demos", href: "/demos" },
     { label: "Select", href: "/select" },
     { label: "Compare", href: "/compare" },
     { label: "Briefs", href: "/briefs/build" },
     { label: "Models", href: "/models" },
     { label: "Sources", href: "/sources" },
-    { label: "Docs", href: "/docs" },
   ],
   secondaryNav: [
     { label: "News", href: "/news" },

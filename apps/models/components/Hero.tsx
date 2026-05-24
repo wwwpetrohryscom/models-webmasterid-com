@@ -39,26 +39,38 @@ export function Hero() {
           </h1>
 
           <p className="mt-5 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
-            AI usage learning platform powered by verified model
-            intelligence. Role-based learning paths teach the concepts,
-            then route you through source-backed shortlists,
-            comparisons, evidence briefs, and freshness checks. No
-            rankings, no recommendations.
+            A practical learning platform for choosing, comparing,
+            testing, and documenting AI model decisions with verified
+            model intelligence. Role-based paths teach the concepts;
+            evidence workspaces produce the artifacts. No rankings,
+            no recommendations.
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
-              href="/learn"
+              href="/for"
               className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-foreground px-5 text-sm font-semibold text-background shadow-elevated transition hover:bg-foreground/90"
             >
-              Start learning
+              Choose your learning path
               <span aria-hidden="true">→</span>
             </Link>
             <Link
-              href="/learn/paths"
+              href="/learn/path/beginner"
               className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:bg-card hover:text-primary"
             >
-              Choose your path
+              Start beginner path
+            </Link>
+            <Link
+              href="/demos"
+              className="inline-flex h-11 items-center justify-center rounded-xl px-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
+            >
+              Try guided demo →
+            </Link>
+            <Link
+              href="/lab"
+              className="inline-flex h-11 items-center justify-center rounded-xl px-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
+            >
+              Open AI Usage Lab →
             </Link>
             <Link
               href="/how-it-works"

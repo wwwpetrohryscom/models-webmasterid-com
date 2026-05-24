@@ -1919,10 +1919,13 @@ const checks: Check[] = [
       const files: string[] = [];
       for (const r of roots) walk(r, files);
       // Hub pages (the two index pages) intentionally render their own
-      // chrome — skip them.
+      // chrome — skip them. /docs/platform-positioning (Sprint 33) is
+      // a bespoke positioning page that does not flow from
+      // `lib/content.ts`, so it uses <PageShell> directly.
       const hubs = new Set([
         "apps/models/app/research/page.tsx",
         "apps/models/app/docs/page.tsx",
+        "apps/models/app/docs/platform-positioning/page.tsx",
       ]);
       for (const rel of files) {
         if (hubs.has(rel)) continue;
@@ -5566,15 +5569,15 @@ const checks: Check[] = [
       const src = readRel("apps/models/components/Hero.tsx");
       const failures: string[] = [];
       // Sprint 30 repositioned the Hero around the AI usage learning
-      // curriculum. Accept either the legacy "Start with a use case"
-      // entry or the new "Start learning" / "Choose your path" CTAs.
+      // curriculum. Sprint 33 refined to "Choose your learning path".
+      // Accept any of the legacy or current primary CTAs.
       const hasPrimaryCta =
         /Start with a use case/i.test(src) ||
         /Start learning/i.test(src) ||
-        /Choose your path/i.test(src);
+        /Choose your(?:\s+learning)?\s+path/i.test(src);
       if (!hasPrimaryCta) {
         failures.push(
-          "Hero must include a primary CTA: 'Start learning', 'Choose your path', or 'Start with a use case'."
+          "Hero must include a primary CTA: 'Start learning', 'Choose your (learning) path', or 'Start with a use case'."
         );
       }
       const hasOnRamp =
@@ -8187,6 +8190,396 @@ const checks: Check[] = [
         }
         if (!smoke.includes(quoted)) {
           failures.push(`scripts/lib/smoke.mjs must include ${quoted}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  // -------------------------------------------------------------------
+  // Sprint 33 — audience landing + platform positioning doc
+  // -------------------------------------------------------------------
+  {
+    name: "lib/audiences.ts exists with required exports (Sprint 33)",
+    run: () => {
+      const rel = "apps/models/lib/audiences.ts";
+      if (!fileExists(rel)) return `Missing ${rel}.`;
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const sym of [
+        "export const audiences",
+        "export function getAudience",
+        "export function getAudiences",
+        "export function getAudienceRoutes",
+      ]) {
+        if (!src.includes(sym)) {
+          failures.push(`${rel} must include \`${sym}\`.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "all 4 audience slugs registered (Sprint 33)",
+    run: () => {
+      const src = readRel("apps/models/lib/audiences.ts");
+      const failures: string[] = [];
+      for (const slug of [
+        "developers",
+        "product-teams",
+        "automation-specialists",
+        "governance-teams",
+      ]) {
+        if (!src.includes(`slug: "${slug}"`)) {
+          failures.push(`Registry missing audience slug "${slug}".`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "5 audience components exist (Sprint 33)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/components/audience/AudienceCard.tsx",
+        "apps/models/components/audience/AudienceHero.tsx",
+        "apps/models/components/audience/AudienceArtifactList.tsx",
+        "apps/models/components/audience/AudienceWorkflow.tsx",
+        "apps/models/components/audience/AudienceDoesNotPromise.tsx",
+      ]) {
+        if (!fileExists(rel)) failures.push(`Missing component ${rel}.`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/for hub + dynamic /for/[slug] + /docs/platform-positioning exist (Sprint 33)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/app/for/page.tsx",
+        "apps/models/app/for/[slug]/page.tsx",
+        "apps/models/app/docs/platform-positioning/page.tsx",
+      ]) {
+        if (!fileExists(rel)) failures.push(`Missing ${rel}.`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "homepage links to /for, /learn/path/beginner, /demos, /lab (Sprint 33)",
+    run: () => {
+      const src = readRel("apps/models/app/page.tsx");
+      const hero = readRel("apps/models/components/Hero.tsx");
+      const combined = src + "\n" + hero;
+      const failures: string[] = [];
+      for (const route of [
+        "/for",
+        "/learn/path/beginner",
+        "/demos",
+        "/lab",
+      ]) {
+        if (!combined.includes(route)) {
+          failures.push(
+            `Homepage (or Hero) must link to ${route}.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "homepage contains Learn → Apply → Verify → Test framing (Sprint 33)",
+    run: () => {
+      const src = readRel("apps/models/app/page.tsx");
+      if (!/Learn\s*[→]\s*Apply\s*[→]\s*Verify\s*[→]\s*Test/i.test(src)) {
+        return "Homepage must surface the 'Learn → Apply → Verify → Test' framing as the core loop.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "homepage contains 'Not another AI ranking site' or equivalent differentiation (Sprint 33)",
+    run: () => {
+      const src = readRel("apps/models/app/page.tsx");
+      if (
+        !/Not another AI ranking site/i.test(src) &&
+        !/Not a model leaderboard/i.test(src)
+      ) {
+        return "Homepage must include the 'Not another AI ranking site' differentiation section (or 'Not a model leaderboard').";
+      }
+      return null;
+    },
+  },
+  {
+    name: "footer links to all 4 audience pages + platform positioning (Sprint 33)",
+    run: () => {
+      const src = readRel("apps/models/components/SiteFooter.tsx");
+      const failures: string[] = [];
+      for (const route of [
+        "/for",
+        "/for/developers",
+        "/for/product-teams",
+        "/for/automation-specialists",
+        "/for/governance-teams",
+        "/docs/platform-positioning",
+      ]) {
+        if (!src.includes(`"${route}"`)) {
+          failures.push(`SiteFooter must link to ${route}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "key surfaces link to /for (Sprint 33)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/app/learn/page.tsx",
+        "apps/models/app/lab/page.tsx",
+        "apps/models/app/demos/page.tsx",
+        "apps/models/app/briefs/build/page.tsx",
+        "apps/models/app/how-it-works/page.tsx",
+      ]) {
+        const src = readRel(rel);
+        if (!/\/for\b/.test(src)) {
+          failures.push(`${rel} must link to /for.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no banned landing-page language on Sprint 33 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/audiences.ts",
+        "apps/models/app/page.tsx",
+        "apps/models/components/Hero.tsx",
+        "apps/models/app/for/page.tsx",
+        "apps/models/app/for/[slug]/page.tsx",
+        "apps/models/app/docs/platform-positioning/page.tsx",
+        "apps/models/components/audience/AudienceCard.tsx",
+        "apps/models/components/audience/AudienceHero.tsx",
+        "apps/models/components/audience/AudienceArtifactList.tsx",
+        "apps/models/components/audience/AudienceWorkflow.tsx",
+        "apps/models/components/audience/AudienceDoesNotPromise.tsx",
+      ];
+      // Only flag *positive* assertions. The "does not promise"
+      // lists must remain readable, so the regexes require positive
+      // verb context.
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bis\s+(?:the\s+)?best\s+(?:model|ai|provider)\b/i,
+          label: "is the best model/ai/provider",
+        },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\bcheapest\s+(?:ai\s+)?(?:model|provider|platform)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:ai\s+)?(?:model|provider)\b/i,
+          label: "fastest <noun>",
+        },
+        {
+          pattern: /\bguaranteed\s+to\s+(?:work|meet|pass|satisfy|certify)\b/i,
+          label: "guaranteed to <verb>",
+        },
+        {
+          pattern: /\bcertified\s+(?:for|compliant|by)\b/i,
+          label: "certified for/compliant/by",
+        },
+        {
+          pattern: /\bofficial\s+partner\b/i,
+          label: "official partner",
+        },
+        {
+          pattern: /\bis\s+production[\s-]ready\b/i,
+          label: "is production ready",
+        },
+        {
+          pattern: /\bcompliance\s+approved\b/i,
+          label: "compliance approved",
+        },
+        {
+          pattern: /\bincrease\s+(?:your\s+)?(?:seo\s+)?traffic\b/i,
+          label: "increase (seo) traffic",
+        },
+        {
+          pattern: /\brank\s+#1\b/i,
+          label: "rank #1",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "automation-specialists audience contains no SEO ranking guarantee language (Sprint 33)",
+    run: () => {
+      const src = readRel("apps/models/lib/audiences.ts");
+      const sliceMatch = src.match(
+        /slug: "automation-specialists"[\s\S]*?(?=slug: "|\];)/
+      );
+      const slice = sliceMatch ? sliceMatch[0] : "";
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bguarantee(?:s|d)?\s+(?:seo|search|ranking|traffic)\b/i,
+          label: "guaranteed seo/search/ranking/traffic",
+        },
+        {
+          pattern: /\b(?:improve|boost|grow)\s+(?:your\s+)?(?:seo|search\s+ranking|traffic|rankings)\b/i,
+          label: "improve/boost/grow seo/ranking/traffic",
+        },
+        {
+          pattern: /\btop\s+of\s+google\b/i,
+          label: "top of google",
+        },
+        {
+          pattern: /\bautomation\s+will\s+increase\s+traffic\b/i,
+          label: "automation will increase traffic",
+        },
+      ];
+      const failures: string[] = [];
+      for (const b of banned) {
+        if (b.pattern.test(slice)) {
+          failures.push(
+            `automation-specialists audience contains banned phrase "${b.label}".`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "governance-teams audience contains no compliance certification language (Sprint 33)",
+    run: () => {
+      const src = readRel("apps/models/lib/audiences.ts");
+      const sliceMatch = src.match(
+        /slug: "governance-teams"[\s\S]*?(?=slug: "|\];)/
+      );
+      const slice = sliceMatch ? sliceMatch[0] : "";
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bwe\s+certify\s+(?:the\s+)?model\b/i,
+          label: "we certify the model",
+        },
+        {
+          pattern: /\bissues?\s+(?:a\s+)?(?:certificate|certification|sign[\s-]off)\b/i,
+          label: "issues a certificate/certification/sign-off",
+        },
+        {
+          pattern: /\bgrants?\s+(?:legal|risk|compliance)\s+approval\b/i,
+          label: "grants legal/risk/compliance approval",
+        },
+        {
+          pattern: /\bcertified\s+compliant\b/i,
+          label: "certified compliant",
+        },
+      ];
+      const failures: string[] = [];
+      for (const b of banned) {
+        if (b.pattern.test(slice)) {
+          failures.push(
+            `governance-teams audience contains banned phrase "${b.label}".`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric appears on Sprint 33 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/audiences.ts",
+        "apps/models/app/page.tsx",
+        "apps/models/components/Hero.tsx",
+        "apps/models/app/for/page.tsx",
+        "apps/models/app/for/[slug]/page.tsx",
+        "apps/models/app/docs/platform-positioning/page.tsx",
+        "apps/models/components/audience/AudienceCard.tsx",
+        "apps/models/components/audience/AudienceHero.tsx",
+        "apps/models/components/audience/AudienceArtifactList.tsx",
+        "apps/models/components/audience/AudienceWorkflow.tsx",
+        "apps/models/components/audience/AudienceDoesNotPromise.tsx",
+      ];
+      const banned = /"[^"]*\bgpt-5\b[^"]*"/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} references GPT-5 — no OpenAI metrics are verified yet.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract + sitemap + llms.txt + smoke + indexing advertise Sprint 33 routes",
+    run: () => {
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+
+      const versionMatch = contract.match(
+        /ROUTE_SET_VERSION\s*=\s*"content-v(\d+)"/
+      );
+      if (!versionMatch || Number(versionMatch[1]) < 15) {
+        failures.push(
+          'ROUTE_SET_VERSION must be "content-v15" or later for Sprint 33.'
+        );
+      }
+
+      const newRoutes = [
+        "/for",
+        "/for/developers",
+        "/for/product-teams",
+        "/for/automation-specialists",
+        "/for/governance-teams",
+        "/docs/platform-positioning",
+      ];
+      for (const path of newRoutes) {
+        const quoted = `"${path}"`;
+        if (!contract.includes(quoted)) {
+          failures.push(`route-contract must include ${quoted}.`);
+        }
+        if (!sitemap.includes(quoted)) {
+          failures.push(`sitemap must include ${quoted}.`);
+        }
+        if (!smoke.includes(quoted)) {
+          failures.push(`scripts/lib/smoke.mjs must include ${quoted}.`);
+        }
+        if (!indexing.includes(quoted)) {
+          failures.push(`scripts/indexing-qa.mjs must include ${quoted}.`);
+        }
+        if (!llms.includes(quoted)) {
+          failures.push(`llms.txt must list ${quoted}.`);
         }
       }
       return failures.length ? failures.join("\n") : null;
