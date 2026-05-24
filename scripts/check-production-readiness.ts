@@ -8585,6 +8585,373 @@ const checks: Check[] = [
       return failures.length ? failures.join("\n") : null;
     },
   },
+  // -------------------------------------------------------------------
+  // Sprint 34 — content depth, teaching examples, observation rubrics
+  // -------------------------------------------------------------------
+  {
+    name: "5 teaching components exist (Sprint 34)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/components/learn/TeachingExample.tsx",
+        "apps/models/components/learn/BadBetterExample.tsx",
+        "apps/models/components/learn/ArtifactExample.tsx",
+        "apps/models/components/learn/WorkflowBridge.tsx",
+        "apps/models/components/learn/ReviewChecklist.tsx",
+      ]) {
+        if (!fileExists(rel)) failures.push(`Missing component ${rel}.`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "LessonLayout renders teaching components (Sprint 34)",
+    run: () => {
+      const src = readRel("apps/models/components/learn/LessonLayout.tsx");
+      const failures: string[] = [];
+      for (const sym of [
+        "TeachingExample",
+        "BadBetterExample",
+        "ArtifactExample",
+        "WorkflowBridge",
+        "ReviewChecklist",
+      ]) {
+        if (!src.includes(sym)) {
+          failures.push(
+            `LessonLayout must reference <${sym}> so registry-driven teaching content renders.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "all 10 lessons carry teachingExample + badBetterExample + workflowBridge (Sprint 34)",
+    run: () => {
+      const src = readRel("apps/models/lib/lessons.ts");
+      const failures: string[] = [];
+      const lessonSlugs = [
+        "how-to-choose-ai-model",
+        "context-window",
+        "hosted-vs-first-party",
+        "pricing-references",
+        "model-lifecycle",
+        "testing-ai-models",
+        "multimodal-input",
+        "structured-output",
+        "status-aware-selection",
+        "benchmark-limitations",
+      ];
+      // Sanity that each lesson's block contains teaching markers.
+      // Split the file by lesson slug declarations and ensure each
+      // block contains the new field keys.
+      for (const slug of lessonSlugs) {
+        const idx = src.indexOf(`slug: "${slug}"`);
+        if (idx < 0) {
+          failures.push(`Lesson "${slug}" not found in registry.`);
+          continue;
+        }
+        // Look up to ~6000 chars ahead until the next slug declaration
+        // or the closing of the lessons array.
+        const tail = src.slice(idx, idx + 7000);
+        const nextSlugMatch = tail.slice(50).search(/slug:\s*"/);
+        const block =
+          nextSlugMatch > 0 ? tail.slice(0, 50 + nextSlugMatch) : tail;
+        for (const key of [
+          "teachingExample:",
+          "badBetterExample:",
+          "workflowBridge:",
+        ]) {
+          if (!block.includes(key)) {
+            failures.push(
+              `Lesson "${slug}" missing ${key} (Sprint 34).`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "all 8 exercises carry commonMistake + artifactExample (Sprint 34)",
+    run: () => {
+      const src = readRel("apps/models/lib/learning-exercises.ts");
+      const failures: string[] = [];
+      const exerciseSlugs = [
+        "build-first-shortlist",
+        "compare-context-windows",
+        "map-hosted-provider",
+        "review-pricing-reference",
+        "inspect-model-lifecycle",
+        "create-decision-brief",
+        "check-source-freshness",
+        "plan-external-model-test",
+      ];
+      for (const slug of exerciseSlugs) {
+        const idx = src.indexOf(`slug: "${slug}"`);
+        if (idx < 0) {
+          failures.push(`Exercise "${slug}" not found.`);
+          continue;
+        }
+        const tail = src.slice(idx, idx + 8000);
+        const nextSlugMatch = tail.slice(50).search(/slug:\s*"/);
+        const block =
+          nextSlugMatch > 0 ? tail.slice(0, 50 + nextSlugMatch) : tail;
+        for (const key of ["commonMistake:", "artifactExample:"]) {
+          if (!block.includes(key)) {
+            failures.push(
+              `Exercise "${slug}" missing ${key} (Sprint 34).`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "all 6 lab playbooks carry weakTestExample + strongerTestExample + observationRubric (Sprint 34)",
+    run: () => {
+      const src = readRel("apps/models/lib/lab-playbooks.ts");
+      const failures: string[] = [];
+      const playbookSlugs = [
+        "prompt-testing-basics",
+        "structured-output-testing",
+        "long-context-testing",
+        "multimodal-input-testing",
+        "automation-workflow-testing",
+        "model-regression-testing",
+      ];
+      for (const slug of playbookSlugs) {
+        const idx = src.indexOf(`slug: "${slug}"`);
+        if (idx < 0) {
+          failures.push(`Playbook "${slug}" not found.`);
+          continue;
+        }
+        const tail = src.slice(idx, idx + 9000);
+        const nextSlugMatch = tail.slice(50).search(/slug:\s*"/);
+        const block =
+          nextSlugMatch > 0 ? tail.slice(0, 50 + nextSlugMatch) : tail;
+        for (const key of [
+          "weakTestExample:",
+          "strongerTestExample:",
+          "observationRubric:",
+          "briefNote:",
+        ]) {
+          if (!block.includes(key)) {
+            failures.push(
+              `Playbook "${slug}" missing ${key} (Sprint 34).`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "lab observation rubrics use no score / rating / grade language (Sprint 34)",
+    run: () => {
+      const src = readRel("apps/models/lib/lab-playbooks.ts");
+      // Pull only the observation-rubric arrays; the registry uses
+      // "score" elsewhere as a defensible negative (e.g. "not a numeric
+      // score" disclaimers). Scan rubric blocks specifically.
+      const rubricBlocks = [
+        ...src.matchAll(
+          /observationRubric:\s*\[([\s\S]*?)\]/g
+        ),
+      ].map((m) => m[1]);
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\b(?:assign|give|compute)\s+a\s+score\b/i,
+          label: "assign/give/compute a score",
+        },
+        {
+          pattern: /\b(?:rating|grade)\s+of\b/i,
+          label: "rating/grade of",
+        },
+        {
+          pattern: /\bpass\/fail\s+score\b/i,
+          label: "pass/fail score",
+        },
+      ];
+      const failures: string[] = [];
+      for (const block of rubricBlocks) {
+        for (const b of banned) {
+          if (b.pattern.test(block)) {
+            failures.push(
+              `lab-playbooks.ts observationRubric block contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "all 6 prompt sets carry matrixUsageNote + doNotConclude + rerunWhen (Sprint 34)",
+    run: () => {
+      const src = readRel("apps/models/lib/evaluation-prompts.ts");
+      const failures: string[] = [];
+      const setSlugs = [
+        "summarization-quality",
+        "structured-extraction",
+        "long-context-recall",
+        "instruction-following",
+        "refusal-boundary",
+        "automation-robustness",
+      ];
+      for (const slug of setSlugs) {
+        const idx = src.indexOf(`slug: "${slug}"`);
+        if (idx < 0) {
+          failures.push(`Prompt set "${slug}" not found.`);
+          continue;
+        }
+        const tail = src.slice(idx, idx + 12000);
+        const nextSlugMatch = tail.slice(50).search(/slug:\s*"/);
+        const block =
+          nextSlugMatch > 0 ? tail.slice(0, 50 + nextSlugMatch) : tail;
+        for (const key of [
+          "matrixUsageNote:",
+          "doNotConclude:",
+          "rerunWhen:",
+        ]) {
+          if (!block.includes(key)) {
+            failures.push(
+              `Prompt set "${slug}" missing ${key} (Sprint 34).`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "all 4 audience pages carry exampleSituation + artifactWalkthrough + bestStartingPoint (Sprint 34)",
+    run: () => {
+      const src = readRel("apps/models/lib/audiences.ts");
+      const failures: string[] = [];
+      const slugs = [
+        "developers",
+        "product-teams",
+        "automation-specialists",
+        "governance-teams",
+      ];
+      for (const slug of slugs) {
+        const idx = src.indexOf(`slug: "${slug}"`);
+        if (idx < 0) {
+          failures.push(`Audience "${slug}" not found.`);
+          continue;
+        }
+        const tail = src.slice(idx, idx + 9000);
+        const nextSlugMatch = tail.slice(50).search(/slug:\s*"/);
+        const block =
+          nextSlugMatch > 0 ? tail.slice(0, 50 + nextSlugMatch) : tail;
+        for (const key of [
+          "exampleSituation:",
+          "artifactWalkthrough:",
+          "bestStartingPoint:",
+        ]) {
+          if (!block.includes(key)) {
+            failures.push(
+              `Audience "${slug}" missing ${key} (Sprint 34).`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no banned language on Sprint 34 teaching surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/components/learn/TeachingExample.tsx",
+        "apps/models/components/learn/BadBetterExample.tsx",
+        "apps/models/components/learn/ArtifactExample.tsx",
+        "apps/models/components/learn/WorkflowBridge.tsx",
+        "apps/models/components/learn/ReviewChecklist.tsx",
+      ];
+      // Only flag *positive* assertions. The teaching components
+      // themselves must not declare a winner.
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bbest\s+(?:ai\s+)?model\s+(?:is|for)\b/i,
+          label: "best model is/for",
+        },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\bcheapest\s+(?:ai\s+)?(?:model|provider)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:ai\s+)?(?:model|provider)\b/i,
+          label: "fastest <noun>",
+        },
+        {
+          pattern: /\bguaranteed\s+to\s+(?:work|meet|pass|satisfy)\b/i,
+          label: "guaranteed to <verb>",
+        },
+        {
+          pattern: /\bcertified\s+(?:for|compliant|by)\b/i,
+          label: "certified for/compliant/by",
+        },
+        {
+          pattern: /\bis\s+production[\s-]ready\b/i,
+          label: "is production ready",
+        },
+        {
+          pattern: /\bcompliance\s+approved\b/i,
+          label: "compliance approved",
+        },
+        {
+          pattern: /\brank\s+#1\b/i,
+          label: "rank #1",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric appears on Sprint 34 teaching surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/components/learn/TeachingExample.tsx",
+        "apps/models/components/learn/BadBetterExample.tsx",
+        "apps/models/components/learn/ArtifactExample.tsx",
+        "apps/models/components/learn/WorkflowBridge.tsx",
+        "apps/models/components/learn/ReviewChecklist.tsx",
+      ];
+      const banned = /"[^"]*\bgpt-5\b[^"]*"/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} references GPT-5 — no OpenAI metrics are verified yet.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
 ];
 
 function main(): void {

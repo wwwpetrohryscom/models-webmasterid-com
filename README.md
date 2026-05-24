@@ -474,6 +474,58 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+24. **Content depth + teaching examples (Sprint 34).** The platform
+    keeps the same surface count but raises the teaching quality on
+    every existing surface. Five new server components in
+    [`components/learn/`](apps/models/components/learn/) —
+    `TeachingExample`, `BadBetterExample`, `ArtifactExample`,
+    `WorkflowBridge`, `ReviewChecklist` — turn registry-driven
+    content into consistent in-page blocks. The lessons registry
+    (`lib/lessons.ts`) gains five optional fields
+    (`teachingExample`, `badBetterExample`, `artifactExample`,
+    `workflowBridge`, `reviewChecklist`); all 10 lessons are
+    populated with a generic teaching scenario, a weak-vs-better
+    approach, a paste-ready artifact excerpt, a concept→workflow
+    bridge, and a review checklist. `LessonLayout` renders the new
+    blocks underneath the body. The exercises registry
+    (`lib/learning-exercises.ts`) gains `commonMistake`,
+    `artifactExample`, `repeatWhen`, and `reviewChecklist`; all 8
+    exercises are populated and rendered by `ExerciseLayout`. The
+    lab-playbooks registry (`lib/lab-playbooks.ts`) gains
+    `weakTestExample`, `strongerTestExample`, `observationRubric`
+    (with score-free `dimension` / `whatToLookFor` /
+    `whatToRecord` rows), and `briefNote`; all 6 playbooks are
+    populated and rendered on `/lab/[slug]`. The evaluation-prompts
+    registry (`lib/evaluation-prompts.ts`) gains
+    `matrixUsageNote`, `doNotConclude`, and `rerunWhen`; all 6
+    prompt sets are populated and rendered on
+    `/lab/prompts/[slug]`. The audiences registry
+    (`lib/audiences.ts`) gains `exampleSituation`,
+    `bestStartingPoint`, and `artifactWalkthrough` (per-artifact
+    instructions); all 4 audiences are populated and rendered on
+    `/for/[slug]`. The homepage "What you can produce here" section
+    is reframed as "See what you will produce" with a new 4-tile
+    grid linking the example decision brief, the evaluation plan
+    template, the prompt test matrix template, and the audience
+    walkthroughs — preserving the existing 6-tile "open the surface"
+    grid below. No new routes, no `ROUTE_SET_VERSION` bump (still
+    `content-v15`). Ten new integrity guards enforce: 5 teaching
+    components exist, `LessonLayout` references each component, all
+    10 lessons carry `teachingExample` + `badBetterExample` +
+    `workflowBridge`, all 8 exercises carry `commonMistake` +
+    `artifactExample`, all 6 playbooks carry `weakTestExample` +
+    `strongerTestExample` + `observationRubric` + `briefNote`,
+    observation-rubric blocks contain no "assign a score" /
+    "rating/grade of" / "pass/fail score" phrasing, all 6 prompt
+    sets carry `matrixUsageNote` + `doNotConclude` + `rerunWhen`,
+    all 4 audiences carry `exampleSituation` +
+    `artifactWalkthrough` + `bestStartingPoint`, teaching
+    components themselves contain no banned phrasing (`best model
+    is/for`, `is the winner`, `cheapest/fastest <noun>`,
+    `guaranteed to <verb>`, `certified for/compliant/by`,
+    `is production ready`, `compliance approved`, `rank #1`),
+    OpenAI no-metrics re-checked.
+
 23. **Learning product landing + audience conversion architecture
     (Sprint 33).** The platform gains audience-specific entry points
     so a cold visitor can self-select into the right path within 30

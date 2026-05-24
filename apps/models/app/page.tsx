@@ -153,9 +153,54 @@ export default function HomePage() {
       >
         <SectionHeader
           eyebrow="Evidence artifacts"
-          title="What you can produce here"
-          description="Every workspace ends with a concrete artifact — a URL, a Markdown export, or a structured checklist. No generated scores, no model rankings."
+          title="See what you will produce"
+          description="Every workspace ends with a concrete artifact — a URL, a Markdown export, or a structured checklist. Click any tile to see the working example or open the surface that produces it. No generated scores, no model rankings."
         />
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              href: "/examples/decision-brief",
+              title: "Example decision brief",
+              detail:
+                "Worked example built from the same buildDecisionBrief() helper as the live builder.",
+            },
+            {
+              href: "/lab/templates/model-evaluation-plan",
+              title: "Model evaluation plan template",
+              detail:
+                "Paste-ready Markdown plan covering scope, test plan, observations, decision.",
+            },
+            {
+              href: "/lab/templates/prompt-test-matrix",
+              title: "Prompt test matrix template",
+              detail:
+                "Row-per-prompt scaffold for capturing per-candidate observations.",
+            },
+            {
+              href: "/for",
+              title: "Audience walkthroughs",
+              detail:
+                "Per-role artifact walkthroughs — open the surface, capture the output, paste into the brief.",
+            },
+          ].map((card) => (
+            <li key={card.href}>
+              <Link
+                href={card.href}
+                className="card-surface block h-full p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-sm font-semibold text-foreground">
+                  {card.title}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {card.detail}
+                </p>
+                <p className="mt-2 text-[10px] text-muted-foreground">
+                  See it →
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
         <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
             {

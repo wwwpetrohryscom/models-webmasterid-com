@@ -34,6 +34,12 @@ export interface LabPlaybookRoute {
   href: string;
 }
 
+export interface LabObservationRubricRow {
+  dimension: string;
+  whatToLookFor: string;
+  whatToRecord: string;
+}
+
 export interface LabPlaybook {
   slug: LabPlaybookSlug;
   title: string;
@@ -53,6 +59,14 @@ export interface LabPlaybook {
   relatedTemplates: LabTemplateSlug[];
   relatedRoutes: LabPlaybookRoute[];
   policyNote: string;
+  /** Sprint 34 — an example of how NOT to run this test. */
+  weakTestExample?: string[];
+  /** Sprint 34 — an example of a stronger version of the same test. */
+  strongerTestExample?: string[];
+  /** Sprint 34 — observation rubric with no scoring or rating language. */
+  observationRubric?: LabObservationRubricRow[];
+  /** Sprint 34 — what to capture in the decision brief afterwards. */
+  briefNote?: string[];
 }
 
 export interface LabTemplateSection {
@@ -143,6 +157,53 @@ const PLAYBOOKS: LabPlaybook[] = [
     ],
     policyNote:
       "The playbook teaches you to test. It does not score the model for you, does not certify the model for any regulatory regime, and does not declare a winner.",
+    weakTestExample: [
+      "Run one happy-path prompt at default temperature, eyeball the output, and ship.",
+      "Skip recording outputs verbatim.",
+      "Pretend a single positive result generalises across prompt categories.",
+    ],
+    strongerTestExample: [
+      "Run 5–10 representative prompts spanning happy / edge / adversarial / refusal categories.",
+      "Hold sampling parameters constant and record the values.",
+      "Capture every output verbatim before applying acceptance criteria.",
+      "Note non-determinism across reruns instead of hiding it.",
+    ],
+    observationRubric: [
+      {
+        dimension: "Acceptance against rubric",
+        whatToLookFor:
+          "Does the output meet the pre-agreed acceptance criteria for the prompt category?",
+        whatToRecord:
+          "Pass / fail per criterion, with a short rationale — not a numeric score.",
+      },
+      {
+        dimension: "Latency",
+        whatToLookFor:
+          "Wall-clock latency from your environment for each call.",
+        whatToRecord:
+          "Median and tail latency per prompt, with the region you ran from.",
+      },
+      {
+        dimension: "Token usage",
+        whatToLookFor:
+          "Input vs output token counts per call.",
+        whatToRecord:
+          "Counts per prompt, so the cost projection later can use the pricing reference.",
+      },
+      {
+        dimension: "Refusal / structured failure",
+        whatToLookFor:
+          "Refusal rate and any structured-output validity failures.",
+        whatToRecord:
+          "Counts per category plus a short note on why each failure happened.",
+      },
+    ],
+    briefNote: [
+      "Embed the prompt set + acceptance criteria so the brief is self-contained.",
+      "Record per-prompt outcomes instead of a single rolled-up percentage.",
+      "Attach the verbatim outputs for failures so the reviewer can replay them.",
+      "Note any prompts that triggered the stop condition and why.",
+    ],
   },
   {
     slug: "structured-output-testing",
@@ -208,6 +269,53 @@ const PLAYBOOKS: LabPlaybook[] = [
     ],
     policyNote:
       "Schema validity is workload-specific. The playbook does not validate your schema for compliance or safety, and does not declare which model is best for structured generation.",
+    weakTestExample: [
+      "Eyeball one JSON response and declare the integration ready.",
+      "Skip running every response through a strict validator.",
+      "Vary the schema, the prompt, and the sampling parameters all at once and call the result a single test.",
+    ],
+    strongerTestExample: [
+      "Pin the exact schema bytes and reuse them across every run.",
+      "Run a strict validator (Ajv / Pydantic / zod) on every response before logging.",
+      "Vary one dimension at a time so failures attribute to a single change.",
+      "Capture raw responses pre-validation so failures replay deterministically.",
+    ],
+    observationRubric: [
+      {
+        dimension: "Schema validity",
+        whatToLookFor:
+          "Whether the response passes a strict validator against your real schema.",
+        whatToRecord:
+          "Pass / fail per prompt with the raw response captured alongside.",
+      },
+      {
+        dimension: "Field-level failure mode",
+        whatToLookFor:
+          "Missing fields, extra fields, type mismatches, enum violations.",
+        whatToRecord:
+          "Per-prompt failure category and an example excerpt.",
+      },
+      {
+        dimension: "Latency overhead",
+        whatToLookFor:
+          "Latency delta between structured and free-form generation for the same prompt.",
+        whatToRecord:
+          "Median delta per prompt category in milliseconds.",
+      },
+      {
+        dimension: "Behaviour under malformed schema",
+        whatToLookFor:
+          "Does the model refuse, hallucinate, or hang when handed a malformed schema?",
+        whatToRecord:
+          "Per-case observation with the malformed input captured.",
+      },
+    ],
+    briefNote: [
+      "Attach the schema bytes so the brief is reproducible.",
+      "Record validity rate per prompt category, not as a single percentage.",
+      "List field-level failure modes the parser would have to absorb.",
+      "Capture latency overhead so the reviewer knows what structured generation costs.",
+    ],
   },
   {
     slug: "long-context-testing",
@@ -273,6 +381,53 @@ const PLAYBOOKS: LabPlaybook[] = [
     ],
     policyNote:
       "Long-context behaviour is workload-specific. The playbook does not assert a model's effective context length and does not rank candidates by long-prompt cost.",
+    weakTestExample: [
+      "Fill the prompt to the verified context window with random tokens and assume recall stays constant.",
+      "Skip varying the answer position inside the prompt.",
+      "Ignore cost growth at large prompt sizes.",
+    ],
+    strongerTestExample: [
+      "Build a scaffold that grows the prompt while pinning the question.",
+      "Test recall with the answer at the start, middle, and end of the input.",
+      "Capture cost behaviour separately for input vs output tokens.",
+      "Cap the test at the verified context window, not the marketing one.",
+    ],
+    observationRubric: [
+      {
+        dimension: "Recall by position",
+        whatToLookFor:
+          "Whether the model surfaces the buried answer regardless of its position in the input.",
+        whatToRecord:
+          "Pass / fail per position bucket, with the prompt scaffold captured.",
+      },
+      {
+        dimension: "Latency growth",
+        whatToLookFor:
+          "Latency as prompt size grows.",
+        whatToRecord:
+          "Latency observation per prompt-size bucket, with the region you ran from.",
+      },
+      {
+        dimension: "Cost growth",
+        whatToLookFor:
+          "Cost growth as prompt size grows (input vs output tokens, separately).",
+        whatToRecord:
+          "Per-call token counts mapped to the pricing reference; flag any tier change.",
+      },
+      {
+        dimension: "Output structure degradation",
+        whatToLookFor:
+          "Whether structured-output reliability or instruction following degrades at large prompt sizes.",
+        whatToRecord:
+          "Per-bucket failure modes with example outputs.",
+      },
+    ],
+    briefNote: [
+      "Embed the scaffold and the answer-position protocol so the brief is reproducible.",
+      "Record recall by prompt-size bucket rather than a single rolled-up figure.",
+      "Pair cost growth observations with the pricing reference + retrievedAt date.",
+      "Note any prompt size where the model truncated output silently.",
+    ],
   },
   {
     slug: "multimodal-input-testing",
@@ -341,6 +496,53 @@ const PLAYBOOKS: LabPlaybook[] = [
     ],
     policyNote:
       "Modality support is workload-specific. The playbook does not declare which model is best for any modality and does not certify accessibility, accuracy, or safety of the model's outputs.",
+    weakTestExample: [
+      "Send one demo-quality image and assume real assets behave the same.",
+      "Skip the silent-fallback test.",
+      "Skip asset-size validation.",
+    ],
+    strongerTestExample: [
+      "Send 5–10 happy-path assets matched to your real workload distribution.",
+      "Include adversarial assets (malformed, low resolution, partial).",
+      "Probe explicitly for silent fallback (model returns text-only without erroring).",
+      "Capture asset hashes so failures replay.",
+    ],
+    observationRubric: [
+      {
+        dimension: "Happy-path accuracy",
+        whatToLookFor:
+          "Whether the model handles representative assets against your rubric.",
+        whatToRecord:
+          "Pass / fail per asset with a rationale, plus the asset hash.",
+      },
+      {
+        dimension: "Adversarial behaviour",
+        whatToLookFor:
+          "Refusal, hallucination, or useful error on malformed / partial assets.",
+        whatToRecord:
+          "Per-asset category outcome and a short note on safety implications.",
+      },
+      {
+        dimension: "Silent fallback",
+        whatToLookFor:
+          "Whether the model silently drops to text-only when the modality fails.",
+        whatToRecord:
+          "Yes / no per case with the response that triggered the observation.",
+      },
+      {
+        dimension: "Latency vs text-only baseline",
+        whatToLookFor:
+          "Latency delta vs the same prompt without the multimodal asset.",
+        whatToRecord:
+          "Median delta per asset class.",
+      },
+    ],
+    briefNote: [
+      "Record per-asset-class pass rates instead of a single accuracy number.",
+      "List asset hashes alongside outcomes so failures are reproducible.",
+      "Flag any silent fallback explicitly — silent fallback is an integration hazard.",
+      "Capture the latency delta vs text-only.",
+    ],
   },
   {
     slug: "automation-workflow-testing",
@@ -407,6 +609,54 @@ const PLAYBOOKS: LabPlaybook[] = [
     ],
     policyNote:
       "The playbook teaches automation-aware testing — it does not certify the automation, does not guarantee reliability, and does not assert SEO or business outcomes.",
+    weakTestExample: [
+      "Run one shadow job and call the automation ready for unattended use.",
+      "Skip the canary set design.",
+      "Skip the retry-amplification test.",
+      "Treat downstream parser errors as 'model bugs'.",
+    ],
+    strongerTestExample: [
+      "Run 20–50 shadow jobs that match real production input distribution.",
+      "Run 5–10 deliberate adversarial jobs.",
+      "Test with and without retries to confirm retries do not amplify malformed outputs.",
+      "Distinguish model failure from downstream parser failure in the logs.",
+    ],
+    observationRubric: [
+      {
+        dimension: "Shadow-run acceptance",
+        whatToLookFor:
+          "Whether shadow jobs meet your acceptance rubric.",
+        whatToRecord:
+          "Pass / fail per job with the rubric criteria captured.",
+      },
+      {
+        dimension: "Retry behaviour",
+        whatToLookFor:
+          "Retry rate, retry success rate, final failure rate.",
+        whatToRecord:
+          "Counts per job category and an example of a retry-amplified failure if any.",
+      },
+      {
+        dimension: "Downstream parser interaction",
+        whatToLookFor:
+          "Whether the parser tolerates the model's output shape.",
+        whatToRecord:
+          "Parser error rate plus example inputs that broke the parser.",
+      },
+      {
+        dimension: "Tail latency",
+        whatToLookFor:
+          "End-to-end latency including retry overhead.",
+        whatToRecord:
+          "Median + p95 + max per job category, with the queue timeout for reference.",
+      },
+    ],
+    briefNote: [
+      "Embed the shadow-run protocol so the brief is reproducible.",
+      "Pair shadow-run acceptance with retry behaviour — they interact.",
+      "Record tail latency, not just median.",
+      "Document the canary suite and regression cadence.",
+    ],
   },
   {
     slug: "model-regression-testing",
@@ -470,6 +720,53 @@ const PLAYBOOKS: LabPlaybook[] = [
     ],
     policyNote:
       "The canary suite catches drift; it does not certify the model. A passing canary is not production readiness, and a failing canary is not a vendor allegation — investigate before escalating.",
+    weakTestExample: [
+      "Run a freeform smoke test ad-hoc and call it a regression check.",
+      "Skip storing reference outputs from the originally-selected snapshot.",
+      "Treat a single failing canary as a vendor issue without investigating.",
+    ],
+    strongerTestExample: [
+      "Freeze a canary suite of 10–25 prompts covering the behaviours the application depends on.",
+      "Store reference outputs (or rubric criteria) for comparison.",
+      "Schedule the suite on a regular cadence and wire alerting against a documented pass-rate floor.",
+      "Investigate a failing canary against /reverification before escalating.",
+    ],
+    observationRubric: [
+      {
+        dimension: "Per-prompt drift",
+        whatToLookFor:
+          "Whether each canary prompt still meets the reference expectation.",
+        whatToRecord:
+          "Pass / fail per prompt with rationale, not a rolled-up percentage.",
+      },
+      {
+        dimension: "Latency drift",
+        whatToLookFor:
+          "Whether latency for the canary set has shifted from the baseline.",
+        whatToRecord:
+          "Median + tail latency per canary run, compared to baseline.",
+      },
+      {
+        dimension: "Cost drift",
+        whatToLookFor:
+          "Input / output token ratio shifts for the same prompts.",
+        whatToRecord:
+          "Token counts per canary run plus any unit-cost change to flag.",
+      },
+      {
+        dimension: "Lifecycle drift",
+        whatToLookFor:
+          "Whether the catalogue's lifecycle field for the snapshot has shifted.",
+        whatToRecord:
+          "Lifecycle status + retrievedAt at each canary run; flag any change.",
+      },
+    ],
+    briefNote: [
+      "Embed the canary set + reference rubric so the regression record is self-contained.",
+      "Pair drift observations with the snapshot ID under test.",
+      "List the pass-rate floor and the action taken on breaches.",
+      "Cross-reference any failing canary with /reverification before treating it as a vendor allegation.",
+    ],
   },
 ];
 

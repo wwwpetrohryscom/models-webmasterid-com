@@ -7,6 +7,8 @@ import { siteConfig } from "@/lib/site-config";
 import type { LearningExercise } from "@/lib/learning-exercises";
 import { getLesson } from "@/lib/lessons";
 import { getLearningPathsForExercise } from "@/lib/learning-paths";
+import { ArtifactExample } from "@/components/learn/ArtifactExample";
+import { ReviewChecklist } from "@/components/learn/ReviewChecklist";
 
 /**
  * ExerciseLayout — shared shell for every /learn/exercises/<slug>
@@ -78,6 +80,53 @@ export function ExerciseLayout({
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
         <article className="prose-content max-w-none space-y-8 text-[15px] leading-relaxed text-muted-foreground">
           {children}
+
+          {exercise.commonMistake ? (
+            <section
+              aria-label="Common mistake"
+              className="card-surface space-y-2 p-5 text-sm not-prose"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                Common mistake
+              </p>
+              <p className="text-muted-foreground">
+                {exercise.commonMistake}
+              </p>
+            </section>
+          ) : null}
+
+          {exercise.artifactExample ? (
+            <ArtifactExample
+              artifact={{
+                title: "Example artifact",
+                body: exercise.artifactExample,
+              }}
+              caption="Substitute your real shortlist, slugs, dates, and values when you walk the exercise."
+            />
+          ) : null}
+
+          {exercise.repeatWhen ? (
+            <section
+              aria-label="Repeat this exercise when"
+              className="card-surface space-y-2 p-5 text-sm not-prose"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                Repeat this exercise when
+              </p>
+              <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+                {exercise.repeatWhen.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {exercise.reviewChecklist ? (
+            <ReviewChecklist
+              items={exercise.reviewChecklist}
+              caution="No persistence — checklist resets on every visit. Capture progress in your own notes."
+            />
+          ) : null}
 
           <section
             aria-label="What this exercise does not produce"

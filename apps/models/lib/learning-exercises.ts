@@ -46,6 +46,14 @@ export interface LearningExercise {
   completionChecklist: string[];
   policyNote: string;
   evidenceArtifact: string;
+  /** Sprint 34 — the most common mistake to avoid in this exercise. */
+  commonMistake?: string;
+  /** Sprint 34 — illustrative artifact example body lines. */
+  artifactExample?: string[];
+  /** Sprint 34 — situations that warrant repeating the exercise. */
+  repeatWhen?: string[];
+  /** Sprint 34 — review checklist before moving on. */
+  reviewChecklist?: string[];
 }
 
 export const learningExercises: LearningExercise[] = [
@@ -110,6 +118,31 @@ export const learningExercises: LearningExercise[] = [
       "Shortlists are inspection orderings, not rankings. The exercise produces a URL — never a verdict on which model is best.",
     evidenceArtifact:
       "A /select URL with your use-case + filter parameters that opens the same shortlist for any teammate.",
+    commonMistake:
+      "Treating the first row of the shortlist as the answer. Shortlist order is deterministic (verified field count → lifecycle → source count → name), not a quality ranking.",
+    artifactExample: [
+      "## Shortlist URL (illustrative)",
+      "/select?useCase=<your-use-case>&lifecycle=active&pricingCoverage=verified",
+      "",
+      "Top 3 rows (in catalogue order):",
+      "- <candidate-A> · verified context: <tokens> · active",
+      "- <candidate-B> · verified context: <tokens> · active",
+      "- <candidate-C> · verified context: <tokens> · active",
+      "",
+      "Data gap noted: <candidate-C> has unverified max-output. Plan to confirm externally.",
+    ],
+    repeatWhen: [
+      "The use case or workload changes substantially.",
+      "A snapshot rotates and lifecycle fields shift.",
+      "Pricing references go stale and need re-verification.",
+      "A teammate needs to inherit the shortlist URL.",
+    ],
+    reviewChecklist: [
+      "Shortlist URL is captured (copy from the address bar).",
+      "I can describe ordering rationale without using quality language.",
+      "At least one data gap is named on the top candidate.",
+      "No winner is declared in the notes.",
+    ],
   },
   {
     slug: "compare-context-windows",
@@ -168,6 +201,31 @@ export const learningExercises: LearningExercise[] = [
       "Context window is a necessary condition, not a sufficient one. The comparison is a substrate for your own tests, not a verdict.",
     evidenceArtifact:
       "A /compare/build URL with 3–4 model slugs that any teammate can open to see the same comparison.",
+    commonMistake:
+      "Treating the candidate with the largest verified context window as the answer. Larger context does not equal better recall or better fit.",
+    artifactExample: [
+      "## Context comparison URL (illustrative)",
+      "/compare/build?models=<slug-A>,<slug-B>,<slug-C>&useCase=long-context-analysis",
+      "",
+      "Spread observed:",
+      "- Context window: <range>",
+      "- Max output: <range>",
+      "",
+      "Notes to capture before testing:",
+      "- Recall behaviour is workload-specific.",
+      "- Pricing tiers may scale non-linearly with prompt size.",
+    ],
+    repeatWhen: [
+      "A new candidate is added to the shortlist.",
+      "A snapshot rotates and context fields update.",
+      "A reviewer needs the side-by-side reference.",
+    ],
+    reviewChecklist: [
+      "Comparison URL is captured.",
+      "I named the spread without naming a winner.",
+      "I read the citation behind at least one verified field.",
+      "I planned a workload-specific test before integration.",
+    ],
   },
   {
     slug: "map-hosted-provider",
@@ -234,6 +292,29 @@ export const learningExercises: LearningExercise[] = [
       "The exercise produces evidence about how the catalogue separates creator from host — it does not pick a hosting platform for any workload.",
     evidenceArtifact:
       "A /sources citation URL for the hosted pricing reference plus a short note listing the creator, the billing platform, and the data gap.",
+    commonMistake:
+      "Reusing the model creator's canonical ID in the hosting platform's API call. Each host publishes its own model identifier — the slugs usually differ.",
+    artifactExample: [
+      "## Hosted-provider mapping (illustrative)",
+      "Model creator: <creator-slug>",
+      "Host: <platform-slug>",
+      "Hosted model ID: <slug-on-host>",
+      "Hosted pricing reference: <amount> per <unit> · retrievedAt <date>",
+      "Source URL: <host pricing page>",
+      "",
+      "Data gap: <field-name> not stated on host docs — flag for /reverification.",
+    ],
+    repeatWhen: [
+      "A new hosting platform appears in the catalogue.",
+      "Hosted pricing rows go stale.",
+      "The model creator updates the canonical ID or snapshot.",
+    ],
+    reviewChecklist: [
+      "Creator and billing platform are listed separately.",
+      "The hosted model ID is the one used on the host's API.",
+      "Hosted pricing retrievedAt is recorded.",
+      "Any host-side data gap is flagged for /reverification.",
+    ],
   },
   {
     slug: "review-pricing-reference",
@@ -291,6 +372,32 @@ export const learningExercises: LearningExercise[] = [
       "Pricing rows are references with retrieval dates, not invoices. The exercise produces a sourced note, never a price ranking.",
     evidenceArtifact:
       "A short note with provider, unit, retrievedAt, and queue state — copyable into any pricing review document.",
+    commonMistake:
+      "Reading a per-token rate as a comparable number across providers. Unit semantics (input vs output, cache reads vs writes, per-second compute) often differ enough that direct numeric comparison misleads.",
+    artifactExample: [
+      "## Pricing reference review (illustrative)",
+      "Provider: <slug>",
+      "Source URL: <provider pricing page>",
+      "RetrievedAt: <date>",
+      "",
+      "Verbatim from the source:",
+      "- Input: <amount> per <unit>",
+      "- Output: <amount> per <unit>",
+      "",
+      "Reverification state: <fresh / review-due / stale>",
+      "Caveat: Reference only — re-verify before quoting in any contract.",
+    ],
+    repeatWhen: [
+      "The reverification queue flags the row as stale.",
+      "The provider publishes a pricing-page update or migration.",
+      "Finance asks for an updated cost projection.",
+    ],
+    reviewChecklist: [
+      "Unit semantics are recorded alongside numbers.",
+      "RetrievedAt date is captured.",
+      "Reverification queue state is checked.",
+      "Row is treated as a reference, not a live quote.",
+    ],
   },
   {
     slug: "inspect-model-lifecycle",
@@ -348,6 +455,31 @@ export const learningExercises: LearningExercise[] = [
       "Lifecycle is a gate, not a footnote. The exercise produces a lifecycle note — the catalogue does not assert a migration path for you.",
     evidenceArtifact:
       "A short lifecycle note: state, citation URL, retrievedAt, and any retirement date — paste-ready into a design doc.",
+    commonMistake:
+      "Treating 'deprecated' as still safe because retirement is months away. Deprecation + migration work usually consumes more runway than teams estimate.",
+    artifactExample: [
+      "## Lifecycle review (illustrative)",
+      "Candidate: <slug>",
+      "Lifecycle status: <active / preview / deprecated / retired>",
+      "Retirement date: <date or n/a>",
+      "Source URL: <provider docs>",
+      "RetrievedAt: <date>",
+      "",
+      "Migration target (if published): <slug or 'not stated'>",
+      "Runway available: <days / weeks>",
+      "Decision: <proceed / migrate-first / re-scope>",
+    ],
+    repeatWhen: [
+      "A provider publishes new deprecation notices.",
+      "The integration timeline shifts and runway changes.",
+      "A snapshot rotation flips lifecycle state.",
+    ],
+    reviewChecklist: [
+      "Lifecycle status is verified, not assumed.",
+      "Retirement date is captured if applicable.",
+      "Runway vs integration timeline is explicit.",
+      "Successor snapshot is listed if the provider named one.",
+    ],
   },
   {
     slug: "create-decision-brief",
@@ -410,6 +542,39 @@ export const learningExercises: LearningExercise[] = [
       "The brief is an evidence pack for the next reviewer. It is not a recommendation, and the exercise never adds one.",
     evidenceArtifact:
       "A Markdown brief from /api/briefs/decision that any reviewer can read independently.",
+    commonMistake:
+      "Adding a 'Recommendation' section to the exported brief. The catalogue produces evidence; recommendations belong in your team's decision doc, not in the brief.",
+    artifactExample: [
+      "## Decision brief excerpt (illustrative Markdown)",
+      "",
+      "### Evidence summary",
+      "Candidates: <slug-A>, <slug-B>, <slug-C>",
+      "Use case: <use-case-slug>",
+      "Verified fields: context window, max output, modality, lifecycle, pricing references",
+      "",
+      "### Data gaps",
+      "- <slug-B> max output: unverified-data label",
+      "- <slug-C> hosted pricing: stale (re-verify before quoting)",
+      "",
+      "### Source trail",
+      "- <slug-A> · provider docs · retrievedAt <date>",
+      "- <slug-B> · provider docs · retrievedAt <date>",
+      "- <slug-C> · provider docs · retrievedAt <date>",
+      "",
+      "Note: brief intentionally contains no recommendation.",
+    ],
+    repeatWhen: [
+      "The shortlist changes.",
+      "A pricing reference is re-verified.",
+      "A snapshot rotation invalidates a field in the brief.",
+      "The reviewer asks for an updated cut for a meeting.",
+    ],
+    reviewChecklist: [
+      "Brief lists verified fields with citations.",
+      "Data gaps are explicit, not hidden.",
+      "Freshness note is present.",
+      "No 'recommendation' or 'winner' section.",
+    ],
   },
   {
     slug: "check-source-freshness",
@@ -467,6 +632,32 @@ export const learningExercises: LearningExercise[] = [
       "Freshness is part of the evidence pack. The exercise produces a checklist — the catalogue does not silently mutate stale values.",
     evidenceArtifact:
       "A Markdown or JSON checklist from /api/reverification/checklist scoped to the chosen provider.",
+    commonMistake:
+      "Treating any citation that still loads as 'fresh'. RetrievedAt is the load-bearing field — not whether the URL still resolves.",
+    artifactExample: [
+      "## Freshness checklist (illustrative)",
+      "Provider: <slug>",
+      "Generated from: /api/reverification/checklist?provider=<slug>&format=markdown",
+      "",
+      "Stale citations:",
+      "- <url-1> · last retrieved <date> · reason: pricing-page-volatility",
+      "- <url-2> · last retrieved <date> · reason: lifecycle-near-retirement",
+      "",
+      "Action items:",
+      "- Re-read <url-1> in a real browser before quoting.",
+      "- Re-read <url-2> and update the lifecycle field if rotated.",
+    ],
+    repeatWhen: [
+      "Before any release that depends on cited values.",
+      "After any provider deprecation announcement.",
+      "On a periodic cadence (weekly / monthly per workload).",
+    ],
+    reviewChecklist: [
+      "Stale citations are listed by URL + retrievedAt.",
+      "Reason for staleness is captured.",
+      "Each stale citation has a documented action item.",
+      "Checklist export is attached to the brief.",
+    ],
   },
   {
     slug: "plan-external-model-test",
@@ -533,6 +724,35 @@ export const learningExercises: LearningExercise[] = [
       "The exercise produces a test plan — the catalogue does not run your tests for you, and verification is never certification.",
     evidenceArtifact:
       "A written test plan (Markdown or doc) that pairs your brief with the workload-specific tests.",
+    commonMistake:
+      "Reusing benchmark numbers as the test plan. The plan should name your prompts, your acceptance rubric, your region, and your traffic mix — not republish a vendor figure.",
+    artifactExample: [
+      "## External test plan (illustrative)",
+      "Candidate: <slug> @ <snapshot>",
+      "Region: <inference-region>",
+      "",
+      "Tests:",
+      "- Prompt set: 5–10 representative prompts with rubric per category",
+      "- Latency: measured from <region> at <load>",
+      "- Rate limits: deliberate burst at <RPS>",
+      "- Cost: project from <prompts/day> × pricing reference",
+      "- Compliance: review against <regime / internal control>",
+      "- Regression: canary suite scheduled <cadence>",
+      "",
+      "Reviewer sign-offs required: <names / roles>",
+    ],
+    repeatWhen: [
+      "Before any production launch.",
+      "After every snapshot rotation.",
+      "Whenever the brief's data gaps change.",
+    ],
+    reviewChecklist: [
+      "Prompt set + rubric are written down.",
+      "Latency region matches production.",
+      "Cost projection uses a fresh pricing reference.",
+      "Regression cadence is scheduled, not aspirational.",
+      "Compliance review is named, not skipped.",
+    ],
   },
 ];
 

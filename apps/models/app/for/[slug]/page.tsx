@@ -87,6 +87,45 @@ export default async function AudienceDetailPage({
 
       <AudienceHero audience={audience} />
 
+      {audience.exampleSituation ? (
+        <section
+          aria-label="Example situation"
+          className="card-surface space-y-2 p-5 text-sm"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            Example situation
+          </p>
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            Illustrative — not a recommendation.
+          </p>
+          <p className="text-muted-foreground">
+            {audience.exampleSituation}
+          </p>
+        </section>
+      ) : null}
+
+      {audience.bestStartingPoint ? (
+        <section
+          aria-label="Start here"
+          className="card-surface space-y-2 p-5 text-sm"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            Start here
+          </p>
+          <p>
+            <Link
+              href={audience.bestStartingPoint.href}
+              className="text-base font-semibold text-primary hover:underline"
+            >
+              {audience.bestStartingPoint.label} →
+            </Link>
+          </p>
+          <p className="text-muted-foreground">
+            {audience.bestStartingPoint.reason}
+          </p>
+        </section>
+      ) : null}
+
       <section
         aria-label="Who this is for"
         className="card-surface space-y-2 p-5 text-sm"
@@ -142,6 +181,44 @@ export default async function AudienceDetailPage({
       </section>
 
       <AudienceArtifactList artifacts={audience.artifactsYouCanProduce} />
+
+      {audience.artifactWalkthrough ? (
+        <section
+          aria-label="Artifact walkthrough"
+          className="card-surface space-y-3 p-5 text-sm"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            Artifact walkthrough
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Per-artifact instructions — open the route, capture the
+            output, paste into the brief. Substitute your own values.
+          </p>
+          <ul className="space-y-3">
+            {audience.artifactWalkthrough.map((step) => (
+              <li
+                key={step.artifact}
+                className="rounded-lg border border-border bg-card p-3"
+              >
+                <p className="text-sm font-semibold text-foreground">
+                  {step.artifact}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {step.howToProduce}
+                </p>
+                <p className="mt-2 text-xs">
+                  <Link
+                    href={step.route}
+                    className="text-primary hover:underline"
+                  >
+                    Open {step.route} →
+                  </Link>
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <AudienceWorkflow audience={audience} />
 

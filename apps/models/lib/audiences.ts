@@ -32,6 +32,12 @@ export interface AudienceCapability {
   href: string;
 }
 
+export interface AudienceArtifactWalkthrough {
+  artifact: string;
+  howToProduce: string;
+  route: string;
+}
+
 export interface AudiencePage {
   slug: AudienceSlug;
   title: string;
@@ -46,6 +52,16 @@ export interface AudiencePage {
   guidedDemo?: AudienceLink;
   evidenceRoutes: AudienceLink[];
   doesNotPromise: string[];
+  /** Sprint 34 — illustrative situation the audience is likely to face. */
+  exampleSituation?: string;
+  /** Sprint 34 — best starting point with rationale (not a recommendation). */
+  bestStartingPoint?: {
+    label: string;
+    href: string;
+    reason: string;
+  };
+  /** Sprint 34 — per-artifact walkthrough of how to produce each artifact. */
+  artifactWalkthrough?: AudienceArtifactWalkthrough[];
 }
 
 const AUDIENCES: AudiencePage[] = [
@@ -128,6 +144,40 @@ const AUDIENCES: AudiencePage[] = [
       "Replace your own prompt, latency, rate-limit, or cost validation.",
       "Assert SLA, uptime, or production-ready status.",
     ],
+    exampleSituation:
+      "Your team is about to wire a model into a backend service. There is no shortlist on file, no decision brief, and no prompt-testing routine. The PR is open and the deadline is this week.",
+    bestStartingPoint: {
+      label: "Developer learning path",
+      href: "/learn/path/developer",
+      reason:
+        "The developer path sequences hosted/host separation, modality channels, structured output, and the prompt-testing playbook — the four lessons most likely to break an integration if skipped.",
+    },
+    artifactWalkthrough: [
+      {
+        artifact: "Shortlist URL",
+        howToProduce:
+          "Open /select with the use case and lifecycle=active filter; copy the URL.",
+        route: "/select",
+      },
+      {
+        artifact: "Comparison URL",
+        howToProduce:
+          "Open /compare/build with 3–4 candidate slugs and the relevant useCase filter; copy the URL.",
+        route: "/compare/build",
+      },
+      {
+        artifact: "Markdown evidence brief",
+        howToProduce:
+          "Open /briefs/build with the shortlist slugs and export the Markdown brief.",
+        route: "/briefs/build",
+      },
+      {
+        artifact: "External test plan",
+        howToProduce:
+          "Run the prompt-testing playbook against your candidates and attach the plan to the brief.",
+        route: "/lab/prompt-testing-basics",
+      },
+    ],
   },
 
   // -------------------------------------------------------------------
@@ -208,6 +258,40 @@ const AUDIENCES: AudiencePage[] = [
       "Rank vendors by price or speed.",
       "Provide a live quote — pricing rows are sourced references with a retrievedAt date.",
       "Predict ROI or feature adoption.",
+    ],
+    exampleSituation:
+      "Engineering wants to ship; finance wants a cost projection; legal wants a lifecycle plan; you need a single document the team can review together this week.",
+    bestStartingPoint: {
+      label: "Product manager learning path",
+      href: "/learn/path/product-manager",
+      reason:
+        "The product manager path explicitly frames use-case, pricing reference, lifecycle, and benchmark limits — the four lessons reviewers across product, finance, and legal each care about.",
+    },
+    artifactWalkthrough: [
+      {
+        artifact: "Use-case shortlist URL",
+        howToProduce:
+          "Open /select with the use case and verification filter, then share the URL.",
+        route: "/select",
+      },
+      {
+        artifact: "Pricing-reference note",
+        howToProduce:
+          "Open /pricing for each candidate, copy the verbatim values + retrievedAt into a one-page note.",
+        route: "/pricing",
+      },
+      {
+        artifact: "Lifecycle risk note",
+        howToProduce:
+          "Open the model page; copy lifecycle state, retirement date if any, and the source citation.",
+        route: "/models",
+      },
+      {
+        artifact: "Markdown evidence brief",
+        howToProduce:
+          "Open /briefs/build with the candidate slugs and export Markdown for the review meeting.",
+        route: "/briefs/build",
+      },
     ],
   },
 
@@ -291,6 +375,40 @@ const AUDIENCES: AudiencePage[] = [
       "Substitute for human review on a customer-facing surface.",
       "Approve a pipeline as production-ready.",
     ],
+    exampleSituation:
+      "A scheduled automation calls a model to classify incoming records and writes results downstream. A snapshot rotation last week silently changed the model's category labels — the parser is now dropping 8% of records.",
+    bestStartingPoint: {
+      label: "Automation specialist learning path",
+      href: "/learn/path/automation-specialist",
+      reason:
+        "The automation path frames structured output, pricing references, and the automation workflow testing playbook together — so unattended runs surface regressions in the canary suite before they reach downstream consumers.",
+    },
+    artifactWalkthrough: [
+      {
+        artifact: "Safe model-use checklist",
+        howToProduce:
+          "Open the automation risk checklist template and tailor each section to the pipeline under review.",
+        route: "/lab/templates/automation-risk-checklist",
+      },
+      {
+        artifact: "Prompt test matrix",
+        howToProduce:
+          "Run the automation-robustness prompt set in your harness and record per-prompt observations in the matrix.",
+        route: "/lab/templates/prompt-test-matrix",
+      },
+      {
+        artifact: "Markdown evidence brief",
+        howToProduce:
+          "Export the brief from /briefs/build with the candidates and use case the automation depends on.",
+        route: "/briefs/build",
+      },
+      {
+        artifact: "External test plan",
+        howToProduce:
+          "Walk the automation workflow testing playbook and write down the canary suite + regression cadence.",
+        route: "/lab/automation-workflow-testing",
+      },
+    ],
   },
 
   // -------------------------------------------------------------------
@@ -370,6 +488,40 @@ const AUDIENCES: AudiencePage[] = [
       "Provide legal, risk, or compliance approval.",
       "Issue badges, credentials, or sign-offs.",
       "Replace the reviewer's organisation's own approval process.",
+    ],
+    exampleSituation:
+      "An internal review board needs a defensible evidence trail for a model already in production. Citations are months old; lifecycle has shifted; the previous brief no longer matches what the catalogue records.",
+    bestStartingPoint: {
+      label: "Governance learning path",
+      href: "/learn/path/governance",
+      reason:
+        "The governance path sequences lifecycle, status, benchmark limits, and source freshness — the four lessons that map directly onto the evidence reviewers care about.",
+    },
+    artifactWalkthrough: [
+      {
+        artifact: "Source freshness checklist",
+        howToProduce:
+          "Export the reverification checklist filtered to the provider under review.",
+        route: "/reverification",
+      },
+      {
+        artifact: "Lifecycle review note",
+        howToProduce:
+          "Open each model page and copy the lifecycle field + retirement date + source citation.",
+        route: "/models",
+      },
+      {
+        artifact: "Data gap list",
+        howToProduce:
+          "Walk /coverage for the provider and list every unverified field that needs external follow-up.",
+        route: "/coverage",
+      },
+      {
+        artifact: "Governance review brief",
+        howToProduce:
+          "Generate the brief from /briefs/build with the relevant candidates and use case, then attach the freshness checklist and data-gap list.",
+        route: "/briefs/build",
+      },
     ],
   },
 ];

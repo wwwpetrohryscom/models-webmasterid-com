@@ -67,6 +67,12 @@ export interface EvaluationPromptSet {
   relatedTemplates: string[];
   relatedRoutes: EvaluationPromptLink[];
   policyNote: string;
+  /** Sprint 34 — how to use this set with the prompt-test-matrix template. */
+  matrixUsageNote?: string[];
+  /** Sprint 34 — claims the reader should NOT draw from this set. */
+  doNotConclude?: string[];
+  /** Sprint 34 — situations that warrant rerunning the set. */
+  rerunWhen?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -232,6 +238,21 @@ const PROMPT_SETS: EvaluationPromptSet[] = [
     ],
     policyNote:
       "The prompts are evaluation inputs, not production prompts. Passing them does not certify the model for summarisation in any specific workload.",
+    matrixUsageNote: [
+      "Map each prompt ID (SUM-01 … SUM-05) to a row in the prompt-test-matrix template.",
+      "Record verbatim outputs in the matrix cells — do not paraphrase.",
+      "Use the rollup section to capture observations per candidate, not a single score.",
+    ],
+    doNotConclude: [
+      "That the candidate is 'better at summarisation' across all workloads.",
+      "That hallucination behaviour generalises beyond this prompt set.",
+      "That a single rerun with different temperature would replicate the result.",
+    ],
+    rerunWhen: [
+      "The provider rotates the snapshot.",
+      "Your summarisation workload shifts to a different document class.",
+      "The sampling parameters you ship change.",
+    ],
   },
 
   // -------------------------------------------------------------------
@@ -374,6 +395,21 @@ const PROMPT_SETS: EvaluationPromptSet[] = [
     ],
     policyNote:
       "The prompts are evaluation inputs. They do not validate any model for any compliance regime and do not guarantee schema reliability in production traffic.",
+    matrixUsageNote: [
+      "Map each prompt ID (EXT-01 … EXT-05) to a row.",
+      "Record schema validity in the per-candidate cells (✓ / ✗ / ? with the validator output excerpt).",
+      "Capture field-level failure modes in the rollup so the parser owner can read them.",
+    ],
+    doNotConclude: [
+      "That schema validity in this set guarantees validity for your real schema.",
+      "That a single passing run means tool calling is reliable.",
+      "That validity will hold across providers with different schema vocabularies.",
+    ],
+    rerunWhen: [
+      "Your real schema changes shape.",
+      "The provider rotates the snapshot.",
+      "The model adds or removes a structured-output API surface.",
+    ],
   },
 
   // -------------------------------------------------------------------
@@ -510,6 +546,21 @@ const PROMPT_SETS: EvaluationPromptSet[] = [
     ],
     policyNote:
       "Long-context behaviour is workload-specific. The prompts surface a particular failure mode (conflict detection + absent-information handling) and do not predict performance at any particular prompt size.",
+    matrixUsageNote: [
+      "Map each prompt ID (LCR-01 … LCR-05) to a row in the matrix.",
+      "Record verbatim answers — quote attribution is part of the evidence.",
+      "Capture section-attribution observations alongside the final answer.",
+    ],
+    doNotConclude: [
+      "That the model's recall behaviour scales to your real prompt sizes.",
+      "That absent-information handling generalises beyond this set.",
+      "That cross-reference reliability holds for asymmetric retrieval orderings.",
+    ],
+    rerunWhen: [
+      "Your prompt structure changes (number of sections, ordering).",
+      "The provider expands the verified context window.",
+      "A snapshot rotation shifts long-prompt behaviour.",
+    ],
   },
 
   // -------------------------------------------------------------------
@@ -647,6 +698,21 @@ const PROMPT_SETS: EvaluationPromptSet[] = [
     ],
     policyNote:
       "Instruction-following observations are workload-specific. The set surfaces drift; it does not certify the model for any production prompt.",
+    matrixUsageNote: [
+      "Map each prompt ID (IF-01 … IF-05) to a row.",
+      "Record per-instruction observations — line count, word count, forbidden-word violations, exact phrase honoured.",
+      "Note sampling parameters; instruction following often drifts at higher temperatures.",
+    ],
+    doNotConclude: [
+      "That the model 'follows instructions reliably' across all prompt shapes.",
+      "That a single passing rerun rules out non-determinism.",
+      "That instruction adherence in this set predicts production system-prompt behaviour.",
+    ],
+    rerunWhen: [
+      "You change the production system prompt shape.",
+      "Sampling parameters shift in production.",
+      "A snapshot rotation lands.",
+    ],
   },
 
   // -------------------------------------------------------------------
@@ -785,6 +851,21 @@ const PROMPT_SETS: EvaluationPromptSet[] = [
     ],
     policyNote:
       "These prompts are safe boundary-setting evaluation inputs. They do not constitute a safety evaluation, do not certify the model for any regulated use, and must not be repurposed as production prompts.",
+    matrixUsageNote: [
+      "Map each prompt ID (RB-01 … RB-05) to a row.",
+      "Record refusal vs compliance vs over-refusal observations per candidate.",
+      "Note whether the response included an unhelpful refusal — that is a regression too.",
+    ],
+    doNotConclude: [
+      "That the candidate has 'safe behaviour' generally.",
+      "That this set substitutes for a red-team or safety audit.",
+      "That refusal stability holds across snapshot rotations without rerunning the suite.",
+    ],
+    rerunWhen: [
+      "Every snapshot rotation, without exception.",
+      "Before any release that lets the model respond to free-form user input.",
+      "After any provider policy update.",
+    ],
   },
 
   // -------------------------------------------------------------------
@@ -925,6 +1006,21 @@ const PROMPT_SETS: EvaluationPromptSet[] = [
     ],
     policyNote:
       "The prompts are evaluation inputs for automation-style contracts. They do not guarantee automation reliability, do not certify the model for production use, and do not assert SEO or business outcomes.",
+    matrixUsageNote: [
+      "Map each prompt ID (AUT-01 … AUT-05) to a row.",
+      "Record exact-string adherence and per-decision correctness.",
+      "Capture any prose the model added around contract-bound responses — downstream parsers will care.",
+    ],
+    doNotConclude: [
+      "That the candidate is 'safe for automation' generally.",
+      "That a single passing run rules out contract drift after a snapshot rotation.",
+      "That the model will keep honouring an allowed-category list under load.",
+    ],
+    rerunWhen: [
+      "Every snapshot rotation.",
+      "Before changing the automation's allowed-category list.",
+      "After any provider-side change to retry or rate-limit behaviour.",
+    ],
   },
 ];
 

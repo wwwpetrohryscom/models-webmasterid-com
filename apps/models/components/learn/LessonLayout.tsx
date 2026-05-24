@@ -6,6 +6,11 @@ import { breadcrumbJsonLd, articleJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import type { LessonSummary } from "@/lib/lessons";
 import { getLearningPathsForLesson } from "@/lib/learning-paths";
+import { TeachingExample } from "@/components/learn/TeachingExample";
+import { BadBetterExample } from "@/components/learn/BadBetterExample";
+import { ArtifactExample } from "@/components/learn/ArtifactExample";
+import { WorkflowBridge } from "@/components/learn/WorkflowBridge";
+import { ReviewChecklist } from "@/components/learn/ReviewChecklist";
 
 /**
  * LessonLayout — shared shell for every /learn/<slug> lesson page.
@@ -79,6 +84,32 @@ export function LessonLayout({
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
         <article className="prose-content max-w-none space-y-8 text-[15px] leading-relaxed text-muted-foreground">
           {children}
+
+          {lesson.teachingExample ? (
+            <TeachingExample example={lesson.teachingExample} />
+          ) : null}
+
+          {lesson.badBetterExample ? (
+            <BadBetterExample example={lesson.badBetterExample} />
+          ) : null}
+
+          {lesson.artifactExample ? (
+            <ArtifactExample
+              artifact={lesson.artifactExample}
+              caption="Substitute your real values when you walk the workflow. The catalogue never generates this artifact for you."
+            />
+          ) : null}
+
+          {lesson.workflowBridge ? (
+            <WorkflowBridge steps={lesson.workflowBridge} />
+          ) : null}
+
+          {lesson.reviewChecklist ? (
+            <ReviewChecklist
+              items={lesson.reviewChecklist}
+              caution="No persistence — the checklist resets on every visit. Capture progress in your own notes."
+            />
+          ) : null}
 
           <section aria-label="What this lesson does not teach" className="card-surface space-y-2 p-5 text-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">

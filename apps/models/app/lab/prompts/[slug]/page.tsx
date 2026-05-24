@@ -230,6 +230,37 @@ export default async function PromptSetDetailPage({
         items={set.comparisonNotes}
       />
 
+      {set.matrixUsageNote ? (
+        <PromptObservationChecklist
+          title="How to use with the prompt-test matrix"
+          caption="The matrix template ships at /lab/templates/prompt-test-matrix."
+          items={set.matrixUsageNote}
+        />
+      ) : null}
+
+      {set.doNotConclude ? (
+        <section
+          aria-label="What not to conclude"
+          className="card-surface space-y-2 p-5 text-sm not-prose"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            What not to conclude
+          </p>
+          <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+            {set.doNotConclude.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {set.rerunWhen ? (
+        <PromptObservationChecklist
+          title="When to rerun this set"
+          items={set.rerunWhen}
+        />
+      ) : null}
+
       <section
         aria-label="Related playbooks and templates"
         className="card-surface space-y-3 p-5 text-sm"

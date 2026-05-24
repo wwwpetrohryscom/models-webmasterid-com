@@ -1557,6 +1557,121 @@ integrity guards scan the `automation-specialists` and
 `governance-teams` slices specifically for the most
 likely overclaiming language.
 
+**Sprint 34 — content depth + teaching examples.**
+Sprint 34 raises the teaching quality on every existing
+surface without adding new routes. The product loop
+stays Learn → Apply → Verify → Test; the surfaces
+behind it become more useful.
+
+Five new server-rendered components in
+`apps/models/components/learn/`:
+
+- `TeachingExample` — generic, illustrative scenario
+  that names the verified fields the reader should
+  inspect next. Always labelled "Illustrative — not a
+  recommendation."
+- `BadBetterExample` — two-column weak-vs-better
+  comparison with a why-better explanation.
+- `ArtifactExample` — paste-ready Markdown excerpt
+  rendered in a non-executable `<pre>` block.
+- `WorkflowBridge` — concept → workflow connector with
+  four numbered tiles (learn / apply / verify / test).
+- `ReviewChecklist` — non-interactive checklist with
+  optional caution + next-route footer.
+
+All five components are server components with no
+client state — no persistence, no progress tracking.
+
+The five existing registries gain optional teaching
+fields:
+
+- `lib/lessons.ts` — `teachingExample`,
+  `badBetterExample`, `artifactExample`,
+  `workflowBridge`, `reviewChecklist`. All 10 lessons
+  populated. Rendered by `LessonLayout` under the body.
+- `lib/learning-exercises.ts` — `commonMistake`,
+  `artifactExample`, `repeatWhen`, `reviewChecklist`.
+  All 8 exercises populated. Rendered by
+  `ExerciseLayout` under the body.
+- `lib/lab-playbooks.ts` — `weakTestExample`,
+  `strongerTestExample`, `observationRubric` (rows
+  with `dimension` / `whatToLookFor` / `whatToRecord`,
+  no scoring vocabulary), `briefNote`. All 6 playbooks
+  populated. Rendered on `/lab/[slug]` under the
+  existing outputs section.
+- `lib/evaluation-prompts.ts` — `matrixUsageNote`,
+  `doNotConclude`, `rerunWhen`. All 6 prompt sets
+  populated. Rendered on `/lab/prompts/[slug]` under
+  the comparison-notes section.
+- `lib/audiences.ts` — `exampleSituation`,
+  `bestStartingPoint`, `artifactWalkthrough`. All 4
+  audiences populated. Rendered on `/for/[slug]`
+  under the hero and inside the body.
+
+The homepage "What you can produce here" section is
+reframed as "See what you will produce" with a new
+4-tile grid that links the example decision brief,
+the evaluation plan template, the prompt test matrix
+template, and the audience walkthroughs — preserving
+the existing 6-tile "open the surface" grid below.
+
+No new routes; `ROUTE_SET_VERSION` stays at
+`content-v15`. Ten new integrity guards enforce:
+
+1. The 5 teaching components exist.
+2. `LessonLayout` references each of the 5 teaching
+   components.
+3. All 10 lessons carry `teachingExample` +
+   `badBetterExample` + `workflowBridge`.
+4. All 8 exercises carry `commonMistake` +
+   `artifactExample`.
+5. All 6 lab playbooks carry `weakTestExample` +
+   `strongerTestExample` + `observationRubric` +
+   `briefNote`.
+6. Observation-rubric blocks contain no scoring
+   vocabulary (`assign/give/compute a score`,
+   `rating/grade of`, `pass/fail score`). Disclaimer
+   prose elsewhere in the registry stays readable —
+   the guard scopes to `observationRubric` blocks
+   specifically.
+7. All 6 prompt sets carry `matrixUsageNote` +
+   `doNotConclude` + `rerunWhen`.
+8. All 4 audiences carry `exampleSituation` +
+   `artifactWalkthrough` + `bestStartingPoint`.
+9. The 5 teaching components themselves contain no
+   banned phrasing (`best model is/for`,
+   `is the winner`, `cheapest/fastest <noun>`,
+   `guaranteed to <verb>`,
+   `certified for/compliant/by`,
+   `is production ready`, `compliance approved`,
+   `rank #1`).
+10. OpenAI no-metrics re-checked on the 5 teaching
+    components.
+
+**Teaching example policy.** Every illustrative
+example is generic, uses fictional values where
+specific (Aurora release, Atlas provider, INV-2099
+invoice), and is rendered with an "Illustrative — not
+a recommendation" label. The catalogue never produces
+the artifact for the reader — the example shows the
+shape; the reader substitutes their own values when
+they walk the workflow.
+
+**Observation rubric policy.** Lab observation
+rubrics list what to look at and what to record per
+dimension. They contain no aggregate score, no
+rating, no pass/fail percentage. Per-prompt outcomes
+travel into the brief as observations, not as a
+collapsed number — keeping the evidence the reviewer
+reads honest.
+
+**Artifact walkthrough policy.** Audience pages list
+per-artifact instructions (open this route, capture
+this output, paste into the brief). The walkthroughs
+never imply that following them produces a "correct"
+model choice — they describe the shape of the
+evidence, not its conclusion.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,

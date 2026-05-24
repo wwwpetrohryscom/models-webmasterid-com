@@ -193,6 +193,97 @@ export default async function LabPlaybookDetailPage({
         items={playbook.outputs}
       />
 
+      {playbook.weakTestExample && playbook.strongerTestExample ? (
+        <section
+          aria-label="Weak test vs stronger test"
+          className="card-surface space-y-3 p-5 text-sm not-prose"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            Weak test vs stronger test
+          </p>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="rounded-lg border border-border bg-muted/40 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Weak test
+              </p>
+              <ul className="mt-2 ml-5 list-disc space-y-1 text-muted-foreground">
+                {playbook.weakTestExample.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                Stronger test
+              </p>
+              <ul className="mt-2 ml-5 list-disc space-y-1 text-foreground">
+                {playbook.strongerTestExample.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {playbook.observationRubric ? (
+        <section
+          aria-label="Observation rubric"
+          className="card-surface space-y-3 p-5 text-sm not-prose"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            Observation rubric
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Observations, not scores. Each row names what to look at
+            and what to record — there is no aggregate number.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full table-fixed text-left text-sm">
+              <thead>
+                <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
+                  <th scope="col" className="w-1/4 py-2 pr-3 font-medium">
+                    Dimension
+                  </th>
+                  <th scope="col" className="w-1/3 py-2 pr-3 font-medium">
+                    What to look for
+                  </th>
+                  <th scope="col" className="py-2 font-medium">
+                    What to record
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {playbook.observationRubric.map((row) => (
+                  <tr
+                    key={row.dimension}
+                    className="border-b border-border/60 align-top"
+                  >
+                    <td className="py-2 pr-3 font-medium text-foreground">
+                      {row.dimension}
+                    </td>
+                    <td className="py-2 pr-3 text-muted-foreground">
+                      {row.whatToLookFor}
+                    </td>
+                    <td className="py-2 text-muted-foreground">
+                      {row.whatToRecord}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
+
+      {playbook.briefNote ? (
+        <LabChecklistSection
+          title="Record this in your brief"
+          caption="Brief content that keeps the playbook output reusable for a reviewer."
+          items={playbook.briefNote}
+        />
+      ) : null}
+
       <section
         aria-label="Related templates"
         className="card-surface space-y-2 p-5 text-sm"
