@@ -6,6 +6,7 @@ import { breadcrumbJsonLd, articleJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import type { LearningExercise } from "@/lib/learning-exercises";
 import { getLesson } from "@/lib/lessons";
+import { getLearningPathsForExercise } from "@/lib/learning-paths";
 
 /**
  * ExerciseLayout — shared shell for every /learn/exercises/<slug>
@@ -26,6 +27,7 @@ export function ExerciseLayout({
   const relatedLessons = exercise.relatedLessonSlugs
     .map((slug) => getLesson(slug))
     .filter((l): l is NonNullable<ReturnType<typeof getLesson>> => Boolean(l));
+  const relatedPaths = getLearningPathsForExercise(exercise.slug);
 
   return (
     <div className="container-page py-10 md:py-14">
@@ -122,6 +124,32 @@ export function ExerciseLayout({
               </p>
             )}
           </section>
+
+          {relatedPaths.length ? (
+            <section
+              aria-label="This exercise appears in these paths"
+              className="card-surface space-y-2 p-5 text-sm"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                This exercise appears in
+              </p>
+              <ul className="space-y-1.5">
+                {relatedPaths.map((p) => (
+                  <li key={p.slug}>
+                    <Link
+                      href={`/learn/path/${p.slug}`}
+                      className="text-primary hover:underline"
+                    >
+                      {p.title} →
+                    </Link>
+                    <p className="text-xs text-muted-foreground">
+                      {p.audienceLabel} · {p.estimatedMinutes} min
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           <section
             aria-label="Evidence artifact"

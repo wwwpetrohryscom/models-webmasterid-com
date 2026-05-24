@@ -5,19 +5,24 @@ import { JsonLd } from "@/components/JsonLd";
 import { PageShell } from "@/components/PageShell";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ExerciseCard } from "@/components/learn/ExerciseCard";
+import { LearningPathPicker } from "@/components/learn/LearningPathPicker";
+import { NoProgressPolicy } from "@/components/learn/NoProgressPolicy";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import { lessons, getLesson } from "@/lib/lessons";
 import { learningExercises } from "@/lib/learning-exercises";
+import { getLearningPaths } from "@/lib/learning-paths";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Learn AI model selection",
+  title: "Learn how to use AI models correctly",
   description:
-    "A learning product for AI model selection: concept lessons, practical exercises, and a curated beginner path that all route into the verified-data workflows (select, compare, briefs, sources).",
+    "AI usage learning platform powered by verified model intelligence. Role-based paths sequence concept lessons, practical exercises, and verified-data workflows into a curriculum — beginner, developer, product manager, governance, automation specialist.",
   path: "/learn",
   keywords: [
     "learn ai model selection",
+    "ai usage curriculum",
     "ai model fundamentals",
+    "role based ai learning path",
     "ai model selection exercises",
     "context window explained",
     "ai model pricing references",
@@ -50,11 +55,12 @@ export default function LearnHubPage() {
     .map((slug) => getLesson(slug))
     .filter((l): l is NonNullable<ReturnType<typeof getLesson>> => Boolean(l));
 
+  const paths = getLearningPaths();
   return (
     <PageShell
       eyebrow="Learn"
-      title="Learn AI model selection"
-      intro="Understand how context windows, output limits, pricing references, hosted availability, lifecycle, sources, and data gaps affect real AI model decisions. Then apply the lesson in the verified-data workflows."
+      title="Learn how to use AI models correctly"
+      intro="Follow role-based learning paths that teach AI model concepts, then apply them through source-backed shortlists, comparisons, evidence briefs, and freshness checks. AI usage curriculum powered by verified model intelligence."
     >
       <Breadcrumbs
         items={[
@@ -75,10 +81,18 @@ export default function LearnHubPage() {
             name: "Learn AI model selection",
             url: `${siteConfig.url}/learn`,
             description:
-              "Concept lessons + practical exercises for AI model selection — each linked to the catalogue workflows that apply the lesson.",
+              "AI usage learning platform powered by verified model intelligence. Role-based paths, concept lessons, practical exercises — each linked to the catalogue workflows that apply the lesson.",
             dateModified: siteConfig.buildDate,
             isPartOf: { "@type": "WebSite", url: siteConfig.url },
             hasPart: [
+              ...paths.map((p) => ({
+                "@type": "Course",
+                name: p.title,
+                url: `${siteConfig.url}/learn/path/${p.slug}`,
+                description: p.summary,
+                timeRequired: `PT${p.estimatedMinutes}M`,
+                educationalLevel: p.difficulty,
+              })),
               ...lessons.map((l) => ({
                 "@type": "TechArticle",
                 name: l.title,
@@ -113,7 +127,15 @@ export default function LearnHubPage() {
               href="/learn/path/beginner"
               className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 font-medium text-primary hover:bg-primary/15"
             >
-              Start with the beginner path
+              Start beginner path
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="#paths"
+              className="rounded-lg border border-border bg-card px-3 py-1.5 text-foreground hover:border-primary/30"
+            >
+              Choose your role
             </Link>
           </li>
           <li>
@@ -126,29 +148,83 @@ export default function LearnHubPage() {
           </li>
           <li>
             <Link
-              href="/select"
+              href="/learn/paths"
               className="rounded-lg border border-border bg-card px-3 py-1.5 text-foreground hover:border-primary/30"
             >
-              Build a shortlist
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/compare/build"
-              className="rounded-lg border border-border bg-card px-3 py-1.5 text-foreground hover:border-primary/30"
-            >
-              Compare verified fields
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/briefs/build"
-              className="rounded-lg border border-border bg-card px-3 py-1.5 text-foreground hover:border-primary/30"
-            >
-              Export decision evidence
+              All paths
             </Link>
           </li>
         </ul>
+      </section>
+
+      <section
+        aria-label="Learn, apply, verify"
+        className="space-y-3"
+      >
+        <SectionHeader
+          eyebrow="Curriculum"
+          title="Learn → Apply → Verify"
+          description="Concept lessons explain the verified fields. Exercises route those concepts through the workspaces. Sources anchor every claim — every step of the curriculum stays auditable."
+          as="h2"
+        />
+        <div className="grid gap-3 md:grid-cols-3">
+        {[
+          {
+            eyebrow: "Learn",
+            title: "Learn concepts",
+            body: "Plain-language lessons on context windows, pricing references, hosted vs first-party, lifecycle, status, structured output, and benchmark limits.",
+            cta: { label: "Open lessons", href: "#concept-lessons" },
+          },
+          {
+            eyebrow: "Apply",
+            title: "Apply with workflows",
+            body: "Practical exercises that route through the selection, comparison, and brief workspaces — ending with shortlist URLs, comparison URLs, Markdown briefs, freshness checklists, and test plans.",
+            cta: { label: "All exercises", href: "/learn/exercises" },
+          },
+          {
+            eyebrow: "Verify",
+            title: "Verify with sources",
+            body: "Every claim in the catalogue is anchored to a primary-source citation with a retrievedAt date. The reverification queue surfaces what is due for re-check.",
+            cta: { label: "Open citation registry", href: "/sources" },
+          },
+        ].map((card) => (
+          <article
+            key={card.title}
+            className="card-surface space-y-2 p-5 text-sm"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              {card.eyebrow}
+            </p>
+            <p className="text-base font-semibold text-foreground">
+              {card.title}
+            </p>
+            <p className="text-muted-foreground">{card.body}</p>
+            <p>
+              <Link
+                href={card.cta.href}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                {card.cta.label} →
+              </Link>
+            </p>
+          </article>
+        ))}
+        </div>
+      </section>
+
+      <section
+        aria-label="Choose your learning path"
+        id="paths"
+        className="space-y-3"
+      >
+        <SectionHeader
+          eyebrow="Choose your path"
+          title="Role-based learning paths"
+          description="Five sequenced curriculums (beginner, developer, product manager, governance, automation specialist). Same lessons and exercises — different sequence and emphasis."
+          cta={{ label: "All paths", href: "/learn/paths" }}
+          as="h2"
+        />
+        <LearningPathPicker />
       </section>
 
       <aside
@@ -174,68 +250,6 @@ export default function LearnHubPage() {
       </aside>
 
       <section
-        id="start-here"
-        aria-label="Start here"
-        className="space-y-3"
-      >
-        <SectionHeader
-          eyebrow="Start here"
-          title="Beginner path"
-          description="Two readings, three exercises, one freshness review — about 35–40 minutes start to finish."
-          cta={{
-            label: "Open beginner path",
-            href: "/learn/path/beginner",
-          }}
-          as="h2"
-        />
-        <div className="card-surface p-5">
-          <ol className="grid gap-3 text-sm md:grid-cols-3 lg:grid-cols-6">
-            {[
-              {
-                label: "Read: how to choose an AI model",
-                href: "/learn/how-to-choose-ai-model",
-              },
-              {
-                label: "Read: context windows",
-                href: "/learn/context-window",
-              },
-              {
-                label: "Exercise: build first shortlist",
-                href: "/learn/exercises/build-first-shortlist",
-              },
-              {
-                label: "Exercise: compare context windows",
-                href: "/learn/exercises/compare-context-windows",
-              },
-              {
-                label: "Exercise: create decision brief",
-                href: "/learn/exercises/create-decision-brief",
-              },
-              {
-                label: "Review: sources and freshness",
-                href: "/learn/exercises/check-source-freshness",
-              },
-            ].map((step, i) => (
-              <li
-                key={step.href}
-                className="rounded-xl border border-border bg-card p-3"
-              >
-                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  Step {i + 1}
-                </p>
-                <Link
-                  href={step.href}
-                  className="mt-1 block text-sm font-semibold text-foreground hover:underline"
-                >
-                  {step.label}
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      <section
         id="concept-lessons"
         aria-label="Concept lessons"
         className="space-y-3"
@@ -259,7 +273,7 @@ export default function LearnHubPage() {
                     className="card-surface block h-full p-5 transition hover:border-primary/30 hover:shadow-elevated"
                   >
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {lesson.path.replace(/-/g, " ")}
+                      {lesson.group.replace(/-/g, " ")}
                     </p>
                     <p className="mt-1 text-base font-semibold text-foreground">
                       {lesson.title}
@@ -287,7 +301,7 @@ export default function LearnHubPage() {
                     className="card-surface block h-full p-5 transition hover:border-primary/30 hover:shadow-elevated"
                   >
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {lesson.path.replace(/-/g, " ")}
+                      {lesson.group.replace(/-/g, " ")}
                     </p>
                     <p className="mt-1 text-base font-semibold text-foreground">
                       {lesson.title}
@@ -398,6 +412,8 @@ export default function LearnHubPage() {
           ))}
         </ul>
       </section>
+
+      <NoProgressPolicy />
 
       <aside
         id="advanced-reading"

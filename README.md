@@ -474,6 +474,57 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+20. **Role-based learning paths + AI usage curriculum positioning
+    (Sprint 30).** The learning layer becomes a guided curriculum.
+    A new
+    [`lib/learning-paths.ts`](apps/models/lib/learning-paths.ts)
+    registry defines five role-based paths — beginner, developer,
+    product-manager, governance, and automation-specialist — each
+    stitching lessons, exercises, and workflow surfaces into a
+    sequenced reading + practice plan. Every path declares what the
+    reader will learn, what they will build, the evidence artifacts
+    they will end with, the tools they will use, and an explicit
+    "does not promise" list. The lessons.ts registry's previous
+    `learningPaths` (topical lesson groupings) is renamed to
+    `lessonGroups` to free the namespace. Five new server-rendered
+    components in
+    [`components/learn/`](apps/models/components/learn/) —
+    `LearningPathCard`, `LearningPathTimeline`,
+    `LearningPathProduces`, `LearningPathPicker`, `NoProgressPolicy`
+    — drive the curriculum surfaces. A new
+    [`/learn/paths`](apps/models/app/learn/paths/page.tsx) index
+    renders all five path cards. The previous static
+    `/learn/path/beginner` page is replaced with a dynamic
+    [`/learn/path/[slug]`](apps/models/app/learn/path/%5Bslug%5D/page.tsx)
+    route that prerenders all five paths and uses schema.org
+    `Course` JSON-LD. The `/learn` hub is reshaped around the
+    Learn → Apply → Verify positioning and renders the
+    `LearningPathPicker`. `LessonLayout` and `ExerciseLayout` gain
+    a "This appears in these paths" sidebar via
+    `getLearningPathsForLesson()` /
+    `getLearningPathsForExercise()`. `/learn/exercises` gains an
+    "Exercises by path" section. The Hero gets new copy ("Learn how
+    to use AI models correctly", "AI usage learning platform
+    powered by verified model intelligence"); `/intelligence` notes
+    the same backbone powers the curriculum; the homepage Learn
+    section becomes a five-card path picker;
+    `/select`/`/compare/build`/`/briefs/build`/`/demos` link out to
+    role-specific paths. `ROUTE_SET_VERSION` bumps to `content-v12`.
+    Thirteen new integrity guards enforce: the path registry exists
+    with all 8 exports, all 5 path slugs are present, the 5 path
+    components exist, `/learn/paths` + dynamic `/learn/path/[slug]`
+    exist, `/learn` renders the picker + Learn-Apply-Verify section
+    + `NoProgressPolicy`, every path page renders Timeline +
+    Produces + NoProgressPolicy, homepage + `/how-it-works` each
+    link to ≥3 role paths, `LessonLayout`/`ExerciseLayout` call the
+    "for this lesson/exercise" path helpers, `/learn/exercises`
+    has an Exercises-by-path section, no certificate /
+    completion-guarantee phrasing, no scoring / ranking phrasing,
+    no SEO ranking guarantees (special-case for the
+    automation-specialist path), no OpenAI metrics, and route
+    contract + sitemap + llms.txt + smoke + indexing advertise the
+    6 new routes.
+
 19. **Practical exercises + 4 lessons + beginner path (Sprint
     29).** The learning layer gains a practical workflow tier. A new
     [`lib/learning-exercises.ts`](apps/models/lib/learning-exercises.ts)

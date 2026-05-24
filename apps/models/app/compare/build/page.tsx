@@ -309,19 +309,19 @@ export default async function CompareBuilderPage({
             not as picks.
           </p>
           <p className="mt-1 text-[11px]">
-            New to comparison methodology? Start with{" "}
+            Need a sequenced curriculum first?{" "}
             <Link
-              href="/learn/how-to-choose-ai-model"
+              href="/learn/path/developer"
               className="text-primary hover:underline"
             >
-              /learn/how-to-choose-ai-model
+              Developer path
             </Link>{" "}
-            or{" "}
+            ·{" "}
             <Link
-              href="/learn/context-window"
+              href="/learn/path/governance"
               className="text-primary hover:underline"
             >
-              /learn/context-window
+              Governance path
             </Link>
             .
           </p>

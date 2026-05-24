@@ -5,6 +5,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { breadcrumbJsonLd, articleJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import type { LessonSummary } from "@/lib/lessons";
+import { getLearningPathsForLesson } from "@/lib/learning-paths";
 
 /**
  * LessonLayout — shared shell for every /learn/<slug> lesson page.
@@ -60,7 +61,7 @@ export function LessonLayout({
 
       <header className="mt-6 max-w-3xl">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-          Learn · {lesson.path.replace(/-/g, " ")}
+          Learn · {lesson.group.replace(/-/g, " ")}
         </p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {lesson.title}
@@ -117,6 +118,36 @@ export function LessonLayout({
               ))}
             </ul>
           </section>
+
+          {(() => {
+            const paths = getLearningPathsForLesson(lesson.slug);
+            if (!paths.length) return null;
+            return (
+              <section
+                aria-label="This lesson appears in these paths"
+                className="card-surface space-y-2 p-5 text-sm"
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                  This lesson appears in
+                </p>
+                <ul className="space-y-1.5">
+                  {paths.map((p) => (
+                    <li key={p.slug}>
+                      <Link
+                        href={`/learn/path/${p.slug}`}
+                        className="text-primary hover:underline"
+                      >
+                        {p.title} →
+                      </Link>
+                      <p className="text-xs text-muted-foreground">
+                        {p.audienceLabel} · {p.estimatedMinutes} min
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          })()}
 
           {relatedLessons.length ? (
             <section

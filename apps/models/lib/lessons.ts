@@ -21,7 +21,12 @@
  *     not endorsements.
  *   - Examples come from the typed local data layer only.
  */
-export type LearningPathSlug =
+/**
+ * The topical groupings lessons fall into ("model fundamentals",
+ * "pricing and hosted", etc.). These are *not* the role-based
+ * learning paths (Sprint 30) — those live in `lib/learning-paths.ts`.
+ */
+export type LessonGroupSlug =
   | "model-fundamentals"
   | "pricing-and-hosted"
   | "comparison-methodology"
@@ -40,8 +45,8 @@ export type LessonSlug =
   | "status-aware-selection"
   | "benchmark-limitations";
 
-export interface LearningPath {
-  slug: LearningPathSlug;
+export interface LessonGroup {
+  slug: LessonGroupSlug;
   title: string;
   description: string;
   lessonSlugs: LessonSlug[];
@@ -57,7 +62,7 @@ export interface LessonSummary {
   slug: LessonSlug;
   title: string;
   oneLine: string;
-  path: LearningPathSlug;
+  group: LessonGroupSlug;
   /** Workflow routes this lesson asks the reader to apply next. */
   applyRoutes: LessonApplyLink[];
   /** Other lessons that pair naturally with this one. */
@@ -121,7 +126,7 @@ export const lessons: LessonSummary[] = [
     title: "How to choose an AI model",
     oneLine:
       "A workflow for picking which AI model to test next — start from your use case, inspect verified fields, export an evidence brief.",
-    path: "model-fundamentals",
+    group: "model-fundamentals",
     applyRoutes: [APPLY_SELECT, APPLY_COMPARE, APPLY_BRIEF, APPLY_SOURCES],
     relatedLessonSlugs: [
       "context-window",
@@ -136,7 +141,7 @@ export const lessons: LessonSummary[] = [
     title: "Context windows explained",
     oneLine:
       "What a context window means, what it does not guarantee, and which verified fields to inspect before assuming a model fits your prompt.",
-    path: "model-fundamentals",
+    group: "model-fundamentals",
     applyRoutes: [APPLY_SELECT, APPLY_COMPARE, APPLY_SOURCES],
     relatedLessonSlugs: [
       "how-to-choose-ai-model",
@@ -150,7 +155,7 @@ export const lessons: LessonSummary[] = [
     title: "Hosted vs first-party AI models",
     oneLine:
       "Why the model creator and the billing provider are usually different, and how the catalogue keeps the two separate.",
-    path: "pricing-and-hosted",
+    group: "pricing-and-hosted",
     applyRoutes: [APPLY_SELECT, APPLY_COMPARE, APPLY_SOURCES],
     relatedLessonSlugs: ["pricing-references", "how-to-choose-ai-model"],
     updatedDate: "2026-05-24",
@@ -160,7 +165,7 @@ export const lessons: LessonSummary[] = [
     title: "AI model pricing references explained",
     oneLine:
       "Why catalogue pricing rows are references, not quotes — and how to read them without ranking models by price.",
-    path: "pricing-and-hosted",
+    group: "pricing-and-hosted",
     applyRoutes: [APPLY_COMPARE, APPLY_SOURCES, APPLY_BRIEF],
     relatedLessonSlugs: [
       "hosted-vs-first-party",
@@ -174,7 +179,7 @@ export const lessons: LessonSummary[] = [
     title: "Model lifecycle: active, deprecated, retired",
     oneLine:
       "What active, preview, deprecated, and retired mean for a model — and why lifecycle should gate integration decisions.",
-    path: "governance-and-sources",
+    group: "governance-and-sources",
     applyRoutes: [APPLY_SELECT, APPLY_REVERIFICATION, APPLY_COVERAGE],
     relatedLessonSlugs: [
       "how-to-choose-ai-model",
@@ -188,7 +193,7 @@ export const lessons: LessonSummary[] = [
     title: "How to test an AI model before integration",
     oneLine:
       "After the shortlist: how to run your own prompt, latency, rate-limit, cost, and compliance tests — using the evidence brief as the pack you ship to reviewers.",
-    path: "testing-workflow",
+    group: "testing-workflow",
     applyRoutes: [APPLY_BRIEF, APPLY_DEMOS, APPLY_REVERIFICATION],
     relatedLessonSlugs: [
       "how-to-choose-ai-model",
@@ -202,7 +207,7 @@ export const lessons: LessonSummary[] = [
     title: "Multimodal input: image, audio, video, PDF",
     oneLine:
       "How the catalogue records which models accept image, audio, video, or PDF input — and why marketing copy is not enough to assume support.",
-    path: "model-fundamentals",
+    group: "model-fundamentals",
     applyRoutes: [APPLY_SELECT, APPLY_COMPARE, APPLY_SOURCES],
     relatedLessonSlugs: [
       "how-to-choose-ai-model",
@@ -216,7 +221,7 @@ export const lessons: LessonSummary[] = [
     title: "Structured output, JSON mode, and tool use",
     oneLine:
       "The difference between structured output, JSON mode, and tool/function calling — and what is currently verified in the catalogue.",
-    path: "model-fundamentals",
+    group: "model-fundamentals",
     applyRoutes: [APPLY_COMPARE, APPLY_SOURCES, APPLY_COVERAGE],
     relatedLessonSlugs: [
       "multimodal-input",
@@ -230,7 +235,7 @@ export const lessons: LessonSummary[] = [
     title: "Status-aware model selection",
     oneLine:
       "Why vendor-reported status pages and independent probes are kept separate — and when status should gate a model decision.",
-    path: "governance-and-sources",
+    group: "governance-and-sources",
     applyRoutes: [APPLY_SELECT, APPLY_SOURCES, APPLY_REVERIFICATION],
     relatedLessonSlugs: [
       "model-lifecycle",
@@ -244,7 +249,7 @@ export const lessons: LessonSummary[] = [
     title: "Why benchmark scores can mislead",
     oneLine:
       "Contamination, prompt variance, version drift, and why the catalogue does not publish provider-reported benchmark scores casually.",
-    path: "comparison-methodology",
+    group: "comparison-methodology",
     applyRoutes: [APPLY_COMPARE, APPLY_SOURCES, APPLY_DEMOS],
     relatedLessonSlugs: [
       "how-to-choose-ai-model",
@@ -255,7 +260,7 @@ export const lessons: LessonSummary[] = [
   },
 ];
 
-export const learningPaths: LearningPath[] = [
+export const lessonGroups: LessonGroup[] = [
   {
     slug: "model-fundamentals",
     title: "Model fundamentals",
@@ -306,12 +311,14 @@ export function getLesson(slug: string): LessonSummary | undefined {
   return lessons.find((l) => l.slug === slug);
 }
 
-export function getLessonsForPath(path: LearningPathSlug): LessonSummary[] {
+export function getLessonsForGroup(
+  group: LessonGroupSlug
+): LessonSummary[] {
   const seen = new Set<string>();
-  const path_def = learningPaths.find((p) => p.slug === path);
-  if (!path_def) return [];
+  const def = lessonGroups.find((p) => p.slug === group);
+  if (!def) return [];
   const out: LessonSummary[] = [];
-  for (const slug of path_def.lessonSlugs) {
+  for (const slug of def.lessonSlugs) {
     const lesson = getLesson(slug);
     if (lesson && !seen.has(lesson.slug)) {
       seen.add(lesson.slug);
@@ -321,7 +328,7 @@ export function getLessonsForPath(path: LearningPathSlug): LessonSummary[] {
   return out;
 }
 
-export function getLearningPathRoutes(): string[] {
+export function getLessonRoutes(): string[] {
   return lessons.map((l) => `/learn/${l.slug}`);
 }
 

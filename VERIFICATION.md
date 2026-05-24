@@ -926,6 +926,152 @@ list of existing pages. It does not introduce a curriculum
 with grades, an account system, or any progress-tracking
 state. Completion is the artifacts in the reader's hands.
 
+**Sprint 30 — role-based learning paths + AI usage
+curriculum positioning.** Sprint 30 promotes the catalogue
+to "AI usage learning platform powered by verified model
+intelligence". The Hero, homepage, /how-it-works, and
+/intelligence intros all reflect the repositioning, and the
+/learn hub becomes a guided curriculum landing organised
+around Learn → Apply → Verify.
+
+A new
+[`lib/learning-paths.ts`](apps/models/lib/learning-paths.ts)
+registry is the single source of truth for role-based paths.
+Five paths ship:
+
+- `beginner` — newcomer to AI model selection (3 lessons + 4
+  exercises, ~45 min).
+- `developer` — engineer preparing an integration (4
+  lessons + 3 exercises + 2 pre-seeded workflows, ~60 min).
+- `product-manager` — product manager / technical buyer (4
+  lessons + 3 exercises + 1 pre-seeded workflow, ~60 min).
+- `governance` — risk / compliance reviewer (4 lessons + 3
+  exercises + 3 audit workflows, ~70 min).
+- `automation-specialist` — automation builder / SEO
+  operator / technical consultant (5 lessons + 4 exercises +
+  3 pre-seeded workflows, ~75 min).
+
+Each path declares `whatYouWillLearn`, `whatYouWillBuild`,
+`evidenceArtifacts`, `prerequisites`, sequenced `steps`,
+`toolsUsed`, `doesNotPromise`, and `policyNote`. Step types
+are typed: `lesson` (resolved against `lessons.ts`),
+`exercise` (resolved against `learning-exercises.ts`), or
+`workflow` (canonical workspace route). Step builders throw
+at module-load if a slug is unknown — the path layer cannot
+drift from the underlying lesson / exercise registries.
+
+Five new server-rendered components in
+`apps/models/components/learn/`:
+
+- `LearningPathCard` — summary card (audience, difficulty,
+  minutes, artifact chips, start link).
+- `LearningPathTimeline` — numbered vertical timeline; each
+  step renders its kind chip, title, purpose, minutes, and
+  route link.
+- `LearningPathProduces` — four-block "what you walk away
+  with" card: what you will learn, what you will build,
+  evidence artifact chips, tools used.
+- `LearningPathPicker` — grid of all five path cards.
+- `NoProgressPolicy` — explicit "no accounts, no progress
+  tracking, no certificates" callout.
+
+[`/learn`](apps/models/app/learn/page.tsx) is reshaped:
+
+- New hero copy ("Learn how to use AI models correctly").
+- New "Learn → Apply → Verify" section with three cards
+  (Learn concepts · Apply with workflows · Verify with
+  sources).
+- `LearningPathPicker` directly under the hero.
+- Existing concept lessons grid + exercises section
+  preserved.
+- `NoProgressPolicy` near the end.
+
+[`/learn/paths`](apps/models/app/learn/paths/page.tsx) is a
+new index page that surfaces all five paths with a
+`CollectionPage` + per-path `Course` JSON-LD payload.
+
+The previous static
+`/learn/path/beginner/page.tsx` is replaced with a dynamic
+[`/learn/path/[slug]`](apps/models/app/learn/path/%5Bslug%5D/page.tsx)
+route that prerenders all five paths via
+`generateStaticParams()`. Each path detail page renders:
+
+- Hero with audience label, difficulty, minutes, summary
+- Policy note callout
+- At-a-glance card (audience, difficulty, time)
+- `LearningPathProduces` block
+- Prerequisites
+- `LearningPathTimeline`
+- Start-next card
+- "What this path does not promise" list
+- How to use this path
+- `NoProgressPolicy`
+- Related routes aside
+- schema.org `Course` JSON-LD with `hasPart` step list
+
+Global integration:
+
+- `LessonLayout` calls `getLearningPathsForLesson(slug)` and
+  surfaces a "This lesson appears in these paths" sidebar.
+- `ExerciseLayout` calls `getLearningPathsForExercise(slug)`
+  and surfaces the same.
+- `/learn/exercises` adds an "Exercises by path" section
+  with per-path exercise listings.
+- Homepage Learn section becomes a five-card path picker.
+- `/how-it-works` gains a "Choose a path" section.
+- `/select`, `/compare/build`, `/briefs/build`, `/demos`
+  link to role-specific paths.
+- SiteFooter Learn column adds all five path entries plus
+  the All paths index.
+
+Positioning copy refresh:
+
+- `components/Hero.tsx` — primary heading becomes "Learn how
+  to use AI models correctly", primary CTA becomes "Start
+  learning", secondary CTA "Choose your path".
+- `app/intelligence/page.tsx` — intro notes the same
+  verified-data backbone powers the curriculum at /learn.
+
+`ROUTE_SET_VERSION` bumps to `content-v12`. Thirteen new
+integrity guards enforce: registry has all 8 exports, 5 path
+slugs registered, 5 path components exist,
+`/learn/paths` + dynamic `/learn/path/[slug]` exist, `/learn`
+renders picker + Learn-Apply-Verify + NoProgressPolicy,
+detail page renders Timeline + Produces + NoProgressPolicy,
+homepage + `/how-it-works` each link ≥3 role paths,
+`LessonLayout` / `ExerciseLayout` call the path helpers,
+`/learn/exercises` has Exercises-by-path, no certificate
+language, no scoring/ranking language, **no SEO ranking
+guarantee language** (special-case scoped across path
+surfaces + Hero + homepage to catch automation-specialist
+drift), OpenAI no-metrics re-checked, route contract +
+sitemap + llms.txt + smoke + indexing all advertise the 6
+new routes. Three legacy guards (Sprint 26 Hero, Sprint 26
+workspace intros, Sprint 28 lesson registry) updated to
+accept the new positioning + renamed lesson groupings.
+
+**Automation-specialist path policy.** The automation
+specialist path is the highest-risk surface for
+promise-heavy SEO / automation marketing copy. The path
+explicitly lists "guaranteed automation reliability", "SEO
+ranking gains or traffic outcomes", "compliance approval
+for an automated workflow", and "production readiness
+without external testing" under `doesNotPromise`. A
+dedicated guard (`no SEO ranking guarantee language
+anywhere`) scans the path layer, Hero, homepage,
+`/how-it-works`, and `/learn` for forbidden phrasing
+(`guaranteed seo/search/ranking/traffic`,
+`improve/boost/grow your seo by/to/with`, `rank #1`, `top
+of google`).
+
+**No-progress policy.** No accounts. No progress tracking.
+No certificates. No course-completion claims. The
+catalogue does not store which lessons a reader has
+visited, does not issue badges or credentials, and does
+not gate the workspaces behind any auth surface.
+Completion of any path is the evidence artifact in the
+reader's hands — never a UI signal.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,

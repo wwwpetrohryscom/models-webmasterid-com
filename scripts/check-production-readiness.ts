@@ -5561,17 +5561,29 @@ const checks: Check[] = [
     },
   },
   {
-    name: "Hero funnels into use-case workflow (Sprint 26)",
+    name: "Hero funnels into a learning or use-case entry (Sprint 26, updated Sprint 30)",
     run: () => {
       const src = readRel("apps/models/components/Hero.tsx");
       const failures: string[] = [];
-      if (!/Start with a use case/i.test(src)) {
+      // Sprint 30 repositioned the Hero around the AI usage learning
+      // curriculum. Accept either the legacy "Start with a use case"
+      // entry or the new "Start learning" / "Choose your path" CTAs.
+      const hasPrimaryCta =
+        /Start with a use case/i.test(src) ||
+        /Start learning/i.test(src) ||
+        /Choose your path/i.test(src);
+      if (!hasPrimaryCta) {
         failures.push(
-          "Hero must include the 'Start with a use case' primary CTA."
+          "Hero must include a primary CTA: 'Start learning', 'Choose your path', or 'Start with a use case'."
         );
       }
-      if (!/\/use-cases/.test(src)) {
-        failures.push("Hero must link to /use-cases.");
+      const hasOnRamp =
+        /\/learn/.test(src) ||
+        /\/use-cases/.test(src);
+      if (!hasOnRamp) {
+        failures.push(
+          "Hero must link to /learn (curriculum) or /use-cases (legacy entry)."
+        );
       }
       if (!/How it works/i.test(src) || !/\/how-it-works/.test(src)) {
         failures.push("Hero must link to /how-it-works.");
@@ -5592,9 +5604,13 @@ const checks: Check[] = [
       for (const rel of surfaces) {
         if (!fileExists(rel)) continue;
         const src = readRel(rel);
-        if (!/\/how-it-works/.test(src)) {
+        // Sprint 30 added /learn as the primary curriculum on-ramp.
+        // Either /how-it-works or /learn satisfies the funnel signal.
+        const hasFunnel =
+          /\/how-it-works/.test(src) || /\/learn\b/.test(src);
+        if (!hasFunnel) {
           failures.push(
-            `${rel} must reference /how-it-works in its intro so new visitors can find the walkthrough.`
+            `${rel} must reference /how-it-works or /learn in its intro so new visitors can find the walkthrough.`
           );
         }
       }
@@ -6138,15 +6154,18 @@ const checks: Check[] = [
     },
   },
   {
-    name: "lesson registry exists and exports lessons + paths (Sprint 28)",
+    name: "lesson registry exists and exports lessons + groups (Sprint 28, updated Sprint 30)",
     run: () => {
       const rel = "apps/models/lib/lessons.ts";
       if (!fileExists(rel)) return `Missing ${rel}.`;
       const src = readRel(rel);
       const failures: string[] = [];
+      // Sprint 30 renamed `learningPaths` (topical lesson groups) to
+      // `lessonGroups` to free the namespace for role-based learning
+      // paths in lib/learning-paths.ts.
       for (const sym of [
         "export const lessons",
-        "export const learningPaths",
+        "export const lessonGroups",
         "export function getLesson",
         "export function getRelatedLessons",
       ]) {
@@ -6864,6 +6883,447 @@ const checks: Check[] = [
       ];
       for (const path of newRoutes) {
         const quoted = `"${path}"`;
+        if (!sitemap.includes(quoted)) {
+          failures.push(`sitemap must include ${quoted}.`);
+        }
+        if (!smoke.includes(quoted)) {
+          failures.push(`scripts/lib/smoke.mjs must include ${quoted}.`);
+        }
+        if (!indexing.includes(quoted)) {
+          failures.push(`scripts/indexing-qa.mjs must include ${quoted}.`);
+        }
+        if (!llms.includes(quoted)) {
+          failures.push(`llms.txt must list ${quoted}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  // -------------------------------------------------------------------
+  // Sprint 30 — role-based learning paths + curriculum positioning
+  // -------------------------------------------------------------------
+  {
+    name: "lib/learning-paths.ts exists with required exports (Sprint 30)",
+    run: () => {
+      const rel = "apps/models/lib/learning-paths.ts";
+      if (!fileExists(rel)) return `Missing ${rel}.`;
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const sym of [
+        "export const learningPaths",
+        "export function getLearningPath",
+        "export function getLearningPaths",
+        "export function getLearningPathSteps",
+        "export function getLearningPathRoutes",
+        "export function getLearningPathsByAudience",
+        "export function getLearningPathsForLesson",
+        "export function getLearningPathsForExercise",
+      ]) {
+        if (!src.includes(sym)) {
+          failures.push(`${rel} must include \`${sym}\`.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "all 5 learning-path slugs registered (Sprint 30)",
+    run: () => {
+      const src = readRel("apps/models/lib/learning-paths.ts");
+      const failures: string[] = [];
+      for (const slug of [
+        "beginner",
+        "developer",
+        "product-manager",
+        "governance",
+        "automation-specialist",
+      ]) {
+        if (!src.includes(`slug: "${slug}"`)) {
+          failures.push(
+            `Registry missing learning-path slug "${slug}".`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "5 path components exist (Sprint 30)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/components/learn/LearningPathCard.tsx",
+        "apps/models/components/learn/LearningPathTimeline.tsx",
+        "apps/models/components/learn/LearningPathProduces.tsx",
+        "apps/models/components/learn/LearningPathPicker.tsx",
+        "apps/models/components/learn/NoProgressPolicy.tsx",
+      ]) {
+        if (!fileExists(rel)) failures.push(`Missing component ${rel}.`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/learn/paths index + dynamic /learn/path/[slug] exist (Sprint 30)",
+    run: () => {
+      const failures: string[] = [];
+      if (!fileExists("apps/models/app/learn/paths/page.tsx")) {
+        failures.push("Missing /learn/paths index page.");
+      }
+      if (!fileExists("apps/models/app/learn/path/[slug]/page.tsx")) {
+        failures.push("Missing dynamic /learn/path/[slug] page.");
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/learn hub renders LearningPathPicker + NoProgressPolicy (Sprint 30)",
+    run: () => {
+      const src = readRel("apps/models/app/learn/page.tsx");
+      const failures: string[] = [];
+      if (!/LearningPathPicker/.test(src)) {
+        failures.push(
+          "/learn must render <LearningPathPicker /> in the curriculum landing."
+        );
+      }
+      if (!/NoProgressPolicy/.test(src)) {
+        failures.push("/learn must render <NoProgressPolicy />.");
+      }
+      // Learn → Apply → Verify section must be present so the hub
+      // reads like a curriculum rather than a list.
+      if (!/Learn\s*[→]\s*Apply\s*[→]\s*Verify/i.test(src)) {
+        failures.push(
+          "/learn must include the 'Learn → Apply → Verify' positioning section."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "path detail page renders Timeline + Produces + NoProgressPolicy (Sprint 30)",
+    run: () => {
+      const src = readRel(
+        "apps/models/app/learn/path/[slug]/page.tsx"
+      );
+      const failures: string[] = [];
+      for (const sym of [
+        "LearningPathTimeline",
+        "LearningPathProduces",
+        "NoProgressPolicy",
+      ]) {
+        if (!src.includes(sym)) {
+          failures.push(
+            `path detail page must render <${sym} /> so every path shares the same shape.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "homepage + how-it-works link to at least three role paths (Sprint 30)",
+    run: () => {
+      const homepage = readRel("apps/models/app/page.tsx");
+      const how = readRel("apps/models/app/how-it-works/page.tsx");
+      const paths = [
+        "/learn/path/beginner",
+        "/learn/path/developer",
+        "/learn/path/product-manager",
+        "/learn/path/governance",
+        "/learn/path/automation-specialist",
+      ];
+      const failures: string[] = [];
+      const homeMatches = paths.filter((p) => homepage.includes(p)).length;
+      const howMatches = paths.filter((p) => how.includes(p)).length;
+      if (homeMatches < 3) {
+        failures.push(
+          `Homepage must link to at least 3 role paths (found ${homeMatches}).`
+        );
+      }
+      if (howMatches < 3) {
+        failures.push(
+          `/how-it-works must link to at least 3 role paths (found ${howMatches}).`
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "LessonLayout + ExerciseLayout surface related learning paths (Sprint 30)",
+    run: () => {
+      const lesson = readRel(
+        "apps/models/components/learn/LessonLayout.tsx"
+      );
+      const exercise = readRel(
+        "apps/models/components/learn/ExerciseLayout.tsx"
+      );
+      const failures: string[] = [];
+      if (!/getLearningPathsForLesson/.test(lesson)) {
+        failures.push(
+          "LessonLayout must call getLearningPathsForLesson() so every lesson links back to its paths."
+        );
+      }
+      if (!/getLearningPathsForExercise/.test(exercise)) {
+        failures.push(
+          "ExerciseLayout must call getLearningPathsForExercise() so every exercise links back to its paths."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/learn/exercises includes an Exercises-by-path section (Sprint 30)",
+    run: () => {
+      const src = readRel("apps/models/app/learn/exercises/page.tsx");
+      const failures: string[] = [];
+      if (!/getLearningPaths|Exercises by path/.test(src)) {
+        failures.push(
+          "/learn/exercises must include an Exercises-by-path section so readers can pivot into a curriculum."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no certificate / completion-guarantee language on path surfaces (Sprint 30)",
+    run: () => {
+      const targets = [
+        "apps/models/lib/learning-paths.ts",
+        "apps/models/app/learn/page.tsx",
+        "apps/models/app/learn/paths/page.tsx",
+        "apps/models/app/learn/path/[slug]/page.tsx",
+        "apps/models/components/learn/LearningPathCard.tsx",
+        "apps/models/components/learn/LearningPathTimeline.tsx",
+        "apps/models/components/learn/LearningPathProduces.tsx",
+        "apps/models/components/learn/LearningPathPicker.tsx",
+        "apps/models/components/learn/NoProgressPolicy.tsx",
+      ];
+      // Only flag *positive* assertions; the policy notes are allowed
+      // to mention the banned terms as things the surfaces do not do.
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\byou\s+(?:earn|receive|get)\s+a\s+certificate\b/i,
+          label: "you earn/receive/get a certificate",
+        },
+        {
+          pattern: /\bissue(?:s|d)?\s+(?:a\s+)?certificate\b/i,
+          label: "issues a certificate",
+        },
+        {
+          pattern: /\bcertified\s+(?:for|compliant|by)\b/i,
+          label: "certified for/compliant/by",
+        },
+        {
+          pattern: /\bcompletion\s+(?:is\s+)?guaranteed\b/i,
+          label: "completion is guaranteed",
+        },
+        {
+          pattern: /\bguaranteed\s+to\s+(?:work|meet|pass|satisfy|complete)\b/i,
+          label: "guaranteed to <verb>",
+        },
+        {
+          pattern: /\bmastery\s+(?:badge|credential)\b/i,
+          label: "mastery badge/credential",
+        },
+        {
+          pattern: /\bcourse\s+completion\s+certificate\b/i,
+          label: "course completion certificate",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no scoring / ranking phrases on path surfaces (Sprint 30)",
+    run: () => {
+      const targets = [
+        "apps/models/lib/learning-paths.ts",
+        "apps/models/app/learn/page.tsx",
+        "apps/models/app/learn/paths/page.tsx",
+        "apps/models/app/learn/path/[slug]/page.tsx",
+        "apps/models/components/learn/LearningPathCard.tsx",
+        "apps/models/components/learn/LearningPathTimeline.tsx",
+        "apps/models/components/learn/LearningPathProduces.tsx",
+        "apps/models/components/learn/LearningPathPicker.tsx",
+        "apps/models/components/learn/NoProgressPolicy.tsx",
+      ];
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\byour\s+score\s+is\b/i,
+          label: "your score is",
+        },
+        {
+          pattern: /\bgrade\s+(?:yourself|your\s+answer|your\s+results)\b/i,
+          label: "grade yourself / your answer / your results",
+        },
+        {
+          pattern: /\bthe\s+correct\s+answer\s+is\b/i,
+          label: "the correct answer is",
+        },
+        {
+          pattern: /\bis\s+(?:the\s+)?best\s+(?:model|ai|provider)\b/i,
+          label: "is the best model/ai/provider",
+        },
+        {
+          pattern: /\bour\s+recommended\s+model\b/i,
+          label: "our recommended model",
+        },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\bcheapest\s+(?:ai\s+)?(?:model|provider|platform|inference)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:ai\s+)?(?:model|provider|inference)\b/i,
+          label: "fastest <noun>",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no SEO ranking guarantee language anywhere (Sprint 30)",
+    run: () => {
+      // The automation-specialist path is the highest-risk surface for
+      // promise-heavy SEO copy. Scope the guard across the path layer
+      // and the homepage / hero / how-it-works to catch any drift.
+      const targets = [
+        "apps/models/lib/learning-paths.ts",
+        "apps/models/app/learn/path/[slug]/page.tsx",
+        "apps/models/app/learn/paths/page.tsx",
+        "apps/models/app/page.tsx",
+        "apps/models/components/Hero.tsx",
+        "apps/models/app/how-it-works/page.tsx",
+        "apps/models/app/learn/page.tsx",
+      ];
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bguarantee(?:d)?\s+(?:seo|search|ranking|traffic)\b/i,
+          label: "guaranteed seo/search/ranking/traffic",
+        },
+        {
+          pattern: /\b(?:improve|boost|grow)\s+your\s+(?:seo|search\s+ranking|traffic|rankings)\s+(?:by|to|with)\b/i,
+          label: "improve/boost/grow your seo/ranking/traffic by/to/with",
+        },
+        {
+          pattern: /\brank\s+#1\b/i,
+          label: "rank #1",
+        },
+        {
+          pattern: /\btop\s+of\s+google\b/i,
+          label: "top of google",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric appears on Sprint 30 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/learning-paths.ts",
+        "apps/models/app/learn/page.tsx",
+        "apps/models/app/learn/paths/page.tsx",
+        "apps/models/app/learn/path/[slug]/page.tsx",
+        "apps/models/components/learn/LearningPathCard.tsx",
+        "apps/models/components/learn/LearningPathTimeline.tsx",
+        "apps/models/components/learn/LearningPathProduces.tsx",
+        "apps/models/components/learn/LearningPathPicker.tsx",
+      ];
+      const banned = /"[^"]*\bgpt-5\b[^"]*"/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} references GPT-5 — no OpenAI metrics are verified yet.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract + sitemap + llms.txt + smoke + indexing advertise Sprint 30 path routes",
+    run: () => {
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+
+      const versionMatch = contract.match(
+        /ROUTE_SET_VERSION\s*=\s*"content-v(\d+)"/
+      );
+      if (!versionMatch || Number(versionMatch[1]) < 12) {
+        failures.push(
+          'ROUTE_SET_VERSION must be "content-v12" or later for Sprint 30.'
+        );
+      }
+
+      const newRoutes = [
+        "/learn/paths",
+        "/learn/path/beginner",
+        "/learn/path/developer",
+        "/learn/path/product-manager",
+        "/learn/path/governance",
+        "/learn/path/automation-specialist",
+      ];
+      for (const path of newRoutes) {
+        const quoted = `"${path}"`;
+        if (!contract.includes(quoted)) {
+          failures.push(`route-contract must include ${quoted}.`);
+        }
         if (!sitemap.includes(quoted)) {
           failures.push(`sitemap must include ${quoted}.`);
         }

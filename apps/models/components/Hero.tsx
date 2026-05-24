@@ -23,7 +23,7 @@ export function Hero() {
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
             </span>
             <span className="font-medium text-foreground">
-              Verified intelligence
+              Learn · Apply · Verify
             </span>
             <span className="text-muted-foreground">
               · Build {formatDateISO(siteConfig.buildDate)}
@@ -34,59 +34,60 @@ export function Hero() {
             id="hero-heading"
             className="mt-5 text-balance text-4xl font-semibold tracking-tight text-foreground sm:text-5xl md:text-6xl"
           >
-            AI Model Infrastructure{" "}
-            <span className="gradient-text">Intelligence.</span>
+            Learn how to use{" "}
+            <span className="gradient-text">AI models correctly.</span>
           </h1>
 
           <p className="mt-5 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
-            A source-backed catalogue of AI models, providers, pricing
-            references, hosted availability, and freshness signals.
-            Verified fields, explicit data gaps, no rankings — built for
-            engineers evaluating which model to test next.
+            AI usage learning platform powered by verified model
+            intelligence. Role-based learning paths teach the concepts,
+            then route you through source-backed shortlists,
+            comparisons, evidence briefs, and freshness checks. No
+            rankings, no recommendations.
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
-              href="/use-cases"
+              href="/learn"
               className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-foreground px-5 text-sm font-semibold text-background shadow-elevated transition hover:bg-foreground/90"
             >
-              Start with a use case
+              Start learning
               <span aria-hidden="true">→</span>
             </Link>
             <Link
-              href="/how-it-works"
+              href="/learn/paths"
               className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:bg-card hover:text-primary"
             >
-              How it works
+              Choose your path
             </Link>
             <Link
-              href="/coverage"
+              href="/how-it-works"
               className="inline-flex h-11 items-center justify-center rounded-xl px-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
             >
-              View coverage →
+              How it works →
             </Link>
           </div>
 
           <dl className="mt-10 grid max-w-xl grid-cols-3 gap-6">
             <div>
               <dt className="text-xs uppercase tracking-wider text-muted-foreground">
-                Verified
+                Learn
               </dt>
               <dd className="mt-1 text-sm font-medium text-foreground">
-                Models · Providers · Pricing
+                10 lessons · 5 role paths
               </dd>
             </div>
             <div>
               <dt className="text-xs uppercase tracking-wider text-muted-foreground">
-                Workspace
+                Apply
               </dt>
               <dd className="mt-1 text-sm font-medium text-foreground">
-                Select · Compare · Brief
+                8 exercises · Select · Compare · Brief
               </dd>
             </div>
             <div>
               <dt className="text-xs uppercase tracking-wider text-muted-foreground">
-                Integrity
+                Verify
               </dt>
               <dd className="mt-1 text-sm font-medium text-foreground">
                 Sourced · Timestamped · No rankings

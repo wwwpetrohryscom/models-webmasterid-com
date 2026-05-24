@@ -8,7 +8,18 @@ const sections: { label: string; links: { label: string; href: string }[] }[] =
       label: "Learn",
       links: [
         { label: "Learn hub", href: "/learn" },
+        { label: "All paths", href: "/learn/paths" },
         { label: "Beginner path", href: "/learn/path/beginner" },
+        { label: "Developer path", href: "/learn/path/developer" },
+        {
+          label: "Product manager path",
+          href: "/learn/path/product-manager",
+        },
+        { label: "Governance path", href: "/learn/path/governance" },
+        {
+          label: "Automation specialist path",
+          href: "/learn/path/automation-specialist",
+        },
         { label: "Exercises", href: "/learn/exercises" },
         {
           label: "How to choose an AI model",

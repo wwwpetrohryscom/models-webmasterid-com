@@ -333,6 +333,60 @@ export default function HowItWorksPage() {
         </ul>
       </section>
 
+      <section aria-label="Choose a learning path" className="space-y-3">
+        <SectionHeader
+          eyebrow="Choose a path"
+          title="Role-based learning paths"
+          description="The same five-step workflow above, packaged as a curriculum for one audience. Five paths total — beginner, developer, product manager, governance, automation specialist."
+          cta={{ label: "All paths", href: "/learn/paths" }}
+          as="h2"
+        />
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            {
+              href: "/learn/path/beginner",
+              title: "Beginner",
+              detail: "Newcomer to AI model selection.",
+            },
+            {
+              href: "/learn/path/developer",
+              title: "Developer",
+              detail: "Engineer preparing an integration.",
+            },
+            {
+              href: "/learn/path/product-manager",
+              title: "Product manager",
+              detail: "Product manager / technical buyer.",
+            },
+            {
+              href: "/learn/path/governance",
+              title: "Governance",
+              detail: "Risk / compliance reviewer.",
+            },
+            {
+              href: "/learn/path/automation-specialist",
+              title: "Automation specialist",
+              detail:
+                "Automation builder, SEO operator, technical consultant.",
+            },
+          ].map((card) => (
+            <li key={card.href}>
+              <Link
+                href={card.href}
+                className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-sm font-semibold text-foreground">
+                  {card.title}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {card.detail}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <section aria-label="Start with a lesson" className="space-y-3">
         <SectionHeader
           eyebrow="Learn first"

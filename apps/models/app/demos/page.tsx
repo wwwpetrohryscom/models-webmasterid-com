@@ -79,8 +79,28 @@ export default function DemosHubPage() {
           >
             /learn
           </Link>{" "}
-          — the lessons explain each verified field the demos
-          inspect.
+          or pick a role-based path:{" "}
+          <Link
+            href="/learn/path/beginner"
+            className="text-primary hover:underline"
+          >
+            Beginner
+          </Link>{" "}
+          ·{" "}
+          <Link
+            href="/learn/path/developer"
+            className="text-primary hover:underline"
+          >
+            Developer
+          </Link>{" "}
+          ·{" "}
+          <Link
+            href="/learn/path/automation-specialist"
+            className="text-primary hover:underline"
+          >
+            Automation specialist
+          </Link>
+          .
         </p>
       </aside>
 

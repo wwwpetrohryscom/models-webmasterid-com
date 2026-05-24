@@ -81,48 +81,54 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Learn first, then compare */}
+      {/* Choose a learning path */}
       <section
-        aria-label="Learn first, then compare"
+        aria-label="Choose a learning path"
         className="container-page mt-12"
       >
         <SectionHeader
-          eyebrow="Learn first"
-          title="Learn first, then compare"
-          description="The catalogue is a verified-data backbone. Start with a lesson on what the underlying fields actually mean, then apply the lesson in the selection, comparison, and decision-brief workflows."
-          cta={{ label: "All lessons", href: "/learn" }}
+          eyebrow="Learn → Apply → Verify"
+          title="Choose a learning path"
+          description="AI usage learning platform powered by verified model intelligence. Pick the role-based path that matches your work and end with concrete evidence artifacts — shortlist URLs, comparison URLs, decision briefs, freshness checklists, test plans."
+          cta={{ label: "All paths", href: "/learn/paths" }}
         />
-        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {[
             {
-              href: "/learn/how-to-choose-ai-model",
-              title: "How to choose an AI model",
+              href: "/learn/path/beginner",
+              title: "Beginner",
               detail:
-                "Workflow for picking which model to test next — use case → shortlist → compare → brief.",
+                "Newcomer to AI model selection. 3 readings + 4 exercises.",
             },
             {
-              href: "/learn/context-window",
-              title: "Context windows explained",
+              href: "/learn/path/developer",
+              title: "Developer",
               detail:
-                "What context window means, what it does not guarantee, which fields to check.",
+                "Engineer preparing an integration. Hosted/host, structured output, testing.",
             },
             {
-              href: "/learn/hosted-vs-first-party",
-              title: "Hosted vs first-party AI models",
+              href: "/learn/path/product-manager",
+              title: "Product manager",
               detail:
-                "Why the model creator and the billing provider are usually different.",
+                "Use case framing, pricing references, lifecycle, benchmark limits.",
             },
             {
-              href: "/learn/exercises",
-              title: "Learn by doing",
+              href: "/learn/path/governance",
+              title: "Governance",
               detail:
-                "Eight practical exercises that end with a shortlist URL, brief Markdown, or freshness checklist.",
+                "Lifecycle, status, sources, freshness — defensible evidence trail.",
+            },
+            {
+              href: "/learn/path/automation-specialist",
+              title: "Automation specialist",
+              detail:
+                "Safe AI model use inside automations. Structured output + test plan.",
             },
           ].map((card) => (
             <li key={card.href}>
               <Link
                 href={card.href}
-                className="card-surface block p-4 transition hover:border-primary/30 hover:shadow-elevated"
+                className="card-surface block h-full p-4 transition hover:border-primary/30 hover:shadow-elevated"
               >
                 <p className="text-sm font-semibold text-foreground">
                   {card.title}
@@ -131,7 +137,7 @@ export default function HomePage() {
                   {card.detail}
                 </p>
                 <p className="mt-2 text-[10px] text-muted-foreground">
-                  Plain-language read · ends in an apply-this-workflow panel.
+                  Lessons + exercises + workflows · no progress accounts.
                 </p>
               </Link>
             </li>

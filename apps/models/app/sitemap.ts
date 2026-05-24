@@ -128,7 +128,32 @@ const STATIC_ROUTES: StaticRoute[] = [
     priority: 0.7,
   },
   {
+    path: "/learn/paths",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
+  {
     path: "/learn/path/beginner",
+    changeFrequency: "monthly",
+    priority: 0.8,
+  },
+  {
+    path: "/learn/path/developer",
+    changeFrequency: "monthly",
+    priority: 0.8,
+  },
+  {
+    path: "/learn/path/product-manager",
+    changeFrequency: "monthly",
+    priority: 0.8,
+  },
+  {
+    path: "/learn/path/governance",
+    changeFrequency: "monthly",
+    priority: 0.8,
+  },
+  {
+    path: "/learn/path/automation-specialist",
     changeFrequency: "monthly",
     priority: 0.8,
   },

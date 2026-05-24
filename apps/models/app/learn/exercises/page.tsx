@@ -11,6 +11,7 @@ import {
   getLearningExerciseGroups,
   learningExercises,
 } from "@/lib/learning-exercises";
+import { getLearningPaths } from "@/lib/learning-paths";
 
 export const metadata: Metadata = buildMetadata({
   title: "Practical AI model selection exercises",
@@ -28,6 +29,7 @@ export const metadata: Metadata = buildMetadata({
 
 export default function ExercisesHubPage() {
   const groups = getLearningExerciseGroups();
+  const paths = getLearningPaths();
   return (
     <PageShell
       eyebrow="Learn · Practice"
@@ -149,6 +151,59 @@ export default function ExercisesHubPage() {
           </ul>
         </section>
       ))}
+
+      <section
+        aria-label="Exercises by path"
+        className="space-y-3"
+      >
+        <SectionHeader
+          eyebrow="Exercises by path"
+          title="Which path uses which exercise"
+          description="Every role-based learning path stitches a subset of these exercises into a sequenced curriculum. Open a path to see the full reading + practice order."
+          cta={{ label: "All paths", href: "/learn/paths" }}
+          as="h2"
+        />
+        <ul className="grid gap-3 md:grid-cols-2">
+          {paths.map((p) => {
+            const inPath = learningExercises.filter((e) =>
+              p.steps.some(
+                (s) => s.type === "exercise" && s.slug === e.slug
+              )
+            );
+            return (
+              <li
+                key={p.slug}
+                className="card-surface space-y-2 p-4 text-sm"
+              >
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <Link
+                    href={`/learn/path/${p.slug}`}
+                    className="text-base font-semibold text-foreground hover:underline"
+                  >
+                    {p.title} →
+                  </Link>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {p.audienceLabel} · {p.estimatedMinutes} min
+                  </span>
+                </div>
+                <ul className="ml-4 list-disc space-y-1 text-xs text-muted-foreground">
+                  {inPath.map((e) => (
+                    <li key={e.slug}>
+                      <Link
+                        href={`/learn/exercises/${e.slug}`}
+                        className="text-primary hover:underline"
+                      >
+                        {e.title}
+                      </Link>{" "}
+                      <span>· {e.estimatedMinutes} min</span>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
 
       <aside
         className="card-surface p-5 text-sm text-muted-foreground"

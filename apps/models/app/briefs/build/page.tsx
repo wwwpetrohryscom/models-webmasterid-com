@@ -194,7 +194,22 @@ export default async function BriefsBuildPage({
           >
             /learn/testing-ai-models
           </Link>{" "}
-          explains how the brief pairs with your own tests.
+          explains how the brief pairs with your own tests. Or follow
+          a sequenced path:{" "}
+          <Link
+            href="/learn/path/product-manager"
+            className="text-primary hover:underline"
+          >
+            Product manager
+          </Link>{" "}
+          ·{" "}
+          <Link
+            href="/learn/path/governance"
+            className="text-primary hover:underline"
+          >
+            Governance
+          </Link>
+          .
         </p>
       </aside>
 

@@ -111,7 +111,20 @@ const INDEXABLE_PAGES = [
     expectJsonLd: true,
     kind: "detail",
   },
+  { path: "/learn/paths", expectJsonLd: true, kind: "hub" },
   { path: "/learn/path/beginner", expectJsonLd: true, kind: "hub" },
+  { path: "/learn/path/developer", expectJsonLd: true, kind: "hub" },
+  {
+    path: "/learn/path/product-manager",
+    expectJsonLd: true,
+    kind: "hub",
+  },
+  { path: "/learn/path/governance", expectJsonLd: true, kind: "hub" },
+  {
+    path: "/learn/path/automation-specialist",
+    expectJsonLd: true,
+    kind: "hub",
+  },
   { path: "/learn/exercises", expectJsonLd: true, kind: "hub" },
   {
     path: "/learn/exercises/build-first-shortlist",
