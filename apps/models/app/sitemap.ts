@@ -315,6 +315,27 @@ const STATIC_ROUTES: StaticRoute[] = [
     changeFrequency: "monthly",
     priority: 0.8,
   },
+  { path: "/kits", changeFrequency: "monthly", priority: 0.9 },
+  {
+    path: "/kits/developer-model-evaluation",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
+  {
+    path: "/kits/automation-workflow-testing",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
+  {
+    path: "/kits/product-model-selection",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
+  {
+    path: "/kits/governance-review",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

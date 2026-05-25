@@ -8952,6 +8952,393 @@ const checks: Check[] = [
       return failures.length ? failures.join("\n") : null;
     },
   },
+  // -------------------------------------------------------------------
+  // Sprint 35 — workflow kits + Markdown export endpoint
+  // -------------------------------------------------------------------
+  {
+    name: "lib/workflow-kits.ts exists with required exports (Sprint 35)",
+    run: () => {
+      const rel = "apps/models/lib/workflow-kits.ts";
+      if (!fileExists(rel)) return `Missing ${rel}.`;
+      const src = readRel(rel);
+      const failures: string[] = [];
+      for (const sym of [
+        "export const workflowKits",
+        "export function getWorkflowKit",
+        "export function getWorkflowKits",
+        "export function getWorkflowKitRoutes",
+        "export function getWorkflowKitsByAudience",
+        "export function workflowKitToMarkdown",
+      ]) {
+        if (!src.includes(sym)) {
+          failures.push(`${rel} must include \`${sym}\`.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "all 4 workflow kit slugs registered (Sprint 35)",
+    run: () => {
+      const src = readRel("apps/models/lib/workflow-kits.ts");
+      const failures: string[] = [];
+      for (const slug of [
+        "developer-model-evaluation",
+        "automation-workflow-testing",
+        "product-model-selection",
+        "governance-review",
+      ]) {
+        if (!src.includes(`slug: "${slug}"`)) {
+          failures.push(`Registry missing kit slug "${slug}".`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "5 kit components exist (Sprint 35)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/components/kits/WorkflowKitCard.tsx",
+        "apps/models/components/kits/WorkflowKitTimeline.tsx",
+        "apps/models/components/kits/WorkflowKitResourceGrid.tsx",
+        "apps/models/components/kits/WorkflowKitChecklist.tsx",
+        "apps/models/components/kits/WorkflowKitPolicyNote.tsx",
+      ]) {
+        if (!fileExists(rel)) failures.push(`Missing component ${rel}.`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/kits hub + dynamic /kits/[slug] exist (Sprint 35)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/app/kits/page.tsx",
+        "apps/models/app/kits/[slug]/page.tsx",
+      ]) {
+        if (!fileExists(rel)) failures.push(`Missing ${rel}.`);
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/api/kits/[slug] export endpoint exists with the right contract (Sprint 35)",
+    run: () => {
+      const rel = "apps/models/app/api/kits/[slug]/route.ts";
+      if (!fileExists(rel)) return `Missing ${rel}.`;
+      const src = readRel(rel);
+      const failures: string[] = [];
+      if (!/X-Robots-Tag/.test(src) || !/noindex/.test(src)) {
+        failures.push(
+          "/api/kits/[slug] must set X-Robots-Tag: noindex so exported work documents do not enter the index from outside."
+        );
+      }
+      if (!/text\/markdown/.test(src)) {
+        failures.push(
+          "/api/kits/[slug] must respond with text/markdown content type."
+        );
+      }
+      if (!/workflowKitToMarkdown/.test(src)) {
+        failures.push(
+          "/api/kits/[slug] must call workflowKitToMarkdown() to keep the serializer in lib."
+        );
+      }
+      if (/Date\.now\(/.test(src)) {
+        failures.push(
+          "/api/kits/[slug] must not call Date.now — the endpoint is pure local derivation."
+        );
+      }
+      if (/process\.env/.test(src)) {
+        failures.push(
+          "/api/kits/[slug] must not read process.env — the endpoint is secrets-free."
+        );
+      }
+      if (/fetch\(/.test(src)) {
+        failures.push(
+          "/api/kits/[slug] must not call fetch — the endpoint is offline-pure."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "homepage + lab + demos + briefs/build link to /kits (Sprint 35)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/app/page.tsx",
+        "apps/models/app/lab/page.tsx",
+        "apps/models/app/demos/page.tsx",
+        "apps/models/app/briefs/build/page.tsx",
+      ]) {
+        const src = readRel(rel);
+        if (!/\/kits\b/.test(src)) {
+          failures.push(`${rel} must link to /kits.`);
+        }
+      }
+      // Footer must include /kits too.
+      const footer = readRel("apps/models/components/SiteFooter.tsx");
+      if (!/"\/kits"/.test(footer)) {
+        failures.push("SiteFooter must link to /kits.");
+      }
+      // /for audience pages must surface a matching kit.
+      const audienceDetail = readRel(
+        "apps/models/app/for/[slug]/page.tsx"
+      );
+      if (!/getWorkflowKitsByAudience/.test(audienceDetail)) {
+        failures.push(
+          "/for/[slug] must call getWorkflowKitsByAudience() so each audience surfaces its matching kit."
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no ranking / recommendation / guarantee language on Sprint 35 kit surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/workflow-kits.ts",
+        "apps/models/app/kits/page.tsx",
+        "apps/models/app/kits/[slug]/page.tsx",
+        "apps/models/components/kits/WorkflowKitCard.tsx",
+        "apps/models/components/kits/WorkflowKitTimeline.tsx",
+        "apps/models/components/kits/WorkflowKitResourceGrid.tsx",
+        "apps/models/components/kits/WorkflowKitChecklist.tsx",
+        "apps/models/components/kits/WorkflowKitPolicyNote.tsx",
+      ];
+      // Only flag *positive* assertions; the policy note explicitly
+      // enumerates these as things the kit does NOT promise.
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bis\s+(?:the\s+)?best\s+(?:model|ai|provider)\b/i,
+          label: "is the best model/ai/provider",
+        },
+        {
+          pattern: /\bour\s+recommended\s+model\b/i,
+          label: "our recommended model",
+        },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\bcheapest\s+(?:ai\s+)?(?:model|provider|platform)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:ai\s+)?(?:model|provider)\b/i,
+          label: "fastest <noun>",
+        },
+        {
+          pattern: /\bguaranteed\s+to\s+(?:work|meet|pass|satisfy)\b/i,
+          label: "guaranteed to <verb>",
+        },
+        {
+          pattern: /\bis\s+production[\s-]ready\b/i,
+          label: "is production ready",
+        },
+        {
+          pattern: /\bcertified\s+(?:for|compliant|by)\b/i,
+          label: "certified for/compliant/by",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        const stripped = src
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "governance-review kit contains no compliance certification language (Sprint 35)",
+    run: () => {
+      const src = readRel("apps/models/lib/workflow-kits.ts");
+      const sliceMatch = src.match(
+        /slug: "governance-review"[\s\S]*?(?=slug: "|\];)/
+      );
+      let slice = sliceMatch ? sliceMatch[0] : "";
+      slice = slice.replace(
+        /doesNotPromise:\s*\[[\s\S]*?\],?/,
+        ""
+      );
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bwe\s+certify\s+(?:the\s+)?model\b/i,
+          label: "we certify the model",
+        },
+        {
+          pattern: /\bissues?\s+(?:a\s+)?(?:certificate|certification|sign[\s-]off)\b/i,
+          label: "issues a certificate/certification/sign-off",
+        },
+        {
+          pattern: /\bgrants?\s+(?:legal|risk|compliance)\s+approval\b/i,
+          label: "grants legal/risk/compliance approval",
+        },
+        {
+          pattern: /\bcertified\s+compliant\b/i,
+          label: "certified compliant",
+        },
+      ];
+      const failures: string[] = [];
+      for (const b of banned) {
+        if (b.pattern.test(slice)) {
+          failures.push(
+            `governance-review kit contains banned phrase "${b.label}".`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "automation-workflow-testing kit contains no SEO ranking guarantee language (Sprint 35)",
+    run: () => {
+      const src = readRel("apps/models/lib/workflow-kits.ts");
+      const sliceMatch = src.match(
+        /slug: "automation-workflow-testing"[\s\S]*?(?=slug: "|\];)/
+      );
+      let slice = sliceMatch ? sliceMatch[0] : "";
+      // The `doesNotPromise:` array intentionally enumerates negative
+      // phrasing ("Guarantee automation reliability", etc.) — strip
+      // that array out before scanning so the guard catches positive
+      // assertions only.
+      slice = slice.replace(
+        /doesNotPromise:\s*\[[\s\S]*?\],?/,
+        ""
+      );
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bguarantee(?:s|d)?\s+(?:seo|search|ranking|traffic)\b/i,
+          label: "guaranteed seo/search/ranking/traffic",
+        },
+        {
+          pattern: /\b(?:improve|boost|grow)\s+(?:your\s+)?(?:seo|search\s+ranking|traffic|rankings)\b/i,
+          label: "improve/boost/grow seo/ranking/traffic",
+        },
+        {
+          pattern: /\btop\s+of\s+google\b/i,
+          label: "top of google",
+        },
+        {
+          pattern: /\bguarantee(?:s|d)?\s+automation\s+reliability\b/i,
+          label: "guaranteed automation reliability",
+        },
+      ];
+      const failures: string[] = [];
+      for (const b of banned) {
+        if (b.pattern.test(slice)) {
+          failures.push(
+            `automation-workflow-testing kit contains banned phrase "${b.label}".`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric appears on Sprint 35 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/workflow-kits.ts",
+        "apps/models/app/kits/page.tsx",
+        "apps/models/app/kits/[slug]/page.tsx",
+        "apps/models/components/kits/WorkflowKitCard.tsx",
+        "apps/models/components/kits/WorkflowKitTimeline.tsx",
+        "apps/models/components/kits/WorkflowKitResourceGrid.tsx",
+        "apps/models/components/kits/WorkflowKitChecklist.tsx",
+        "apps/models/components/kits/WorkflowKitPolicyNote.tsx",
+      ];
+      const banned = /"[^"]*\bgpt-5\b[^"]*"/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} references GPT-5 — no OpenAI metrics are verified yet.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract + sitemap + llms.txt + smoke + indexing advertise Sprint 35 kit routes",
+    run: () => {
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+
+      const versionMatch = contract.match(
+        /ROUTE_SET_VERSION\s*=\s*"content-v(\d+)"/
+      );
+      if (!versionMatch || Number(versionMatch[1]) < 16) {
+        failures.push(
+          'ROUTE_SET_VERSION must be "content-v16" or later for Sprint 35.'
+        );
+      }
+
+      const kitPageRoutes = [
+        "/kits",
+        "/kits/developer-model-evaluation",
+        "/kits/automation-workflow-testing",
+        "/kits/product-model-selection",
+        "/kits/governance-review",
+      ];
+      for (const path of kitPageRoutes) {
+        const quoted = `"${path}"`;
+        if (!contract.includes(quoted)) {
+          failures.push(`route-contract must include ${quoted}.`);
+        }
+        if (!sitemap.includes(quoted)) {
+          failures.push(`sitemap must include ${quoted}.`);
+        }
+        if (!smoke.includes(quoted)) {
+          failures.push(`scripts/lib/smoke.mjs must include ${quoted}.`);
+        }
+        if (!indexing.includes(quoted)) {
+          failures.push(`scripts/indexing-qa.mjs must include ${quoted}.`);
+        }
+        if (!llms.includes(quoted)) {
+          failures.push(`llms.txt must list ${quoted}.`);
+        }
+      }
+
+      const kitApiRoutes = [
+        "/api/kits/developer-model-evaluation",
+        "/api/kits/automation-workflow-testing",
+        "/api/kits/product-model-selection",
+        "/api/kits/governance-review",
+      ];
+      for (const path of kitApiRoutes) {
+        const quoted = `"${path}"`;
+        if (!contract.includes(quoted)) {
+          failures.push(`route-contract must include ${quoted}.`);
+        }
+        if (!smoke.includes(quoted)) {
+          failures.push(`scripts/lib/smoke.mjs must include ${quoted}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
 ];
 
 function main(): void {

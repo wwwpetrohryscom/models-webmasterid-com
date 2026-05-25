@@ -163,16 +163,24 @@ export default async function BriefsBuildPage({
 
       <aside
         role="note"
-        aria-label="Need a clearer path first?"
+        aria-label="Need a full workflow before the brief?"
         className="card-surface space-y-1 p-5 text-sm text-muted-foreground"
       >
         <p className="font-medium text-foreground">
-          Need a clearer path first?
+          Need a full workflow before the brief?
         </p>
         <p>
-          Open the <Link href="/for" className="text-primary hover:underline">audience hub</Link>{" "}
-          to pick the role-specific path, lab playbook, and demo
-          before generating a brief.
+          Open a workflow kit at{" "}
+          <Link href="/kits" className="text-primary hover:underline">
+            /kits
+          </Link>{" "}
+          to walk a sequenced lesson + exercise + playbook + template
+          pack first. The kit ends here — at /briefs/build — with the
+          right inputs already collected. The{" "}
+          <Link href="/for" className="text-primary hover:underline">
+            audience hub
+          </Link>{" "}
+          maps roles to kits.
         </p>
       </aside>
 

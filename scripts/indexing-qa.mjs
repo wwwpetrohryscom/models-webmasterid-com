@@ -263,6 +263,27 @@ const INDEXABLE_PAGES = [
     expectJsonLd: true,
     kind: "detail",
   },
+  { path: "/kits", expectJsonLd: true, kind: "hub" },
+  {
+    path: "/kits/developer-model-evaluation",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/kits/automation-workflow-testing",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/kits/product-model-selection",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/kits/governance-review",
+    expectJsonLd: true,
+    kind: "detail",
+  },
 ];
 
 const FILTERED_NOINDEX_PAGES = [

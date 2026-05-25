@@ -93,6 +93,19 @@ export function GET() {
         absolute("/for/governance-teams"),
       ],
       platformPositioning: absolute("/docs/platform-positioning"),
+      workflowKitsHub: absolute("/kits"),
+      workflowKits: [
+        absolute("/kits/developer-model-evaluation"),
+        absolute("/kits/automation-workflow-testing"),
+        absolute("/kits/product-model-selection"),
+        absolute("/kits/governance-review"),
+      ],
+      workflowKitEndpoints: [
+        absolute("/api/kits/developer-model-evaluation"),
+        absolute("/api/kits/automation-workflow-testing"),
+        absolute("/api/kits/product-model-selection"),
+        absolute("/api/kits/governance-review"),
+      ],
     },
     {
       status: 200,

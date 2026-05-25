@@ -69,6 +69,7 @@ const sections: { label: string; links: { label: string; href: string }[] }[] =
         { label: "Select", href: "/select" },
         { label: "Compare", href: "/compare/build" },
         { label: "Briefs", href: "/briefs/build" },
+        { label: "Kits", href: "/kits" },
         { label: "Lab", href: "/lab" },
         { label: "Lab templates", href: "/lab/templates" },
         { label: "Lab prompts", href: "/lab/prompts" },

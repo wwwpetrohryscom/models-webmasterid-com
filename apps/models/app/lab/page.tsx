@@ -132,18 +132,25 @@ export default function LabHubPage() {
 
       <aside
         role="note"
-        aria-label="Use the lab with a role path"
+        aria-label="Use the lab inside a workflow kit"
         className="card-surface space-y-1 p-5 text-sm text-muted-foreground"
       >
         <p className="font-medium text-foreground">
-          Use the lab with a role path.
+          Use the lab inside a workflow kit.
         </p>
         <p>
-          The <Link href="/for" className="text-primary hover:underline">/for</Link>{" "}
-          hub matches each audience to the right playbook + template +
-          prompt set. Developers, product teams, automation
-          specialists, and governance teams each get a sequenced
-          entry.
+          A workflow kit at{" "}
+          <Link href="/kits" className="text-primary hover:underline">
+            /kits
+          </Link>{" "}
+          packages the right playbooks + templates + prompt sets per
+          role and exports a single Markdown work document. Developers,
+          product teams, automation specialists, and governance teams
+          each get a sequenced kit; the{" "}
+          <Link href="/for" className="text-primary hover:underline">
+            /for
+          </Link>{" "}
+          hub maps audiences to kits.
         </p>
       </aside>
 

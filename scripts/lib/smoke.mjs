@@ -92,6 +92,11 @@ const PAGE_ROUTES = [
   "/for/automation-specialists",
   "/for/governance-teams",
   "/docs/platform-positioning",
+  "/kits",
+  "/kits/developer-model-evaluation",
+  "/kits/automation-workflow-testing",
+  "/kits/product-model-selection",
+  "/kits/governance-review",
 ];
 
 const API_ROUTES = [
@@ -118,6 +123,10 @@ const API_ROUTES = [
   "/api/lab/prompts/instruction-following",
   "/api/lab/prompts/refusal-boundary",
   "/api/lab/prompts/automation-robustness",
+  "/api/kits/developer-model-evaluation",
+  "/api/kits/automation-workflow-testing",
+  "/api/kits/product-model-selection",
+  "/api/kits/governance-review",
 ];
 
 const FETCH_TIMEOUT_MS = 8_000;

@@ -83,6 +83,14 @@ export default function LearningPathsIndexPage() {
           completion certificate — completion is the artifacts (URL,
           Markdown, JSON, checklist) the path puts in your hands.
         </p>
+        <p className="text-xs">
+          Want to bundle a path with the matching lab playbook +
+          templates + prompt sets + Markdown export? Open a{" "}
+          <Link href="/kits" className="text-primary hover:underline">
+            workflow kit
+          </Link>
+          .
+        </p>
       </aside>
 
       <section aria-label="Choose your path" id="paths" className="space-y-3">

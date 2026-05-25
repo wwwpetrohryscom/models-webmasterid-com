@@ -124,6 +124,53 @@ export default async function LearningPathDetailPage({
         <p>{path.policyNote}</p>
       </aside>
 
+      {(() => {
+        const pathToKit: Record<string, { slug: string; title: string }> = {
+          developer: {
+            slug: "developer-model-evaluation",
+            title: "Developer model evaluation kit",
+          },
+          "product-manager": {
+            slug: "product-model-selection",
+            title: "Product model selection kit",
+          },
+          governance: {
+            slug: "governance-review",
+            title: "Governance review kit",
+          },
+          "automation-specialist": {
+            slug: "automation-workflow-testing",
+            title: "Automation workflow testing kit",
+          },
+        };
+        const kit = pathToKit[path.slug];
+        if (!kit) return null;
+        return (
+          <section
+            aria-label="Use this path inside a kit"
+            className="card-surface space-y-2 p-5 text-sm"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              Use this path inside a kit
+            </p>
+            <p className="text-muted-foreground">
+              The matching workflow kit bundles this path with the lab
+              playbooks, evaluation prompt sets, and Markdown templates
+              the role needs, and exports the whole thing as a single
+              work document.
+            </p>
+            <p>
+              <Link
+                href={`/kits/${kit.slug}`}
+                className="text-primary hover:underline"
+              >
+                Open the {kit.title} →
+              </Link>
+            </p>
+          </section>
+        );
+      })()}
+
       <section
         aria-label="At a glance"
         className="card-surface grid gap-3 p-5 text-sm sm:grid-cols-3"

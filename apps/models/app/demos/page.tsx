@@ -56,17 +56,23 @@ export default function DemosHubPage() {
 
       <aside
         role="note"
-        aria-label="Pick the demo that matches your role"
+        aria-label="Continue with a workflow kit"
         className="card-surface space-y-1 p-5 text-sm text-muted-foreground"
       >
         <p className="font-medium text-foreground">
-          Pick the demo that matches your role.
+          Continue with a workflow kit.
         </p>
         <p>
-          The <Link href="/for" className="text-primary hover:underline">/for</Link>{" "}
-          hub recommends a specific demo per audience — developers,
-          product teams, automation specialists, governance teams —
-          alongside the matching learning path and lab playbook.
+          After the demo, open the matching kit at{" "}
+          <Link href="/kits" className="text-primary hover:underline">
+            /kits
+          </Link>{" "}
+          to walk the full lesson + exercise + playbook + template
+          sequence and export a Markdown work document. The{" "}
+          <Link href="/for" className="text-primary hover:underline">
+            /for
+          </Link>{" "}
+          hub maps each audience to its kit.
         </p>
       </aside>
 

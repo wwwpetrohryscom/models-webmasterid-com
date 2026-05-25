@@ -12,6 +12,7 @@ import { AudienceDoesNotPromise } from "@/components/audience/AudienceDoesNotPro
 import { buildMetadata, breadcrumbJsonLd, articleJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import { getAudience, getAudiences } from "@/lib/audiences";
+import { getWorkflowKitsByAudience } from "@/lib/workflow-kits";
 
 interface RouteParams {
   slug: string;
@@ -86,6 +87,40 @@ export default async function AudienceDetailPage({
       />
 
       <AudienceHero audience={audience} />
+
+      {(() => {
+        const matchingKits = getWorkflowKitsByAudience(audience.slug);
+        if (!matchingKits.length) return null;
+        const kit = matchingKits[0];
+        return (
+          <section
+            aria-label="Matching workflow kit"
+            className="card-surface space-y-2 p-5 text-sm"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              Matching workflow kit
+            </p>
+            <p className="text-muted-foreground">
+              The kit packages the recommended lessons, exercises, lab
+              playbooks, prompt sets, and templates for this audience
+              into a single ordered work document. Markdown export
+              available at{" "}
+              <code className="rounded bg-muted px-1 py-0.5 text-[10px]">
+                /api/kits/{kit.slug}
+              </code>
+              .
+            </p>
+            <p>
+              <Link
+                href={`/kits/${kit.slug}`}
+                className="inline-flex h-9 items-center rounded-lg border border-primary/40 bg-primary/10 px-3 text-sm font-medium text-primary hover:bg-primary/15"
+              >
+                Open the {kit.title} →
+              </Link>
+            </p>
+          </section>
+        );
+      })()}
 
       {audience.exampleSituation ? (
         <section

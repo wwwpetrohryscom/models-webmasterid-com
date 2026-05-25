@@ -126,6 +126,64 @@ export default function HomePage() {
         </ul>
       </section>
 
+      {/* Start with a workflow kit */}
+      <section
+        aria-label="Start with a workflow kit"
+        className="container-page mt-12"
+      >
+        <SectionHeader
+          eyebrow="Kits"
+          title="Start with a workflow kit"
+          description="Role-based packs of lessons, exercises, lab playbooks, prompt sets, and Markdown templates — exportable as a single work document. Each kit ends with a paste-ready evidence brief plus the artifacts your role needs."
+          cta={{ label: "All kits", href: "/kits" }}
+        />
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              href: "/kits/developer-model-evaluation",
+              title: "Developer model evaluation",
+              detail:
+                "Source-backed model evaluation plan before integration.",
+            },
+            {
+              href: "/kits/automation-workflow-testing",
+              title: "Automation workflow testing",
+              detail:
+                "Safe testing workflow for AI-powered automations.",
+            },
+            {
+              href: "/kits/product-model-selection",
+              title: "Product model selection",
+              detail:
+                "Turn a product use case into a reviewable selection artifact.",
+            },
+            {
+              href: "/kits/governance-review",
+              title: "Governance review",
+              detail:
+                "Source/freshness/lifecycle review package for internal discussions.",
+            },
+          ].map((card) => (
+            <li key={card.href}>
+              <Link
+                href={card.href}
+                className="card-surface block h-full p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-sm font-semibold text-foreground">
+                  {card.title}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {card.detail}
+                </p>
+                <p className="mt-2 text-[10px] text-muted-foreground">
+                  Exportable as Markdown · no progress tracking.
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* Choose your path — audience picker */}
       <section
         aria-label="Choose the path that matches your work"

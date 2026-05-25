@@ -94,6 +94,23 @@ export function GET() {
       label: "Platform positioning (what this is / is not)",
       path: "/docs/platform-positioning",
     },
+    { label: "Workflow kits (hub)", path: "/kits" },
+    {
+      label: "Kit — developer model evaluation",
+      path: "/kits/developer-model-evaluation",
+    },
+    {
+      label: "Kit — automation workflow testing",
+      path: "/kits/automation-workflow-testing",
+    },
+    {
+      label: "Kit — product model selection",
+      path: "/kits/product-model-selection",
+    },
+    {
+      label: "Kit — governance review",
+      path: "/kits/governance-review",
+    },
     { label: "Learn AI model selection (hub)", path: "/learn" },
     { label: "All learning paths", path: "/learn/paths" },
     { label: "Beginner learning path", path: "/learn/path/beginner" },

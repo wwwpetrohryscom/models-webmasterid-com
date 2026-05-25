@@ -474,6 +474,63 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+25. **Applied workflow kits + Markdown work documents (Sprint 35).**
+    The role-based paths, exercises, lab playbooks, prompt sets, and
+    templates fuse into four practical **workflow kits** the reader
+    can follow and export as a single Markdown work document. A new
+    [`lib/workflow-kits.ts`](apps/models/lib/workflow-kits.ts)
+    registry defines the four kits — `developer-model-evaluation`,
+    `automation-workflow-testing`, `product-model-selection`,
+    `governance-review` — each pinning the required path, lessons,
+    exercises, lab playbooks, evaluation prompt sets, and Markdown
+    templates plus a sequenced workflow (8–9 steps), a final
+    checklist, evidence routes, and an explicit `doesNotPromise`
+    list. The registry's `workflowKitToMarkdown()` serialiser
+    produces a single Markdown work document. Five new server
+    components in [`components/kits/`](apps/models/components/kits/)
+    (`WorkflowKitCard`, `WorkflowKitTimeline`,
+    `WorkflowKitResourceGrid`, `WorkflowKitChecklist`,
+    `WorkflowKitPolicyNote`) drive the surfaces. A new
+    [`/kits`](apps/models/app/kits/page.tsx) hub renders the four
+    kit cards + "what a workflow kit is" framing + "what kits
+    produce" + the policy note. A dynamic
+    [`/kits/[slug]`](apps/models/app/kits/%5Bslug%5D/page.tsx) route
+    prerenders all four kit detail pages with at-a-glance card,
+    matching audience link, goal, artifacts, prerequisites, export
+    link, sequenced timeline, five-column resource grid (lessons +
+    exercises + playbooks + prompt sets + templates resolved live
+    from each registry), final checklist, evidence routes,
+    per-kit "does not promise" list, and the shared policy note.
+    JSON-LD: `TechArticle` + `BreadcrumbList` + `HowTo` with
+    `HowToStep` entries. The new
+    [`/api/kits/[slug]`](apps/models/app/api/kits/%5Bslug%5D/route.ts)
+    endpoint returns `text/markdown; charset=utf-8` with
+    `X-Robots-Tag: noindex` for all four kits — pure local
+    derivation (no fetch, no env, no Date.now). The homepage adds a
+    new "Start with a workflow kit" section above the audience
+    picker. The audience detail pages (`/for/[slug]`) call
+    `getWorkflowKitsByAudience()` and surface the matching kit
+    inline. `/lab`, `/demos`, `/briefs/build`, `/learn/paths`, and
+    `/learn/path/[slug]` each link to `/kits` or to the matching
+    kit. The SiteFooter Workflow column gains a `Kits` entry.
+    `/api/site` exposes `workflowKitsHub`, `workflowKits[]`, and
+    `workflowKitEndpoints[]`. `ROUTE_SET_VERSION` bumps to
+    `content-v16`. Eleven new integrity guards enforce: registry
+    has all 6 required exports, all 4 kit slugs registered, 5 kit
+    components exist, `/kits` + dynamic `/kits/[slug]` exist,
+    export endpoint sets `X-Robots-Tag: noindex` + `text/markdown`
+    + calls `workflowKitToMarkdown()` + has no `Date.now` /
+    `process.env` / `fetch`, homepage + `/lab` + `/demos` +
+    `/briefs/build` + footer link to `/kits`, `/for/[slug]` calls
+    `getWorkflowKitsByAudience()`, no ranking / recommendation /
+    guarantee phrasing on kit surfaces, governance-review kit
+    contains no compliance certification phrasing,
+    automation-workflow-testing kit contains no SEO ranking
+    guarantee phrasing (both scoped to skip the `doesNotPromise:`
+    list so disclaimer prose stays readable), no OpenAI metrics,
+    and route contract + sitemap + llms.txt + smoke + indexing
+    advertise all 5 page routes + 4 API endpoints.
+
 24. **Content depth + teaching examples (Sprint 34).** The platform
     keeps the same surface count but raises the teaching quality on
     every existing surface. Five new server components in

@@ -1672,6 +1672,136 @@ never imply that following them produces a "correct"
 model choice — they describe the shape of the
 evidence, not its conclusion.
 
+**Sprint 35 — applied workflow kits + Markdown work
+documents.** Sprint 35 fuses paths, lessons,
+exercises, lab playbooks, prompt sets, and templates
+into four practical **workflow kits** the reader can
+follow and export as a single Markdown work
+document. The product loop stays
+Learn → Apply → Verify → Test; the kit is the work
+document that walks one full pass through it.
+
+[`lib/workflow-kits.ts`](apps/models/lib/workflow-kits.ts)
+is the single source of truth. The registry exports
+`workflowKits`, `getWorkflowKit`, `getWorkflowKits`,
+`getWorkflowKitRoutes`,
+`getWorkflowKitsByAudience`, and
+`workflowKitToMarkdown`.
+
+Four kits ship, one per audience:
+
+- `developer-model-evaluation` — engineer preparing
+  an integration (~180 min, 8 steps).
+- `automation-workflow-testing` — automation builder
+  / SEO operator / technical consultant (~200 min,
+  9 steps).
+- `product-model-selection` — product manager /
+  technical buyer (~180 min, 7 steps).
+- `governance-review` — risk / compliance reviewer
+  (~200 min, 9 steps).
+
+Each `WorkflowKit` declares: `audienceSlug` (links
+to `/for/<slug>`), `goal`, `whatYouWillProduce`,
+`prerequisites`, sequenced `workflow` (step / title
+/ instruction / route / output),
+`requiredLessons[]`, `requiredExercises[]`,
+`requiredPlaybooks[]`, `requiredPromptSets[]`,
+`requiredTemplates[]`, `finalChecklist`,
+`evidenceRoutes`, and `doesNotPromise`. Lists
+resolve live against the underlying registries — a
+rename in `lessons.ts` or `learning-exercises.ts`
+flows through to the kit page automatically.
+
+Five new server-rendered components in
+`apps/models/components/kits/`:
+
+- `WorkflowKitCard` — audience + difficulty + minutes
+  + step count + artifact chips.
+- `WorkflowKitTimeline` — numbered sequenced steps
+  with route link + per-step output.
+- `WorkflowKitResourceGrid` — five-column grid that
+  resolves lesson titles, exercise titles, playbook
+  titles, prompt set titles, and template titles
+  from the respective registries.
+- `WorkflowKitChecklist` — non-interactive final
+  checklist with no persistence.
+- `WorkflowKitPolicyNote` — shared "what kits do not
+  promise" callout.
+
+[`/kits`](apps/models/app/kits/page.tsx) hub renders
+the four kit cards + framing + policy note.
+`CollectionPage` JSON-LD enumerates each kit as
+`HowTo`.
+
+[`/kits/[slug]`](apps/models/app/kits/%5Bslug%5D/page.tsx)
+dynamic route prerenders the four detail pages.
+Each page renders the at-a-glance card, matching
+audience link, goal, artifacts, prerequisites,
+export link, sequenced timeline, resource grid,
+final checklist, evidence routes, per-kit "does not
+promise" list, and the shared policy note. JSON-LD:
+`TechArticle` + `BreadcrumbList` + `HowTo` with
+`HowToStep` per workflow step.
+
+[`/api/kits/[slug]`](apps/models/app/api/kits/%5Bslug%5D/route.ts)
+endpoint exports each kit as `text/markdown;
+charset=utf-8` with `X-Robots-Tag: noindex` and
+`Cache-Control: public, max-age=300, s-maxage=300`.
+Uses `force-static` + `generateStaticParams()` —
+four endpoints prerendered. Pure local derivation:
+no fetch, no env, no Date.now, no user input.
+
+Flow integrations:
+
+- Homepage adds a new "Start with a workflow kit"
+  section directly above the audience picker.
+- `/for/[slug]` audience pages call
+  `getWorkflowKitsByAudience()` and surface the
+  matching kit inline.
+- `/lab`, `/demos`, `/briefs/build` callouts now
+  point to `/kits`.
+- `/learn/paths` policy aside notes the kit option.
+- `/learn/path/[slug]` adds a "Use this path inside
+  a kit" callout with the matching-kit lookup
+  table.
+- SiteFooter Workflow column adds `Kits`.
+
+`/api/site` exposes `workflowKitsHub`,
+`workflowKits[]`, and `workflowKitEndpoints[]`.
+
+`ROUTE_SET_VERSION` bumps to `content-v16`. Eleven
+new integrity guards enforce: registry exists with
+all 6 required exports, all 4 kit slugs registered,
+the 5 kit components exist, `/kits` + dynamic
+`/kits/[slug]` exist, export endpoint contract
+correct (`X-Robots-Tag: noindex` +
+`text/markdown` + `workflowKitToMarkdown()` + no
+`Date.now` / `process.env` / `fetch`), homepage +
+`/lab` + `/demos` + `/briefs/build` + footer link
+to `/kits`, `/for/[slug]` calls
+`getWorkflowKitsByAudience()`, no
+ranking/recommendation/guarantee phrasing on Sprint
+35 kit surfaces, `governance-review` kit contains
+no compliance certification phrasing,
+`automation-workflow-testing` kit contains no SEO
+ranking guarantee phrasing — both kit-slice guards
+strip the `doesNotPromise:` array before scanning
+so disclaimer prose stays readable, OpenAI
+no-metrics re-checked, and route contract + sitemap
++ llms.txt + smoke + indexing advertise all 5 page
+routes + 4 API endpoints.
+
+**Workflow kit policy.** Kits package existing
+surfaces — they never duplicate UI, never assert a
+ranking, never recommend a model. Markdown exports
+are static work documents that inherit retrievedAt
+metadata from the underlying citations, not
+invoiceable quotes. A filled-in kit is evidence the
+planning + testing work was done — never a
+certification, never a production sign-off, never a
+guarantee of automation reliability, SEO outcomes,
+or compliance approval.
+
 - **Mistral Large 3** (`mistral-large-2512`, alias `mistral-large-latest`)
   — Sprint 16 expansion. Mistral moved per-model spec cards from
   `/getting-started/models/<slug>` to `/models/model-cards/<slug>`,
