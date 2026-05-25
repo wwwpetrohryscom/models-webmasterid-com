@@ -474,6 +474,55 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+27. **Resource finder + learning graph navigation (Sprint 37).** The
+    platform now ships a single navigation index across every product
+    surface. A new
+    [`lib/resource-graph.ts`](apps/models/lib/resource-graph.ts)
+    registry builds a typed `ResourceNode` for every lesson, exercise,
+    learning path, lab playbook, lab template, evaluation prompt set,
+    workflow kit, outcome, audience, guided demo, evidence workspace,
+    and reference surface. Each node is tagged with a `stage`
+    (Learn → Apply → Verify → Test → Package), an `audiences[]` set,
+    a `goals[]` set, an `artifacts[]` set, and a `related[]` list
+    that lets the finder route a reader through neighbouring
+    resources. Titles + descriptions + hrefs are resolved live from
+    each source registry, so a rename anywhere flows through
+    automatically. Six new server components in
+    [`components/resources/`](apps/models/components/resources/)
+    (`ResourceCard`, `ResourceFilterBar`, `ResourceStageMap`,
+    `NextStepPanel`, `ResourceSummaryCards`, `RelatedResourceGrid`)
+    drive the surfaces — every filter is a GET link, no client JS.
+    A new [`/resources`](apps/models/app/resources/page.tsx) finder
+    page supports six filters (`audience`, `goal`, `resourceType`,
+    `stage`, `artifact`, `difficulty`) — the base URL is indexable,
+    every filtered URL is `noindex, follow` with canonical
+    `/resources`. A new
+    [`/docs/resource-map`](apps/models/app/docs/resource-map/page.tsx)
+    long-form doc explains the graph, the product loop, the resource
+    types, how to choose the next step, and what the platform does
+    not decide. The homepage adds a "Find your next step" section
+    with four quick-filter cards. `/for`, `/for/[slug]`, `/learn`,
+    `/lab`, `/kits`, `/use-cases`, and `/demos` each gain a
+    Resource Finder link tuned to the surface they live on. The
+    SiteFooter adds a new "Find" column with the finder, the resource
+    map, and four audience-filtered URLs. `/api/site` exposes
+    `resourceFinder` + `resourceMap`. The `lib/should-index.ts`
+    filtered-keys allow list grows by six entries so query strings
+    on `/resources` are recognised and `noindex, follow` is enforced.
+    `ROUTE_SET_VERSION` bumps to `content-v18`. Nine new integrity
+    guards enforce: registry has the 9 required exports, the graph
+    pulls from every source registry, 6 resource components exist,
+    `/resources` page exists + supports filtered noindex,
+    `/docs/resource-map` uses `<ContentPageShell>` + is registered
+    in `lib/content.ts`, homepage + `/for` + `/for/[slug]` +
+    `/learn` + `/lab` + `/kits` + `/use-cases` + `/demos` + footer
+    link to `/resources`, no
+    ranking/recommendation/guarantee phrasing on resource surfaces,
+    no OpenAI metrics, route contract + sitemap + llms.txt + smoke +
+    indexing advertise `/resources` + `/docs/resource-map`, and
+    indexing QA exercises a filtered `/resources?audience=developers`
+    URL to confirm the `noindex, follow` policy in production.
+
 26. **Outcome use cases + product-led learning entry points (Sprint 36).**
     Outcome-driven landing pages map real user problems onto the
     existing learn / apply / verify / test / package surfaces. A new

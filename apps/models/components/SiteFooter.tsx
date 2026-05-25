@@ -63,6 +63,33 @@ const sections: { label: string; links: { label: string; href: string }[] }[] =
       ],
     },
     {
+      label: "Find",
+      links: [
+        { label: "Resource finder", href: "/resources" },
+        { label: "Resource map", href: "/docs/resource-map" },
+        {
+          label: "Developers (filtered)",
+          href: "/resources?audience=developers",
+        },
+        {
+          label: "Product teams (filtered)",
+          href: "/resources?audience=product-teams",
+        },
+        {
+          label: "Automation specialists (filtered)",
+          href: "/resources?audience=automation-specialists",
+        },
+        {
+          label: "Governance teams (filtered)",
+          href: "/resources?audience=governance-teams",
+        },
+        {
+          label: "Decision brief (filtered)",
+          href: "/resources?artifact=decision-brief",
+        },
+      ],
+    },
+    {
       label: "Workflow",
       links: [
         { label: "Use cases", href: "/use-cases" },
@@ -130,7 +157,7 @@ const sections: { label: string; links: { label: string; href: string }[] }[] =
 export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-border bg-card/40">
-      <div className="container-page grid gap-10 py-12 md:grid-cols-3 lg:grid-cols-6">
+      <div className="container-page grid gap-10 py-12 md:grid-cols-3 lg:grid-cols-7">
         <div className="md:col-span-1">
           <Logo variant="full" size={28} showDescriptor />
           <p className="mt-3 max-w-xs text-sm text-muted-foreground">

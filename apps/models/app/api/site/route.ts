@@ -109,6 +109,8 @@ export function GET() {
       ],
       outcomeUseCasesHub: absolute("/use-cases"),
       outcomeUseCases: getOutcomeUseCaseRoutes().map(absolute),
+      resourceFinder: absolute("/resources"),
+      resourceMap: absolute("/docs/resource-map"),
     },
     {
       status: 200,

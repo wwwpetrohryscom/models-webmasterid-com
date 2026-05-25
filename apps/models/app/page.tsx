@@ -187,6 +187,60 @@ export default function HomePage() {
         </ul>
       </section>
 
+      {/* Find your next step */}
+      <section
+        aria-label="Find your next step"
+        className="container-page mt-12"
+      >
+        <SectionHeader
+          eyebrow="Resource finder"
+          title="Find your next step"
+          description="One server-rendered finder across every product surface — lessons, exercises, lab playbooks, prompt sets, kits, outcomes, audiences, demos, and the evidence workspaces. Filter by audience, goal, stage, or artifact. No recommendations, no rankings."
+          cta={{ label: "Open resource finder", href: "/resources" }}
+        />
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              href: "/resources?audience=developers",
+              title: "For developers",
+              detail: "Resources tagged for developers.",
+            },
+            {
+              href: "/resources?goal=test-model-behaviour",
+              title: "Test model behaviour",
+              detail: "Lab playbooks + prompt sets.",
+            },
+            {
+              href: "/resources?artifact=decision-brief",
+              title: "Create decision brief",
+              detail: "Routes that end with a Markdown brief.",
+            },
+            {
+              href: "/resources?goal=review-sources",
+              title: "Review sources",
+              detail: "Citation registry + reverification.",
+            },
+          ].map((card) => (
+            <li key={card.href}>
+              <Link
+                href={card.href}
+                className="card-surface block h-full p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-sm font-semibold text-foreground">
+                  {card.title}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {card.detail}
+                </p>
+                <p className="mt-2 text-[10px] text-muted-foreground">
+                  Filtered view · noindex,follow → canonical /resources
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* Popular outcomes */}
       <section
         aria-label="Popular outcomes"

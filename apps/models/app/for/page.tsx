@@ -188,6 +188,16 @@ export default function AudienceHubPage() {
             </Link>{" "}
             — all role-based learning paths.
           </li>
+          <li>
+            <Link
+              href="/resources"
+              className="text-primary hover:underline"
+            >
+              /resources
+            </Link>{" "}
+            — resource finder filterable by audience, goal, stage,
+            and evidence artifact.
+          </li>
         </ul>
       </aside>
     </PageShell>

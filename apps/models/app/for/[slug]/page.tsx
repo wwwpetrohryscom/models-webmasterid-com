@@ -364,6 +364,16 @@ export default async function AudienceDetailPage({
             </Link>{" "}
             — what this platform is, what it is not.
           </li>
+          <li>
+            <Link
+              href={`/resources?audience=${audience.slug}`}
+              className="text-primary hover:underline"
+            >
+              /resources?audience={audience.slug}
+            </Link>{" "}
+            — every resource tagged for this audience (filtered view,
+            noindex).
+          </li>
         </ul>
       </aside>
     </PageShell>

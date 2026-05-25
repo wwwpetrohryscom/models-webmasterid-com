@@ -265,6 +265,16 @@ export default function LabHubPage() {
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>
             <Link
+              href="/resources?stage=test"
+              className="text-primary hover:underline"
+            >
+              /resources?stage=test
+            </Link>{" "}
+            — every test-stage resource in the graph (filtered view,
+            noindex).
+          </li>
+          <li>
+            <Link
               href="/use-cases/llm-prompt-evaluation"
               className="text-primary hover:underline"
             >

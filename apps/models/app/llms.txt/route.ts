@@ -319,6 +319,8 @@ export function GET() {
       label: "Outcome — structured output testing",
       path: "/use-cases/structured-output-testing",
     },
+    { label: "Resource finder", path: "/resources" },
+    { label: "Resource map (docs)", path: "/docs/resource-map" },
     { label: "Decision brief builder", path: "/briefs/build" },
     { label: "Docs", path: "/docs" },
   ]) {

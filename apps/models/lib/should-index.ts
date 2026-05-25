@@ -106,6 +106,13 @@ const FILTERED_KEYS = new Set<string>([
   "models",
   "fields",
   "showGaps",
+  // Sprint 37: /resources finder filters
+  "audience",
+  "goal",
+  "resourceType",
+  "stage",
+  "artifact",
+  "difficulty",
 ]);
 
 export function isFilteredRoute(

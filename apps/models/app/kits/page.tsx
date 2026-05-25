@@ -192,6 +192,16 @@ export default function KitsHubPage() {
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>
             <Link
+              href="/resources?resourceType=workflow-kit"
+              className="text-primary hover:underline"
+            >
+              /resources?resourceType=workflow-kit
+            </Link>{" "}
+            — every workflow kit in the resource finder (filtered
+            view, noindex).
+          </li>
+          <li>
+            <Link
               href="/use-cases"
               className="text-primary hover:underline"
             >

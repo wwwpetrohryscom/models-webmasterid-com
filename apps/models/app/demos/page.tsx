@@ -265,6 +265,16 @@ export default function DemosHubPage() {
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>
             <Link
+              href="/resources?resourceType=demo"
+              className="text-primary hover:underline"
+            >
+              /resources?resourceType=demo
+            </Link>{" "}
+            — every guided demo in the resource finder (filtered
+            view, noindex).
+          </li>
+          <li>
+            <Link
               href="/use-cases"
               className="text-primary hover:underline"
             >

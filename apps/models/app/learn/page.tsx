@@ -236,6 +236,29 @@ export default function LearnHubPage() {
 
       <aside
         role="note"
+        aria-label="Resource finder shortcut"
+        className="card-surface space-y-2 p-5 text-sm text-muted-foreground"
+      >
+        <p className="font-medium text-foreground">
+          Looking for something specific?
+        </p>
+        <p>
+          The <Link href="/resources" className="text-primary hover:underline">/resources</Link>{" "}
+          finder filters every lesson, exercise, lab playbook, prompt
+          set, kit, outcome, and demo by audience, goal, stage, or
+          evidence artifact. The {" "}
+          <Link
+            href="/docs/resource-map"
+            className="text-primary hover:underline"
+          >
+            /docs/resource-map
+          </Link>{" "}
+          page explains how the graph fits together.
+        </p>
+      </aside>
+
+      <aside
+        role="note"
         aria-label="Outcome shortcuts"
         className="card-surface space-y-2 p-5 text-sm text-muted-foreground"
       >

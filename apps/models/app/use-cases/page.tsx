@@ -177,6 +177,16 @@ export default function UseCasesHubPage() {
         </p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>
+            <Link
+              href="/resources?resourceType=outcome"
+              className="text-primary hover:underline"
+            >
+              /resources?resourceType=outcome
+            </Link>{" "}
+            — every outcome inside the resource finder (filtered
+            view, noindex).
+          </li>
+          <li>
             <Link href="/select" className="text-primary hover:underline">
               /select
             </Link>{" "}

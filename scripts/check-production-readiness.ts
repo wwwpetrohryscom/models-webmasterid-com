@@ -9636,6 +9636,353 @@ const checks: Check[] = [
       return failures.length ? failures.join("\n") : null;
     },
   },
+
+  // -------------------------------------------------------------------
+  // Sprint 37 — resource finder + learning graph
+  // -------------------------------------------------------------------
+  {
+    name: "lib/resource-graph.ts exists with required exports (Sprint 37)",
+    run: () => {
+      const rel = "apps/models/lib/resource-graph.ts";
+      if (!fileExists(rel)) {
+        return `${rel} is missing.`;
+      }
+      const src = readRel(rel);
+      const requiredExports = [
+        "export function getResourceGraph",
+        "export function getResourceNode",
+        "export function getResourcesByStage",
+        "export function getResourcesByAudience",
+        "export function getResourcesByGoal",
+        "export function getResourcesByArtifact",
+        "export function filterResources",
+        "export function getResourceFinderSummary",
+        "export function getNextStepGroups",
+      ];
+      const missing = requiredExports.filter((e) => !src.includes(e));
+      return missing.length
+        ? `${rel} missing exports: ${missing.join(", ")}`
+        : null;
+    },
+  },
+  {
+    name: "resource graph spans every source registry (Sprint 37)",
+    run: () => {
+      const src = readRel("apps/models/lib/resource-graph.ts");
+      const requiredImports = [
+        '"@/lib/lessons"',
+        '"@/lib/learning-exercises"',
+        '"@/lib/learning-paths"',
+        '"@/lib/lab-playbooks"',
+        '"@/lib/evaluation-prompts"',
+        '"@/lib/workflow-kits"',
+        '"@/lib/outcome-use-cases"',
+        '"@/lib/audiences"',
+        '"@/lib/guided-demos"',
+      ];
+      const missing = requiredImports.filter((s) => !src.includes(s));
+      if (missing.length) {
+        return `resource-graph.ts must pull from: ${missing.join(", ")}`;
+      }
+      const requiredTagKinds = [
+        '"lesson:',
+        '"exercise:',
+        '"path:',
+        '"playbook:',
+        '"template:',
+        '"promptset:',
+        '"kit:',
+        '"outcome:',
+        '"audience:',
+        '"demo:',
+      ];
+      const tagMissing = requiredTagKinds.filter((s) => !src.includes(s));
+      return tagMissing.length
+        ? `resource-graph.ts missing tag entries for: ${tagMissing.join(", ")}`
+        : null;
+    },
+  },
+  {
+    name: "6 resource components exist (Sprint 37)",
+    run: () => {
+      const required = [
+        "apps/models/components/resources/ResourceCard.tsx",
+        "apps/models/components/resources/ResourceFilterBar.tsx",
+        "apps/models/components/resources/ResourceStageMap.tsx",
+        "apps/models/components/resources/NextStepPanel.tsx",
+        "apps/models/components/resources/ResourceSummaryCards.tsx",
+        "apps/models/components/resources/RelatedResourceGrid.tsx",
+      ];
+      const missing = required.filter((rel) => !fileExists(rel));
+      return missing.length
+        ? `resource components missing: ${missing.join(", ")}`
+        : null;
+    },
+  },
+  {
+    name: "/resources page exists and supports filtered noindex (Sprint 37)",
+    run: () => {
+      const rel = "apps/models/app/resources/page.tsx";
+      if (!fileExists(rel)) {
+        return `${rel} is missing.`;
+      }
+      const src = readRel(rel);
+      const required = [
+        "isFilteredRoute",
+        "robotsMetadata",
+        "filterResources",
+        "ResourceFilterBar",
+        "NextStepPanel",
+        "ResourceStageMap",
+      ];
+      const missing = required.filter((s) => !src.includes(s));
+      if (missing.length) {
+        return `${rel} missing required wiring: ${missing.join(", ")}`;
+      }
+      // The filtered-keys allow list must cover the six finder filters.
+      const filterKeys = readRel("apps/models/lib/should-index.ts");
+      const requiredKeys = [
+        '"audience"',
+        '"goal"',
+        '"resourceType"',
+        '"stage"',
+        '"artifact"',
+        '"difficulty"',
+      ];
+      const keyMissing = requiredKeys.filter(
+        (k) => !filterKeys.includes(k)
+      );
+      return keyMissing.length
+        ? `lib/should-index.ts FILTERED_KEYS missing: ${keyMissing.join(", ")}`
+        : null;
+    },
+  },
+  {
+    name: "/docs/resource-map page exists and is registered in content (Sprint 37)",
+    run: () => {
+      const rel = "apps/models/app/docs/resource-map/page.tsx";
+      if (!fileExists(rel)) {
+        return `${rel} is missing.`;
+      }
+      const src = readRel(rel);
+      if (!/<ContentPageShell\b/.test(src)) {
+        return `${rel} must use <ContentPageShell>.`;
+      }
+      const content = readRel("apps/models/lib/content.ts");
+      if (!content.includes('"/docs/resource-map"')) {
+        return 'lib/content.ts must register slug "/docs/resource-map".';
+      }
+      return null;
+    },
+  },
+  {
+    name: "homepage + /for + /learn + /lab + /kits + /use-cases + /demos link to /resources (Sprint 37)",
+    run: () => {
+      const surfaces: { rel: string; mustMention: string[] }[] = [
+        {
+          rel: "apps/models/app/page.tsx",
+          mustMention: ["/resources"],
+        },
+        {
+          rel: "apps/models/app/for/page.tsx",
+          mustMention: ["/resources"],
+        },
+        {
+          rel: "apps/models/app/for/[slug]/page.tsx",
+          mustMention: ["/resources?audience="],
+        },
+        {
+          rel: "apps/models/app/learn/page.tsx",
+          mustMention: ["/resources", "/docs/resource-map"],
+        },
+        {
+          rel: "apps/models/app/lab/page.tsx",
+          mustMention: ["/resources?stage=test"],
+        },
+        {
+          rel: "apps/models/app/kits/page.tsx",
+          mustMention: ["/resources?resourceType=workflow-kit"],
+        },
+        {
+          rel: "apps/models/app/use-cases/page.tsx",
+          mustMention: ["/resources?resourceType=outcome"],
+        },
+        {
+          rel: "apps/models/app/demos/page.tsx",
+          mustMention: ["/resources?resourceType=demo"],
+        },
+        {
+          rel: "apps/models/components/SiteFooter.tsx",
+          mustMention: ["/resources", "/docs/resource-map"],
+        },
+      ];
+      const failures: string[] = [];
+      for (const s of surfaces) {
+        if (!fileExists(s.rel)) {
+          failures.push(`${s.rel} missing.`);
+          continue;
+        }
+        const src = readRel(s.rel);
+        for (const m of s.mustMention) {
+          if (!src.includes(m)) {
+            failures.push(`${s.rel} must reference "${m}".`);
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no ranking / recommendation / guarantee language on Sprint 37 resource surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/resource-graph.ts",
+        "apps/models/app/resources/page.tsx",
+        "apps/models/app/docs/resource-map/page.tsx",
+        "apps/models/components/resources/ResourceCard.tsx",
+        "apps/models/components/resources/ResourceFilterBar.tsx",
+        "apps/models/components/resources/ResourceStageMap.tsx",
+        "apps/models/components/resources/NextStepPanel.tsx",
+        "apps/models/components/resources/ResourceSummaryCards.tsx",
+        "apps/models/components/resources/RelatedResourceGrid.tsx",
+      ];
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bis\s+(?:the\s+)?best\s+(?:model|ai|provider)\b/i,
+          label: "is the best model/ai/provider",
+        },
+        {
+          pattern: /\bour\s+recommended\s+model\b/i,
+          label: "our recommended model",
+        },
+        {
+          pattern: /\brecommended\s+model\b/i,
+          label: "recommended model",
+        },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\bcheapest\s+(?:ai\s+)?(?:model|provider|platform)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:ai\s+)?(?:model|provider)\b/i,
+          label: "fastest <noun>",
+        },
+        {
+          pattern: /\bguaranteed\s+to\s+(?:work|meet|pass|satisfy)\b/i,
+          label: "guaranteed to <verb>",
+        },
+        {
+          pattern: /\bis\s+production[\s-]ready\b/i,
+          label: "is production ready",
+        },
+        {
+          pattern: /\bcertified\s+(?:for|compliant|by)\b/i,
+          label: "certified for/compliant/by",
+        },
+        {
+          pattern: /\bguarantee(?:s|d)?\s+(?:seo|search|ranking|traffic)\b/i,
+          label: "guaranteed seo/search/ranking/traffic",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const raw = readRel(rel);
+        const stripped = raw
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric appears on Sprint 37 resource surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/resource-graph.ts",
+        "apps/models/app/resources/page.tsx",
+        "apps/models/app/docs/resource-map/page.tsx",
+        "apps/models/components/resources/ResourceCard.tsx",
+        "apps/models/components/resources/ResourceFilterBar.tsx",
+        "apps/models/components/resources/ResourceStageMap.tsx",
+        "apps/models/components/resources/NextStepPanel.tsx",
+        "apps/models/components/resources/ResourceSummaryCards.tsx",
+        "apps/models/components/resources/RelatedResourceGrid.tsx",
+      ];
+      const banned = /"[^"]*\bgpt-5\b[^"]*"/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} references GPT-5 — no OpenAI metrics are verified yet.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract + sitemap + llms.txt + smoke + indexing advertise Sprint 37 resource routes",
+    run: () => {
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+
+      const versionMatch = contract.match(
+        /ROUTE_SET_VERSION\s*=\s*"content-v(\d+)"/
+      );
+      if (!versionMatch || Number(versionMatch[1]) < 18) {
+        failures.push(
+          'ROUTE_SET_VERSION must be "content-v18" or later for Sprint 37.'
+        );
+      }
+
+      const pageRoutes = ["/resources", "/docs/resource-map"];
+      for (const path of pageRoutes) {
+        const quoted = `"${path}"`;
+        if (!contract.includes(quoted)) {
+          failures.push(`route-contract must include ${quoted}.`);
+        }
+        if (!sitemap.includes(quoted) && path === "/resources") {
+          failures.push(`sitemap must include ${quoted}.`);
+        }
+        if (!smoke.includes(quoted)) {
+          failures.push(`scripts/lib/smoke.mjs must include ${quoted}.`);
+        }
+        if (!indexing.includes(quoted)) {
+          failures.push(`scripts/indexing-qa.mjs must include ${quoted}.`);
+        }
+        if (!llms.includes(quoted)) {
+          failures.push(`llms.txt must list ${quoted}.`);
+        }
+      }
+
+      // The indexing QA must include a filtered /resources URL so
+      // the noindex behaviour is exercised in production.
+      if (!indexing.includes('"/resources?audience=developers"')) {
+        failures.push(
+          'scripts/indexing-qa.mjs must include "/resources?audience=developers" in FILTERED_NOINDEX_PAGES to exercise the noindex policy.'
+        );
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
 ];
 
 function main(): void {

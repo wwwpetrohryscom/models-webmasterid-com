@@ -314,6 +314,8 @@ const INDEXABLE_PAGES = [
     expectJsonLd: true,
     kind: "detail",
   },
+  { path: "/resources", expectJsonLd: true, kind: "hub" },
+  { path: "/docs/resource-map", expectJsonLd: true, kind: "detail" },
 ];
 
 const FILTERED_NOINDEX_PAGES = [
@@ -325,6 +327,7 @@ const FILTERED_NOINDEX_PAGES = [
   "/select?useCase=long-context-analysis",
   "/compare/build?useCase=long-context-analysis",
   "/briefs/build?useCase=long-context-analysis",
+  "/resources?audience=developers",
 ];
 
 const MACHINE_ENDPOINTS = [

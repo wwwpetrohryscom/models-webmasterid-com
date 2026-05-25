@@ -103,6 +103,8 @@ const PAGE_ROUTES = [
   "/use-cases/ai-model-governance-review",
   "/use-cases/llm-prompt-evaluation",
   "/use-cases/structured-output-testing",
+  "/resources",
+  "/docs/resource-map",
 ];
 
 const API_ROUTES = [

@@ -428,6 +428,33 @@ export const contentPages: ContentPage[] = [
     indexable: true,
     jsonLdType: "TechArticle",
   },
+  {
+    slug: "/docs/resource-map",
+    title: "Resource map",
+    description:
+      "How the resource finder and learning graph fit together — what the Learn → Apply → Verify → Test → Package loop means, the resource types, how audiences / outcomes / kits / lab tools connect, and what the platform does not decide for you.",
+    section: "data-verification",
+    updatedDate: "2026-05-25",
+    relatedRoutes: [
+      "/resources",
+      "/for",
+      "/learn",
+      "/lab",
+      "/kits",
+      "/use-cases",
+      "/briefs/build",
+      "/sources",
+      "/reverification",
+    ],
+    keywords: [
+      "ai usage learning resource map",
+      "ai model resource graph",
+      "learn apply verify test package",
+      "ai model resource finder",
+    ],
+    indexable: true,
+    jsonLdType: "TechArticle",
+  },
 ];
 
 // ---------------------------------------------------------------------------

@@ -1672,6 +1672,131 @@ never imply that following them produces a "correct"
 model choice — they describe the shape of the
 evidence, not its conclusion.
 
+**Sprint 37 — resource finder + learning graph
+navigation.** Sprint 37 makes the platform easier
+to navigate by adding a single resource finder
+and a long-form resource map that explains how
+every product surface fits together. No new
+verified-field claims, no new mutable data — just
+a navigation layer over what already shipped.
+
+[`lib/resource-graph.ts`](apps/models/lib/resource-graph.ts)
+is the registry. It pulls titles, descriptions,
+hrefs, difficulty, and estimated-minutes live
+from every existing source registry — lessons,
+exercises, learning paths, lab playbooks, lab
+templates, evaluation prompt sets, workflow kits,
+outcomes, audiences, guided demos — and adds a
+tag layer that only lives in the graph file:
+`type`, `stage`, `audiences[]`, `goals[]`,
+`artifacts[]`, `related[]`. Authored entries for
+the live workspaces (`/select`, `/compare/build`,
+`/briefs/build`), the example brief
+(`/examples/decision-brief`), and the verification
+surfaces (`/sources`, `/coverage`,
+`/reverification`) round out the graph.
+
+Public API: `getResourceGraph`,
+`getResourceNode`, `getResourcesByStage`,
+`getResourcesByAudience`, `getResourcesByGoal`,
+`getResourcesByArtifact`, `filterResources`,
+`getResourceFinderSummary`, `getNextStepGroups`.
+
+Six new server-rendered components in
+`apps/models/components/resources/`:
+
+- `ResourceCard` — single-resource summary card
+  with type / stage eyebrow + artifact chips.
+- `ResourceFilterBar` — six filter groups
+  rendered entirely as GET links; "Reset all
+  filters" link clears every filter at once.
+- `ResourceStageMap` — Learn → Apply → Verify →
+  Test → Package strip with per-stage counts +
+  filtered links.
+- `NextStepPanel` — "I want to…" cards that each
+  land on a pre-filtered finder view.
+- `ResourceSummaryCards` — total + per-stage
+  count tiles.
+- `RelatedResourceGrid` — reusable on other
+  surfaces; resolves nodes by id and silently
+  drops unknown ones so it stays safe.
+
+[`/resources`](apps/models/app/resources/page.tsx)
+is the finder hub. Filters supported via query
+string: `audience`, `goal`, `resourceType`,
+`stage`, `artifact`, `difficulty`. The base URL
+is indexable; any query-string combination is
+`noindex, follow` with canonical `/resources`.
+The page renders the summary cards, the
+NextStepPanel, the stage map, the filter bar,
+the per-stage grouped results, the policy note,
+and a related-routes aside. JSON-LD:
+`BreadcrumbList` + `CollectionPage`.
+
+The Sprint 24 `FILTERED_KEYS` allow list in
+`lib/should-index.ts` grows by six entries
+(`audience`, `goal`, `resourceType`, `stage`,
+`artifact`, `difficulty`) so the existing
+`isFilteredRoute()` helper recognises every
+finder filter and flips `robots` to `noindex,
+follow` automatically — same pattern used by
+`/models`, `/pricing`, `/sources`,
+`/reverification`, `/select`, `/compare/build`,
+and `/briefs/build`.
+
+[`/docs/resource-map`](apps/models/app/docs/resource-map/page.tsx)
+is the long-form companion. It uses
+`<ContentPageShell>` from the existing docs
+chrome and is registered in `lib/content.ts` so
+the sitemap + llms.txt pickup is automatic.
+Sections: what the graph is, the product loop,
+the resource types, how to choose the next step,
+how audiences / outcomes / kits / lab tools
+connect, what the platform does not decide.
+
+Integrations:
+
+- Homepage adds a "Find your next step" section
+  above the popular outcomes with four
+  quick-filter cards (developers, test model
+  behaviour, decision brief, review sources).
+- `/for` adds the finder to the related
+  references aside.
+- `/for/[slug]` adds an audience-filtered finder
+  link.
+- `/learn` adds a "Resource finder shortcut"
+  aside that also points at the resource map.
+- `/lab`, `/kits`, `/use-cases`, `/demos` each
+  gain a stage- or type-filtered finder entry in
+  their related-routes asides.
+- SiteFooter gains a new "Find" column with the
+  finder, the resource map, four audience
+  filters, and a decision-brief artifact filter.
+  Footer grid expands from 6 to 7 columns at lg.
+
+`/api/site` exposes `resourceFinder` and
+`resourceMap`.
+
+`ROUTE_SET_VERSION` bumps to `content-v18`. Nine
+new integrity guards enforce: registry has the 9
+required exports, graph spans every source
+registry + carries all ten tag-prefix kinds, 6
+resource components exist, `/resources` page
+exists + wires `isFilteredRoute` +
+`robotsMetadata` + the new FILTERED_KEYS allow
+list, `/docs/resource-map` uses
+`<ContentPageShell>` + is registered in
+`lib/content.ts`, the nine surfaces above link
+to `/resources` with the right pre-filter query
+string, no
+ranking/recommendation/guarantee phrasing on
+resource surfaces, no OpenAI metrics, and route
+contract + sitemap + llms.txt + smoke +
+indexing all advertise `/resources` +
+`/docs/resource-map` with a filtered
+`/resources?audience=developers` URL exercised
+in production indexing QA.
+
 **Sprint 36 — outcome use cases + product-led
 learning entry points.** Sprint 36 layers
 outcome-driven landing pages onto the existing
