@@ -19,6 +19,7 @@ import {
   STATUS_ENDPOINTS,
 } from "@/lib/route-contract";
 import { contentPages } from "@/lib/content";
+import { getOutcomeUseCaseRoutes } from "@/lib/outcome-use-cases";
 
 export const dynamic = "force-static";
 
@@ -106,6 +107,8 @@ export function GET() {
         absolute("/api/kits/product-model-selection"),
         absolute("/api/kits/governance-review"),
       ],
+      outcomeUseCasesHub: absolute("/use-cases"),
+      outcomeUseCases: getOutcomeUseCaseRoutes().map(absolute),
     },
     {
       status: 200,

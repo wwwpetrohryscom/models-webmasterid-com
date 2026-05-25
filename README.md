@@ -474,6 +474,43 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+26. **Outcome use cases + product-led learning entry points (Sprint 36).**
+    Outcome-driven landing pages map real user problems onto the
+    existing learn / apply / verify / test / package surfaces. A new
+    [`lib/outcome-use-cases.ts`](apps/models/lib/outcome-use-cases.ts)
+    registry defines six outcomes — `ai-model-evaluation-for-developers`,
+    `ai-model-selection-for-product-teams`, `ai-automation-testing`,
+    `ai-model-governance-review`, `llm-prompt-evaluation`,
+    `structured-output-testing` — each carrying problem statement,
+    audience, what-to-learn, exercises, lab playbooks, prompt sets,
+    workflow kits, evidence artifacts, a 4–5 step suggested workflow,
+    and a `doesNotPromise` list. Five new server components in
+    [`components/outcomes/`](apps/models/components/outcomes/)
+    (`OutcomeUseCaseCard`, `OutcomeWorkflow`, `OutcomeResourceGrid`,
+    `OutcomeArtifactList`, `OutcomePolicyNote`) plus an `OutcomePage`
+    shared shell drive the surfaces. Six static
+    [`/use-cases/<slug>`](apps/models/app/use-cases/) pages render
+    each outcome with breadcrumbs, JSON-LD (`TechArticle` +
+    `BreadcrumbList` + `HowTo`), audience link, artifact chip list,
+    sequenced workflow, five-column resource grid, per-outcome "does
+    not promise" list, and shared policy note. The
+    [`/use-cases`](apps/models/app/use-cases/page.tsx) hub adds an
+    "Outcome-driven workflows" section above the existing detail
+    pages. The homepage adds a new "Popular outcomes" section above
+    the audience picker. `/for/[slug]` surfaces a matching outcome
+    card when one exists. `/learn`, `/lab`, `/kits`, `/demos`, and
+    the SiteFooter all gain outcome links. `/api/site` exposes
+    `outcomeUseCasesHub` + `outcomeUseCases[]`.
+    `ROUTE_SET_VERSION` bumps to `content-v17`. Eight new integrity
+    guards enforce: registry has the 4 required exports, all 6
+    outcome slugs registered, 5 outcome components exist, 6 detail
+    pages exist, homepage + `/for/[slug]` + `/learn` + `/lab` +
+    `/kits` + `/demos` + footer link to outcomes, no ranking /
+    recommendation / guarantee phrasing on outcome surfaces
+    (scoped to skip every `doesNotPromise:` array), no OpenAI
+    metrics, and route contract + sitemap + llms.txt + smoke +
+    indexing advertise all 6 outcome page routes.
+
 25. **Applied workflow kits + Markdown work documents (Sprint 35).**
     The role-based paths, exercises, lab playbooks, prompt sets, and
     templates fuse into four practical **workflow kits** the reader

@@ -336,6 +336,36 @@ const STATIC_ROUTES: StaticRoute[] = [
     changeFrequency: "monthly",
     priority: 0.85,
   },
+  {
+    path: "/use-cases/ai-model-evaluation-for-developers",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
+  {
+    path: "/use-cases/ai-model-selection-for-product-teams",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
+  {
+    path: "/use-cases/ai-automation-testing",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
+  {
+    path: "/use-cases/ai-model-governance-review",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
+  {
+    path: "/use-cases/llm-prompt-evaluation",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
+  {
+    path: "/use-cases/structured-output-testing",
+    changeFrequency: "monthly",
+    priority: 0.85,
+  },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

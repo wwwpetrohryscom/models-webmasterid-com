@@ -13,6 +13,8 @@ import { buildMetadata, breadcrumbJsonLd, articleJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import { getAudience, getAudiences } from "@/lib/audiences";
 import { getWorkflowKitsByAudience } from "@/lib/workflow-kits";
+import { getOutcomeUseCases } from "@/lib/outcome-use-cases";
+import { OutcomeUseCaseCard } from "@/components/outcomes/OutcomeUseCaseCard";
 
 interface RouteParams {
   slug: string;
@@ -118,6 +120,35 @@ export default async function AudienceDetailPage({
                 Open the {kit.title} →
               </Link>
             </p>
+          </section>
+        );
+      })()}
+
+      {(() => {
+        const matchingOutcomes = getOutcomeUseCases().filter(
+          (o) => o.audienceSlug === audience.slug
+        );
+        if (!matchingOutcomes.length) return null;
+        return (
+          <section
+            aria-label="Matching outcome workflow"
+            className="card-surface space-y-3 p-5 text-sm"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              Matching outcome workflow
+            </p>
+            <p className="text-muted-foreground">
+              Each outcome routes this audience through the existing
+              learn / apply / verify surfaces and ends with named
+              Markdown artifacts — no recommendations, no rankings.
+            </p>
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {matchingOutcomes.map((o) => (
+                <li key={o.slug}>
+                  <OutcomeUseCaseCard outcome={o} />
+                </li>
+              ))}
+            </ul>
           </section>
         );
       })()}

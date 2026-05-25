@@ -264,6 +264,33 @@ export default function LabHubPage() {
         </p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>
+            <Link
+              href="/use-cases/llm-prompt-evaluation"
+              className="text-primary hover:underline"
+            >
+              /use-cases/llm-prompt-evaluation
+            </Link>{" "}
+            — outcome page that routes through this lab.
+          </li>
+          <li>
+            <Link
+              href="/use-cases/structured-output-testing"
+              className="text-primary hover:underline"
+            >
+              /use-cases/structured-output-testing
+            </Link>{" "}
+            — outcome page for structured-generation validation.
+          </li>
+          <li>
+            <Link
+              href="/use-cases/ai-automation-testing"
+              className="text-primary hover:underline"
+            >
+              /use-cases/ai-automation-testing
+            </Link>{" "}
+            — outcome page for unattended-automation testing.
+          </li>
+          <li>
             <Link href="/learn" className="text-primary hover:underline">
               /learn
             </Link>{" "}

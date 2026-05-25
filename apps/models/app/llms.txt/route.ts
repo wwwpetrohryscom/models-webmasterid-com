@@ -295,6 +295,30 @@ export function GET() {
       label: "Use case — governance review",
       path: "/use-cases/governance-review",
     },
+    {
+      label: "Outcome — AI model evaluation for developers",
+      path: "/use-cases/ai-model-evaluation-for-developers",
+    },
+    {
+      label: "Outcome — AI model selection for product teams",
+      path: "/use-cases/ai-model-selection-for-product-teams",
+    },
+    {
+      label: "Outcome — AI automation testing",
+      path: "/use-cases/ai-automation-testing",
+    },
+    {
+      label: "Outcome — AI model governance review",
+      path: "/use-cases/ai-model-governance-review",
+    },
+    {
+      label: "Outcome — LLM prompt evaluation",
+      path: "/use-cases/llm-prompt-evaluation",
+    },
+    {
+      label: "Outcome — structured output testing",
+      path: "/use-cases/structured-output-testing",
+    },
     { label: "Decision brief builder", path: "/briefs/build" },
     { label: "Docs", path: "/docs" },
   ]) {

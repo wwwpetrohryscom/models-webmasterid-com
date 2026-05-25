@@ -1672,6 +1672,111 @@ never imply that following them produces a "correct"
 model choice — they describe the shape of the
 evidence, not its conclusion.
 
+**Sprint 36 — outcome use cases + product-led
+learning entry points.** Sprint 36 layers
+outcome-driven landing pages onto the existing
+catalogue. Each outcome names the problem the
+reader is trying to solve, lists who it is for,
+routes the reader through the existing
+Learn → Apply → Verify → Test → Package surfaces,
+and ends by naming the Markdown artifacts the
+reader will leave with. No new product surfaces —
+outcome pages are entry points, not parallel UI.
+
+[`lib/outcome-use-cases.ts`](apps/models/lib/outcome-use-cases.ts)
+is the single source of truth. The registry exports
+`outcomeUseCases`, `getOutcomeUseCase`,
+`getOutcomeUseCases`, and
+`getOutcomeUseCaseRoutes`.
+
+Six outcomes ship:
+
+- `ai-model-evaluation-for-developers` — engineer
+  preparing an integration.
+- `ai-model-selection-for-product-teams` — product
+  manager / technical buyer aligning with finance
+  + legal.
+- `ai-automation-testing` — automation builder /
+  SEO operator / technical consultant.
+- `ai-model-governance-review` — risk / compliance
+  reviewer preparing internal approvals.
+- `llm-prompt-evaluation` — teams comparing models
+  on faithful behaviour rather than benchmark
+  headlines.
+- `structured-output-testing` — engineers wiring
+  the model into a parser-dependent automation.
+
+Each `OutcomeUseCase` declares `slug`, `title`,
+`headline`, `summary`, optional `audienceSlug`,
+`problem`, `whoThisIsFor`, `whatToLearn`,
+`exercises`, `labPlaybooks`, `promptSets`,
+`workflowKits`, `evidenceArtifacts`,
+`suggestedWorkflow` (step / label / href /
+output), and `doesNotPromise`. Every resource
+entry points at a route that already exists — no
+parallel UI, no duplicated content.
+
+Five new server-rendered components in
+`apps/models/components/outcomes/`:
+
+- `OutcomeUseCaseCard` — summary card with eyebrow,
+  title, headline, artifact chips, CTA.
+- `OutcomeWorkflow` — numbered vertical workflow
+  strip; each step opens an existing route.
+- `OutcomeResourceGrid` — five-column grid for
+  what-to-learn / exercises / lab playbooks /
+  prompt sets / workflow kits.
+- `OutcomeArtifactList` — chip list of evidence
+  artifacts the reader produces.
+- `OutcomePolicyNote` — shared "what outcome pages
+  do not promise" callout.
+
+A shared `OutcomePage` component renders the full
+detail page from a registry entry; the six
+[`/use-cases/<slug>`](apps/models/app/use-cases/)
+folders contain thin static pages that call
+`getOutcomeUseCase()` and render through it.
+JSON-LD: `TechArticle` + `BreadcrumbList` + `HowTo`
+with `HowToStep` per workflow step.
+
+Flow integrations:
+
+- Homepage adds a new "Popular outcomes" section
+  above the audience picker.
+- `/use-cases` hub adds an "Outcome-driven
+  workflows" section above the existing detailed
+  use-case cards.
+- `/for/[slug]` surfaces a matching outcome card
+  when the outcome's `audienceSlug` matches.
+- `/learn` adds an "Outcome shortcuts" aside.
+- `/lab`, `/kits`, `/demos` related-routes asides
+  link to outcome pages.
+- SiteFooter Workflow column adds six outcome
+  entries.
+
+`/api/site` exposes `outcomeUseCasesHub` and
+`outcomeUseCases[]`.
+
+`ROUTE_SET_VERSION` bumps to `content-v17`. Eight
+new integrity guards enforce: registry has the 4
+required exports, all 6 outcome slugs registered,
+the 5 outcome components exist, the 6 outcome
+detail pages exist, homepage + `/for/[slug]` +
+`/learn` + `/lab` + `/kits` + `/demos` + footer
+link to outcomes, no
+ranking/recommendation/guarantee phrasing on
+outcome surfaces (scoped to strip every
+`doesNotPromise:` array before scanning so the
+explicit disclaimers in the registry stay
+readable), no OpenAI metrics, and route contract
++ sitemap + llms.txt + smoke + indexing advertise
+all six outcome page routes.
+
+Sprint 36 ships no new mutable data and no new
+verified-field claims. Every numeric and source
+claim already verified by Sprint 35 remains the
+truth.
+
 **Sprint 35 — applied workflow kits + Markdown work
 documents.** Sprint 35 fuses paths, lessons,
 exercises, lab playbooks, prompt sets, and templates

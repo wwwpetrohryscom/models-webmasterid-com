@@ -236,6 +236,64 @@ export default function LearnHubPage() {
 
       <aside
         role="note"
+        aria-label="Outcome shortcuts"
+        className="card-surface space-y-2 p-5 text-sm text-muted-foreground"
+      >
+        <p className="font-medium text-foreground">
+          Already know the outcome you want?
+        </p>
+        <p>
+          Each <Link href="/use-cases" className="text-primary hover:underline">/use-cases</Link>{" "}
+          outcome routes the reader through the lessons + exercises +
+          lab + prompt sets + kit that produce the artifacts the
+          outcome needs. Try{" "}
+          <Link
+            href="/use-cases/ai-model-evaluation-for-developers"
+            className="text-primary hover:underline"
+          >
+            developer model evaluation
+          </Link>
+          ,{" "}
+          <Link
+            href="/use-cases/ai-model-selection-for-product-teams"
+            className="text-primary hover:underline"
+          >
+            product model selection
+          </Link>
+          ,{" "}
+          <Link
+            href="/use-cases/ai-automation-testing"
+            className="text-primary hover:underline"
+          >
+            automation testing
+          </Link>
+          ,{" "}
+          <Link
+            href="/use-cases/ai-model-governance-review"
+            className="text-primary hover:underline"
+          >
+            governance review
+          </Link>
+          ,{" "}
+          <Link
+            href="/use-cases/llm-prompt-evaluation"
+            className="text-primary hover:underline"
+          >
+            prompt evaluation
+          </Link>
+          , or{" "}
+          <Link
+            href="/use-cases/structured-output-testing"
+            className="text-primary hover:underline"
+          >
+            structured output testing
+          </Link>
+          .
+        </p>
+      </aside>
+
+      <aside
+        role="note"
         aria-label="Choose by audience"
         className="card-surface space-y-2 p-5 text-sm text-muted-foreground"
       >

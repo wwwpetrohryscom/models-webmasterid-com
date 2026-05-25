@@ -284,6 +284,36 @@ const INDEXABLE_PAGES = [
     expectJsonLd: true,
     kind: "detail",
   },
+  {
+    path: "/use-cases/ai-model-evaluation-for-developers",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/use-cases/ai-model-selection-for-product-teams",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/use-cases/ai-automation-testing",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/use-cases/ai-model-governance-review",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/use-cases/llm-prompt-evaluation",
+    expectJsonLd: true,
+    kind: "detail",
+  },
+  {
+    path: "/use-cases/structured-output-testing",
+    expectJsonLd: true,
+    kind: "detail",
+  },
 ];
 
 const FILTERED_NOINDEX_PAGES = [

@@ -12,8 +12,10 @@ import { VerificationBadge } from "@/components/VerificationBadge";
 import { VerifiedField } from "@/components/VerifiedField";
 import { ContentStatCard } from "@/components/content/ContentStatCard";
 import { AudienceCard } from "@/components/audience/AudienceCard";
+import { OutcomeUseCaseCard } from "@/components/outcomes/OutcomeUseCaseCard";
 import { siteConfig } from "@/lib/site-config";
 import { getAudiences } from "@/lib/audiences";
+import { getOutcomeUseCases } from "@/lib/outcome-use-cases";
 import {
   buildMetadata,
   organizationJsonLd,
@@ -60,6 +62,7 @@ const trustItems = [
 
 export default function HomePage() {
   const audiences = getAudiences();
+  const outcomes = getOutcomeUseCases();
   return (
     <>
       <JsonLd
@@ -179,6 +182,26 @@ export default function HomePage() {
                   Exportable as Markdown · no progress tracking.
                 </p>
               </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* Popular outcomes */}
+      <section
+        aria-label="Popular outcomes"
+        className="container-page mt-12"
+      >
+        <SectionHeader
+          eyebrow="Outcomes"
+          title="Popular outcomes"
+          description="Outcome pages name the problem you are trying to solve and route you through the existing learn / apply / verify / test / package surfaces. Each ends with the named Markdown artifacts your team will read together — no recommendations, no rankings, no winners."
+          cta={{ label: "All outcomes", href: "/use-cases" }}
+        />
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {outcomes.map((o) => (
+            <li key={o.slug}>
+              <OutcomeUseCaseCard outcome={o} />
             </li>
           ))}
         </ul>

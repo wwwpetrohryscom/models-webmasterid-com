@@ -7,11 +7,13 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import { modelUseCases } from "@/lib/use-cases";
+import { getOutcomeUseCases } from "@/lib/outcome-use-cases";
+import { OutcomeUseCaseCard } from "@/components/outcomes/OutcomeUseCaseCard";
 
 export const metadata: Metadata = buildMetadata({
   title: "Model Use Cases",
   description:
-    "Selection workflows for AI models — long-context analysis, multimodal input, hosted inference, governance review, and more. Each use case names the verified fields a reader should weight; none of them rank, recommend, or declare a winner.",
+    "Selection workflows and outcome-driven entry points for AI model work — model evaluation for developers, model selection for product teams, automation testing, governance review, prompt evaluation, structured output testing, plus the verified-field selection workflows. Each routes the reader into the existing learn / apply / verify surfaces; none rank, recommend, or declare a winner.",
   path: "/use-cases",
 });
 
@@ -77,6 +79,22 @@ export default function UseCasesHubPage() {
           before picking a use case.
         </p>
       </aside>
+
+      <section aria-label="Outcome-driven workflows" className="space-y-3">
+        <SectionHeader
+          eyebrow="Outcomes"
+          title="Outcome-driven workflows"
+          description="Outcome pages name the problem you are trying to solve and route you through the existing learn / apply / verify / test / package surfaces. Each ends with named Markdown artifacts — no recommendations, no rankings."
+          as="h2"
+        />
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {getOutcomeUseCases().map((o) => (
+            <li key={o.slug}>
+              <OutcomeUseCaseCard outcome={o} />
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section aria-label="Detailed use cases" className="space-y-3">
         <SectionHeader

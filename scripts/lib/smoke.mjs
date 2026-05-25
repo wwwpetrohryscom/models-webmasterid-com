@@ -97,6 +97,12 @@ const PAGE_ROUTES = [
   "/kits/automation-workflow-testing",
   "/kits/product-model-selection",
   "/kits/governance-review",
+  "/use-cases/ai-model-evaluation-for-developers",
+  "/use-cases/ai-model-selection-for-product-teams",
+  "/use-cases/ai-automation-testing",
+  "/use-cases/ai-model-governance-review",
+  "/use-cases/llm-prompt-evaluation",
+  "/use-cases/structured-output-testing",
 ];
 
 const API_ROUTES = [

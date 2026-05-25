@@ -191,6 +191,15 @@ export default function KitsHubPage() {
         </p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>
+            <Link
+              href="/use-cases"
+              className="text-primary hover:underline"
+            >
+              /use-cases
+            </Link>{" "}
+            — outcome-driven entry points that route into each kit.
+          </li>
+          <li>
             <Link href="/for" className="text-primary hover:underline">
               /for
             </Link>{" "}

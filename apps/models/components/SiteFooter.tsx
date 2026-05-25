@@ -66,6 +66,30 @@ const sections: { label: string; links: { label: string; href: string }[] }[] =
       label: "Workflow",
       links: [
         { label: "Use cases", href: "/use-cases" },
+        {
+          label: "Outcome: developer evaluation",
+          href: "/use-cases/ai-model-evaluation-for-developers",
+        },
+        {
+          label: "Outcome: product selection",
+          href: "/use-cases/ai-model-selection-for-product-teams",
+        },
+        {
+          label: "Outcome: automation testing",
+          href: "/use-cases/ai-automation-testing",
+        },
+        {
+          label: "Outcome: governance review",
+          href: "/use-cases/ai-model-governance-review",
+        },
+        {
+          label: "Outcome: prompt evaluation",
+          href: "/use-cases/llm-prompt-evaluation",
+        },
+        {
+          label: "Outcome: structured output",
+          href: "/use-cases/structured-output-testing",
+        },
         { label: "Select", href: "/select" },
         { label: "Compare", href: "/compare/build" },
         { label: "Briefs", href: "/briefs/build" },

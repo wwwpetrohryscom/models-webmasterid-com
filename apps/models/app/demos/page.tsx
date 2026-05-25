@@ -265,6 +265,15 @@ export default function DemosHubPage() {
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>
             <Link
+              href="/use-cases"
+              className="text-primary hover:underline"
+            >
+              /use-cases
+            </Link>{" "}
+            — outcome-driven entry points each demo walks toward.
+          </li>
+          <li>
+            <Link
               href="/how-it-works"
               className="text-primary hover:underline"
             >

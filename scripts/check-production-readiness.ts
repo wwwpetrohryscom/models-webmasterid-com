@@ -9339,6 +9339,303 @@ const checks: Check[] = [
       return failures.length ? failures.join("\n") : null;
     },
   },
+
+  // -------------------------------------------------------------------
+  // Sprint 36 — outcome use cases
+  // -------------------------------------------------------------------
+  {
+    name: "lib/outcome-use-cases.ts exists with required exports (Sprint 36)",
+    run: () => {
+      const rel = "apps/models/lib/outcome-use-cases.ts";
+      if (!fileExists(rel)) {
+        return `${rel} is missing.`;
+      }
+      const src = readRel(rel);
+      const requiredExports = [
+        "export const outcomeUseCases",
+        "export function getOutcomeUseCase",
+        "export function getOutcomeUseCases",
+        "export function getOutcomeUseCaseRoutes",
+      ];
+      const missing = requiredExports.filter((e) => !src.includes(e));
+      return missing.length
+        ? `${rel} missing exports: ${missing.join(", ")}`
+        : null;
+    },
+  },
+  {
+    name: "all 6 outcome slugs registered (Sprint 36)",
+    run: () => {
+      const src = readRel("apps/models/lib/outcome-use-cases.ts");
+      const required = [
+        "ai-model-evaluation-for-developers",
+        "ai-model-selection-for-product-teams",
+        "ai-automation-testing",
+        "ai-model-governance-review",
+        "llm-prompt-evaluation",
+        "structured-output-testing",
+      ];
+      const missing = required.filter(
+        (slug) => !src.includes(`slug: "${slug}"`)
+      );
+      return missing.length
+        ? `outcome-use-cases.ts missing slug entries: ${missing.join(", ")}`
+        : null;
+    },
+  },
+  {
+    name: "5 outcome components exist (Sprint 36)",
+    run: () => {
+      const required = [
+        "apps/models/components/outcomes/OutcomeUseCaseCard.tsx",
+        "apps/models/components/outcomes/OutcomeWorkflow.tsx",
+        "apps/models/components/outcomes/OutcomeResourceGrid.tsx",
+        "apps/models/components/outcomes/OutcomeArtifactList.tsx",
+        "apps/models/components/outcomes/OutcomePolicyNote.tsx",
+      ];
+      const missing = required.filter((rel) => !fileExists(rel));
+      return missing.length
+        ? `outcome components missing: ${missing.join(", ")}`
+        : null;
+    },
+  },
+  {
+    name: "6 outcome detail pages exist (Sprint 36)",
+    run: () => {
+      const slugs = [
+        "ai-model-evaluation-for-developers",
+        "ai-model-selection-for-product-teams",
+        "ai-automation-testing",
+        "ai-model-governance-review",
+        "llm-prompt-evaluation",
+        "structured-output-testing",
+      ];
+      const missing = slugs.filter(
+        (slug) =>
+          !fileExists(`apps/models/app/use-cases/${slug}/page.tsx`)
+      );
+      return missing.length
+        ? `outcome detail pages missing: ${missing.join(", ")}`
+        : null;
+    },
+  },
+  {
+    name: "homepage + /for + /learn + /lab + /kits + /demos link to outcome routes (Sprint 36)",
+    run: () => {
+      const surfaces: { rel: string; mustMention: string[] }[] = [
+        {
+          rel: "apps/models/app/page.tsx",
+          mustMention: [
+            "OutcomeUseCaseCard",
+            "getOutcomeUseCases",
+          ],
+        },
+        {
+          rel: "apps/models/app/use-cases/page.tsx",
+          mustMention: [
+            "OutcomeUseCaseCard",
+            "getOutcomeUseCases",
+          ],
+        },
+        {
+          rel: "apps/models/app/for/[slug]/page.tsx",
+          mustMention: [
+            "OutcomeUseCaseCard",
+            "getOutcomeUseCases",
+          ],
+        },
+        {
+          rel: "apps/models/app/learn/page.tsx",
+          mustMention: ["/use-cases/ai-model-evaluation-for-developers"],
+        },
+        {
+          rel: "apps/models/app/lab/page.tsx",
+          mustMention: ["/use-cases/llm-prompt-evaluation"],
+        },
+        {
+          rel: "apps/models/app/kits/page.tsx",
+          mustMention: ["/use-cases"],
+        },
+        {
+          rel: "apps/models/app/demos/page.tsx",
+          mustMention: ["/use-cases"],
+        },
+        {
+          rel: "apps/models/components/SiteFooter.tsx",
+          mustMention: [
+            "/use-cases/ai-model-evaluation-for-developers",
+            "/use-cases/ai-automation-testing",
+          ],
+        },
+      ];
+      const failures: string[] = [];
+      for (const s of surfaces) {
+        if (!fileExists(s.rel)) {
+          failures.push(`${s.rel} missing.`);
+          continue;
+        }
+        const src = readRel(s.rel);
+        for (const m of s.mustMention) {
+          if (!src.includes(m)) {
+            failures.push(`${s.rel} must reference "${m}".`);
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no ranking / recommendation / guarantee language on Sprint 36 outcome surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/outcome-use-cases.ts",
+        "apps/models/components/outcomes/OutcomeUseCaseCard.tsx",
+        "apps/models/components/outcomes/OutcomeWorkflow.tsx",
+        "apps/models/components/outcomes/OutcomeResourceGrid.tsx",
+        "apps/models/components/outcomes/OutcomeArtifactList.tsx",
+        "apps/models/components/outcomes/OutcomePolicyNote.tsx",
+        "apps/models/components/outcomes/OutcomePage.tsx",
+        "apps/models/app/use-cases/ai-model-evaluation-for-developers/page.tsx",
+        "apps/models/app/use-cases/ai-model-selection-for-product-teams/page.tsx",
+        "apps/models/app/use-cases/ai-automation-testing/page.tsx",
+        "apps/models/app/use-cases/ai-model-governance-review/page.tsx",
+        "apps/models/app/use-cases/llm-prompt-evaluation/page.tsx",
+        "apps/models/app/use-cases/structured-output-testing/page.tsx",
+      ];
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bis\s+(?:the\s+)?best\s+(?:model|ai|provider)\b/i,
+          label: "is the best model/ai/provider",
+        },
+        {
+          pattern: /\bour\s+recommended\s+model\b/i,
+          label: "our recommended model",
+        },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\bcheapest\s+(?:ai\s+)?(?:model|provider|platform)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:ai\s+)?(?:model|provider)\b/i,
+          label: "fastest <noun>",
+        },
+        {
+          pattern: /\bguaranteed\s+to\s+(?:work|meet|pass|satisfy)\b/i,
+          label: "guaranteed to <verb>",
+        },
+        {
+          pattern: /\bis\s+production[\s-]ready\b/i,
+          label: "is production ready",
+        },
+        {
+          pattern: /\bcertified\s+(?:for|compliant|by)\b/i,
+          label: "certified for/compliant/by",
+        },
+        {
+          pattern: /\bguarantee(?:s|d)?\s+(?:seo|search|ranking|traffic)\b/i,
+          label: "guaranteed seo/search/ranking/traffic",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const raw = readRel(rel);
+        // Strip every doesNotPromise: [...] array — those legitimately
+        // enumerate negative phrasing as the things the page does NOT
+        // promise.
+        const stripped = raw
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1")
+          .replace(/doesNotPromise:\s*\[[\s\S]*?\],?/g, "");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric appears on Sprint 36 outcome surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/outcome-use-cases.ts",
+        "apps/models/components/outcomes/OutcomeUseCaseCard.tsx",
+        "apps/models/components/outcomes/OutcomeWorkflow.tsx",
+        "apps/models/components/outcomes/OutcomeResourceGrid.tsx",
+        "apps/models/components/outcomes/OutcomeArtifactList.tsx",
+        "apps/models/components/outcomes/OutcomePolicyNote.tsx",
+        "apps/models/components/outcomes/OutcomePage.tsx",
+      ];
+      const banned = /"[^"]*\bgpt-5\b[^"]*"/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} references GPT-5 — no OpenAI metrics are verified yet.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract + sitemap + llms.txt + smoke + indexing advertise Sprint 36 outcome routes",
+    run: () => {
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+
+      const versionMatch = contract.match(
+        /ROUTE_SET_VERSION\s*=\s*"content-v(\d+)"/
+      );
+      if (!versionMatch || Number(versionMatch[1]) < 17) {
+        failures.push(
+          'ROUTE_SET_VERSION must be "content-v17" or later for Sprint 36.'
+        );
+      }
+
+      const outcomePageRoutes = [
+        "/use-cases/ai-model-evaluation-for-developers",
+        "/use-cases/ai-model-selection-for-product-teams",
+        "/use-cases/ai-automation-testing",
+        "/use-cases/ai-model-governance-review",
+        "/use-cases/llm-prompt-evaluation",
+        "/use-cases/structured-output-testing",
+      ];
+      for (const path of outcomePageRoutes) {
+        const quoted = `"${path}"`;
+        if (!contract.includes(quoted)) {
+          failures.push(`route-contract must include ${quoted}.`);
+        }
+        if (!sitemap.includes(quoted)) {
+          failures.push(`sitemap must include ${quoted}.`);
+        }
+        if (!smoke.includes(quoted)) {
+          failures.push(`scripts/lib/smoke.mjs must include ${quoted}.`);
+        }
+        if (!indexing.includes(quoted)) {
+          failures.push(`scripts/indexing-qa.mjs must include ${quoted}.`);
+        }
+        if (!llms.includes(quoted)) {
+          failures.push(`llms.txt must list ${quoted}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
 ];
 
 function main(): void {
