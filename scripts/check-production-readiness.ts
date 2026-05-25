@@ -5581,11 +5581,12 @@ const checks: Check[] = [
         );
       }
       const hasOnRamp =
+        /\/start/.test(src) ||
         /\/learn/.test(src) ||
         /\/use-cases/.test(src);
       if (!hasOnRamp) {
         failures.push(
-          "Hero must link to /learn (curriculum) or /use-cases (legacy entry)."
+          "Hero must link to /start (first-run funnel, Sprint 38+), /learn (curriculum), or /use-cases (legacy entry)."
         );
       }
       if (!/How it works/i.test(src) || !/\/how-it-works/.test(src)) {
@@ -10389,6 +10390,268 @@ const checks: Check[] = [
         }
         if (!llms.includes(quoted)) {
           failures.push(`llms.txt must list ${quoted}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+
+  // -------------------------------------------------------------------
+  // Sprint 39 — homepage simplification + first-run funnel polish
+  // -------------------------------------------------------------------
+  {
+    name: "Hero primary CTA leads to /start (Sprint 39)",
+    run: () => {
+      const src = readRel("apps/models/components/Hero.tsx");
+      // The primary CTA is the first <Link> with the foreground-bg
+      // button styling. It must read "Start here" and link to /start.
+      const primaryBlock = src.match(
+        /<Link[\s\S]*?bg-foreground[\s\S]*?<\/Link>/
+      );
+      if (!primaryBlock) {
+        return "Hero must include a primary CTA rendered with the bg-foreground button style.";
+      }
+      if (!/href="\/start"/.test(primaryBlock[0])) {
+        return "Hero primary CTA must link to /start.";
+      }
+      if (!/Start here/i.test(primaryBlock[0])) {
+        return "Hero primary CTA must say 'Start here'.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "Hero secondary CTA leads to /how-it-works (Sprint 39)",
+    run: () => {
+      const src = readRel("apps/models/components/Hero.tsx");
+      // The secondary CTA is the second button-style link. It must
+      // mention 'how it works' and link to /how-it-works.
+      const secondaryMatch = src.match(
+        /<Link\s+href="\/how-it-works"[\s\S]*?<\/Link>/
+      );
+      if (!secondaryMatch) {
+        return "Hero must include a secondary CTA linking to /how-it-works.";
+      }
+      if (!/See how it works/i.test(secondaryMatch[0])) {
+        return "Hero secondary CTA must say 'See how it works'.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "Hero primary CTA row contains at most 2 button-style links (Sprint 39)",
+    run: () => {
+      const src = readRel("apps/models/components/Hero.tsx");
+      // Match Links that use the button styling (h-11 + px-5 + the
+      // bg-foreground or border-border bg-card combination). Subtle
+      // text links use px-2 + text-muted-foreground and do not match.
+      const buttonStyleMatches = src.match(
+        /<Link[^>]*className="[^"]*h-11[^"]*px-5[^"]*"/g
+      );
+      const count = buttonStyleMatches?.length ?? 0;
+      if (count > 2) {
+        return `Hero has ${count} button-style CTAs; primary CTA row must have at most 2 (Start here + See how it works).`;
+      }
+      if (count < 2) {
+        return `Hero has ${count} button-style CTAs; expected exactly 2.`;
+      }
+      return null;
+    },
+  },
+  {
+    name: "Hero does not promote /lab, /demos, or /learn/path/beginner as button CTAs (Sprint 39)",
+    run: () => {
+      const src = readRel("apps/models/components/Hero.tsx");
+      const failures: string[] = [];
+      // Look for button-styled <Link>s (h-11 + px-5) that point at
+      // routes Sprint 39 demoted out of the Hero CTA row.
+      const buttonLinks =
+        src.match(/<Link[^>]*href="([^"]+)"[^>]*className="[^"]*h-11[^"]*px-5[^"]*"/g) ??
+        [];
+      for (const link of buttonLinks) {
+        for (const banned of [
+          "/lab",
+          "/demos",
+          "/learn/path/beginner",
+        ]) {
+          if (
+            new RegExp(`href="${banned}"`).test(link) ||
+            new RegExp(`href="${banned}\\?`).test(link)
+          ) {
+            failures.push(
+              `Hero must not promote ${banned} as a button-style CTA — move it to body sections or the nav.`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Homepage contains 'Choose your route' quick-routes section (Sprint 39)",
+    run: () => {
+      const src = readRel("apps/models/app/page.tsx");
+      if (!/Choose your route/i.test(src)) {
+        return "Homepage must include a 'Choose your route' section directly below the Hero.";
+      }
+      // Quick-routes cards must include /start, /for, /resources, /lab.
+      for (const route of ["/start", "/for", "/resources", "/lab"]) {
+        if (!src.includes(`href: "${route}"`) && !src.includes(`href="${route}"`)) {
+          return `Quick-routes section must include a card linking to ${route}.`;
+        }
+      }
+      return null;
+    },
+  },
+  {
+    name: "/start clarifies that role is the recommended starting point (Sprint 39)",
+    run: () => {
+      const src = readRel("apps/models/app/start/page.tsx");
+      if (!/If unsure/i.test(src)) {
+        return "/start must include 'If unsure' guidance pointing to the Beginner role.";
+      }
+      if (!/Most visitors should start/i.test(src)) {
+        return "/start must include 'Most visitors should start' (or equivalent) guidance favouring the role grid.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "/select + /compare/build + /use-cases link to /start (Sprint 39)",
+    run: () => {
+      const failures: string[] = [];
+      for (const rel of [
+        "apps/models/app/select/page.tsx",
+        "apps/models/app/compare/build/page.tsx",
+        "apps/models/app/use-cases/page.tsx",
+      ]) {
+        if (!fileExists(rel)) {
+          failures.push(`${rel} missing.`);
+          continue;
+        }
+        const src = readRel(rel);
+        if (!/\/start\b/.test(src)) {
+          failures.push(`${rel} must link to /start.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "Primary nav lists Start before Learn and stays under 8 entries (Sprint 39)",
+    run: () => {
+      const src = readRel("apps/models/lib/site-config.ts");
+      const navMatch = src.match(/primaryNav:\s*\[([\s\S]*?)\]/);
+      if (!navMatch) {
+        return "site-config.ts primaryNav array not found.";
+      }
+      const navBody = navMatch[1];
+      const entries = [...navBody.matchAll(/href:\s*"([^"]+)"/g)].map(
+        (m) => m[1]
+      );
+      if (entries.length === 0) {
+        return "site-config.ts primaryNav must contain at least one entry.";
+      }
+      if (entries.length > 8) {
+        return `site-config.ts primaryNav has ${entries.length} entries; keep it under 8.`;
+      }
+      const startIdx = entries.indexOf("/start");
+      const learnIdx = entries.indexOf("/learn");
+      if (startIdx === -1) {
+        return "site-config.ts primaryNav must include /start.";
+      }
+      if (learnIdx !== -1 && startIdx > learnIdx) {
+        return "site-config.ts primaryNav must list /start before /learn.";
+      }
+      return null;
+    },
+  },
+  {
+    name: "no banned ranking/winner/guarantee language on Sprint 39 first-run surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/components/Hero.tsx",
+        "apps/models/app/page.tsx",
+        "apps/models/app/start/page.tsx",
+      ];
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bis\s+(?:the\s+)?best\s+(?:model|ai|provider)\b/i,
+          label: "is the best model/ai/provider",
+        },
+        {
+          pattern: /\bour\s+recommended\s+model\b/i,
+          label: "our recommended model",
+        },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\brank\s*#1\b/i,
+          label: "rank #1",
+        },
+        {
+          pattern: /\bcheapest\s+(?:ai\s+)?(?:model|provider|platform)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:ai\s+)?(?:model|provider)\b/i,
+          label: "fastest <noun>",
+        },
+        {
+          pattern: /\bguaranteed\s+to\s+(?:work|meet|pass|satisfy)\b/i,
+          label: "guaranteed to <verb>",
+        },
+        {
+          pattern: /\bis\s+production[\s-]ready\b/i,
+          label: "is production ready",
+        },
+        {
+          pattern: /\bcertified\s+(?:for|compliant|by)\b/i,
+          label: "certified for/compliant/by",
+        },
+        {
+          pattern: /\bcompliance\s+approv(?:ed|al)\b/i,
+          label: "compliance approved/approval",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const raw = readRel(rel);
+        const stripped = raw
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1")
+          .replace(/doesNotPromise:\s*\[[\s\S]*?\],?/g, "");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric on Sprint 39 first-run surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/components/Hero.tsx",
+        "apps/models/app/page.tsx",
+        "apps/models/app/start/page.tsx",
+      ];
+      const banned = /"[^"]*\bgpt-5\b[^"]*"/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} references GPT-5 — no OpenAI metrics are verified yet.`
+          );
         }
       }
       return failures.length ? failures.join("\n") : null;

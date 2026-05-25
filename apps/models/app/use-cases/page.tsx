@@ -177,6 +177,13 @@ export default function UseCasesHubPage() {
         </p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>
+            <Link href="/start" className="text-primary hover:underline">
+              /start
+            </Link>{" "}
+            — first-run onboarding (each role start page routes here
+            for outcome selection).
+          </li>
+          <li>
             <Link
               href="/resources?resourceType=outcome"
               className="text-primary hover:underline"

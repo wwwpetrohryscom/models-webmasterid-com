@@ -851,6 +851,13 @@ export default async function CompareBuilderPage({
           Next actions
         </p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
+          <li>
+            <Link href="/start" className="text-primary hover:underline">
+              Open /start
+            </Link>{" "}
+            if you arrived without context — first-run onboarding
+            walks you through choosing a role.
+          </li>
           {result.columns.map((c) =>
             c.model ? (
               <li key={`actions-${c.slug}`}>

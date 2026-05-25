@@ -41,50 +41,45 @@ export function Hero() {
           <p className="mt-5 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
             A practical learning platform for choosing, comparing,
             testing, and documenting AI model decisions with verified
-            model intelligence. Role-based paths teach the concepts;
-            evidence workspaces produce the artifacts. No rankings,
-            no recommendations.
+            model intelligence.
           </p>
 
-          <div className="mt-7 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap items-center gap-3">
             <Link
               href="/start"
               className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-foreground px-5 text-sm font-semibold text-background shadow-elevated transition hover:bg-foreground/90"
             >
-              New here? Start here
+              Start here
               <span aria-hidden="true">→</span>
             </Link>
             <Link
-              href="/for"
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:bg-card hover:text-primary"
-            >
-              Choose your learning path
-            </Link>
-            <Link
-              href="/learn/path/beginner"
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:bg-card hover:text-primary"
-            >
-              Start beginner path
-            </Link>
-            <Link
-              href="/demos"
-              className="inline-flex h-11 items-center justify-center rounded-xl px-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
-            >
-              Try guided demo →
-            </Link>
-            <Link
-              href="/lab"
-              className="inline-flex h-11 items-center justify-center rounded-xl px-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
-            >
-              Open AI Usage Lab →
-            </Link>
-            <Link
               href="/how-it-works"
-              className="inline-flex h-11 items-center justify-center rounded-xl px-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:bg-card hover:text-primary"
             >
-              How it works →
+              See how it works
             </Link>
           </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+            <Link
+              href="/for"
+              className="font-medium text-muted-foreground transition hover:text-foreground"
+            >
+              Choose a role →
+            </Link>
+            <Link
+              href="/resources"
+              className="font-medium text-muted-foreground transition hover:text-foreground"
+            >
+              Open Resource Finder →
+            </Link>
+          </div>
+
+          <p className="mt-4 text-xs text-muted-foreground">
+            No model rankings. No fake benchmarks. Source-backed
+            workflows. Choose your learning path at your own pace —
+            no accounts, no progress tracking.
+          </p>
 
           <dl className="mt-10 grid max-w-xl grid-cols-3 gap-6">
             <div>

@@ -610,6 +610,13 @@ export default async function SelectPage({ searchParams }: PageProps) {
         </p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>
+            <Link href="/start" className="text-primary hover:underline">
+              /start
+            </Link>{" "}
+            — first-run onboarding (each role path lands here as the
+            apply step).
+          </li>
+          <li>
             <Link href="/use-cases" className="text-primary hover:underline">
               /use-cases
             </Link>{" "}

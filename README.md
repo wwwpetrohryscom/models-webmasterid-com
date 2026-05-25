@@ -474,6 +474,41 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+29. **First-run funnel simplification (Sprint 39).** Sprint 39 cleans
+    up the homepage Hero and the Start Here landing so cold visitors
+    see one clear next action. Hero collapses from six CTAs to two
+    button-style CTAs (primary "Start here" → /start; secondary
+    "See how it works" → /how-it-works) plus two subtle text links
+    ("Choose a role" → /for; "Open Resource Finder" → /resources)
+    and a one-line trust statement (no model rankings, no fake
+    benchmarks, source-backed workflows, no accounts, no progress
+    tracking). The homepage adds a new "Choose your route" quick-
+    routes section directly below the Hero with four cards (I am
+    new here → /start; I know my role → /for; I know my task →
+    /resources; I want to test models → /lab). /start adds a
+    "Where most visitors should start" callout above the role grid
+    naming role as the recommended entry and pointing at the
+    Beginner role for the unsure; the goal and artifact grids are
+    re-titled "Or — if you already know your task" and "Or — if
+    you already know what to produce" to mark them as secondary
+    entry shapes. Primary nav drops `Demos` (still reachable via
+    the homepage Quick Routes, the Start Here flow, and the footer)
+    to keep the nav under eight entries. /select, /compare/build,
+    and /use-cases each gain a Start Here link in their
+    related-routes asides. Ten new integrity guards: Hero primary
+    CTA links to /start, Hero secondary CTA links to /how-it-works,
+    Hero primary CTA row has exactly 2 button-style CTAs, Hero does
+    not promote /lab / /demos / /learn/path/beginner as button
+    CTAs, homepage contains "Choose your route" with all 4 cards,
+    /start contains both "Most visitors should start" and "If
+    unsure" guidance, /select + /compare/build + /use-cases link to
+    /start, primary nav lists Start before Learn and stays under 8
+    entries, no banned ranking/winner/guarantee phrasing on first-
+    run surfaces, no OpenAI metrics. The Sprint 26 legacy Hero
+    on-ramp guard is expanded to accept /start (the Sprint 38+
+    first-run funnel) alongside the legacy /learn and /use-cases
+    on-ramps. No new routes ship; no route contract bump.
+
 28. **Guided onboarding + Start Here experience (Sprint 38).** The
     platform now ships a first-run "Start Here" entry point for cold
     visitors. A new

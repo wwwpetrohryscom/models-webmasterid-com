@@ -115,6 +115,37 @@ export default function StartPage() {
         </ul>
       </section>
 
+      <aside
+        role="note"
+        aria-label="Recommended starting point"
+        className="card-surface space-y-2 p-5 text-sm"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+          Where most visitors should start
+        </p>
+        <p className="text-muted-foreground">
+          Most visitors should start with{" "}
+          <strong className="text-foreground">role</strong> — the
+          first row of cards below. It opens a sequenced first-route
+          list with a lesson, an exercise, an optional lab playbook,
+          an optional kit, and a filtered resource view. The goal and
+          artifact grids further down are for visitors who already
+          know what they want to do or produce.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          If unsure, choose{" "}
+          <Link
+            href="/start/beginner"
+            className="text-primary hover:underline"
+          >
+            Beginner
+          </Link>{" "}
+          — no prerequisites, four concept lessons plus a first
+          shortlist. You can always switch role later; no state is
+          saved.
+        </p>
+      </aside>
+
       <section
         id="choose-role"
         aria-label="Choose your role"
@@ -123,7 +154,7 @@ export default function StartPage() {
         <SectionHeader
           eyebrow="By role"
           title="Choose your role"
-          description="Each role opens a Start Here page with a three-minute orientation, a first route list, and the artifacts the role produces. Picking a role is a navigation choice, not a quiz answer."
+          description="Each role opens a Start Here page with a three-minute orientation, a first route list, and the artifacts the role produces. Picking a role is a navigation choice, not a quiz answer — no personalization runs against you."
           as="h2"
         />
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -135,9 +166,15 @@ export default function StartPage() {
         </ul>
       </section>
 
-      <StartGoalGrid goals={onboardingGoals} />
+      <StartGoalGrid
+        goals={onboardingGoals}
+        title="Or — if you already know your task"
+      />
 
-      <StartArtifactGrid artifacts={onboardingArtifacts} />
+      <StartArtifactGrid
+        artifacts={onboardingArtifacts}
+        title="Or — if you already know what to produce"
+      />
 
       <StartPolicyNote />
 

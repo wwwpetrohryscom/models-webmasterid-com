@@ -71,6 +71,63 @@ export default function HomePage() {
 
       <Hero />
 
+      {/* Choose your route — first-run quick-routes */}
+      <section
+        aria-label="Choose your route"
+        className="container-page mt-10"
+      >
+        <SectionHeader
+          eyebrow="Quick routes"
+          title="Choose your route"
+          description="Four entry points for cold visitors. Pick the one that matches how you already think about the work — no quiz, no scoring, no recommendation engine."
+        />
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              href: "/start",
+              title: "I am new here",
+              detail:
+                "Start Here walks you through choosing a role, a goal, or an artifact in three minutes.",
+            },
+            {
+              href: "/for",
+              title: "I know my role",
+              detail:
+                "Open an audience entry point — developer, product, automation, governance.",
+            },
+            {
+              href: "/resources",
+              title: "I know my task",
+              detail:
+                "Filter every lesson, exercise, lab playbook, prompt set, kit, and outcome by goal or artifact.",
+            },
+            {
+              href: "/lab",
+              title: "I want to test models",
+              detail:
+                "Open the AI Usage Lab — testing playbooks, evaluation prompt sets, regression suites.",
+            },
+          ].map((card) => (
+            <li key={card.href}>
+              <Link
+                href={card.href}
+                className="card-surface block h-full p-4 transition hover:border-primary/30 hover:shadow-elevated"
+              >
+                <p className="text-sm font-semibold text-foreground">
+                  {card.title}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {card.detail}
+                </p>
+                <p className="mt-2 text-[11px] font-medium text-primary">
+                  Open →
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* Core loop — Learn → Apply → Verify → Test */}
       <section
         aria-label="Learn, apply, verify, test"
