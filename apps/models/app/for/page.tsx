@@ -65,6 +65,25 @@ export default function AudienceHubPage() {
 
       <aside
         role="note"
+        aria-label="Start here shortcut"
+        className="card-surface space-y-2 p-5 text-sm text-muted-foreground"
+      >
+        <p className="font-medium text-foreground">
+          New here?{" "}
+          <Link href="/start" className="text-primary hover:underline">
+            Start here
+          </Link>{" "}
+          first.
+        </p>
+        <p>
+          Start Here walks you through choosing a role, a goal, or an
+          artifact in three minutes — and routes you into the
+          audience page below with a sequenced first-route list.
+        </p>
+      </aside>
+
+      <aside
+        role="note"
         aria-label="Audience policy"
         className="card-surface space-y-2 p-5 text-sm text-muted-foreground"
       >

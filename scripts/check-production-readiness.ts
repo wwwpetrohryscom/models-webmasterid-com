@@ -9983,6 +9983,417 @@ const checks: Check[] = [
       return failures.length ? failures.join("\n") : null;
     },
   },
+
+  // -------------------------------------------------------------------
+  // Sprint 38 — guided onboarding / Start Here
+  // -------------------------------------------------------------------
+  {
+    name: "lib/onboarding.ts exists with required exports (Sprint 38)",
+    run: () => {
+      const rel = "apps/models/lib/onboarding.ts";
+      if (!fileExists(rel)) return `${rel} is missing.`;
+      const src = readRel(rel);
+      const requiredExports = [
+        "export const onboardingPaths",
+        "export const onboardingGoals",
+        "export const onboardingArtifacts",
+        "export function getOnboardingPath",
+        "export function getOnboardingPaths",
+        "export function getOnboardingRoutes",
+      ];
+      const missing = requiredExports.filter((e) => !src.includes(e));
+      return missing.length
+        ? `${rel} missing exports: ${missing.join(", ")}`
+        : null;
+    },
+  },
+  {
+    name: "5 onboarding role paths registered (Sprint 38)",
+    run: () => {
+      const src = readRel("apps/models/lib/onboarding.ts");
+      const required = [
+        "beginner",
+        "developer",
+        "product",
+        "automation",
+        "governance",
+      ];
+      const missing = required.filter(
+        (slug) => !src.includes(`slug: "${slug}"`)
+      );
+      return missing.length
+        ? `lib/onboarding.ts missing slug entries: ${missing.join(", ")}`
+        : null;
+    },
+  },
+  {
+    name: "6 onboarding components exist (Sprint 38)",
+    run: () => {
+      const required = [
+        "apps/models/components/onboarding/StartRoleCard.tsx",
+        "apps/models/components/onboarding/StartGoalGrid.tsx",
+        "apps/models/components/onboarding/StartArtifactGrid.tsx",
+        "apps/models/components/onboarding/StartPathSummary.tsx",
+        "apps/models/components/onboarding/StartPolicyNote.tsx",
+        "apps/models/components/onboarding/StartRouteList.tsx",
+      ];
+      const missing = required.filter((rel) => !fileExists(rel));
+      return missing.length
+        ? `onboarding components missing: ${missing.join(", ")}`
+        : null;
+    },
+  },
+  {
+    name: "/start hub + dynamic /start/[slug] page exist (Sprint 38)",
+    run: () => {
+      const required = [
+        "apps/models/app/start/page.tsx",
+        "apps/models/app/start/[slug]/page.tsx",
+      ];
+      const failures: string[] = [];
+      for (const rel of required) {
+        if (!fileExists(rel)) failures.push(`${rel} is missing.`);
+      }
+      if (failures.length) return failures.join("\n");
+      const hub = readRel("apps/models/app/start/page.tsx");
+      for (const c of [
+        "StartRoleCard",
+        "StartGoalGrid",
+        "StartArtifactGrid",
+        "StartPolicyNote",
+      ]) {
+        if (!hub.includes(c)) {
+          failures.push(`/start hub must render <${c}>.`);
+        }
+      }
+      const slug = readRel("apps/models/app/start/[slug]/page.tsx");
+      for (const c of [
+        "StartPathSummary",
+        "StartRouteList",
+        "StartPolicyNote",
+        "generateStaticParams",
+        "getOnboardingPaths",
+      ]) {
+        if (!slug.includes(c)) {
+          failures.push(`/start/[slug] must wire ${c}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "/start links to filtered /resources goal + artifact URLs (Sprint 38)",
+    run: () => {
+      const src = readRel("apps/models/lib/onboarding.ts");
+      const requiredGoalHrefs = [
+        "/resources?goal=learn-basics",
+        "/resources?goal=choose-model-candidates",
+        "/resources?goal=test-model-behaviour",
+        "/resources?goal=test-automation-workflow",
+        "/resources?goal=prepare-governance-review",
+        "/resources?goal=document-evidence",
+      ];
+      const requiredArtifactHrefs = [
+        "/resources?artifact=shortlist-url",
+        "/resources?artifact=comparison-url",
+        "/resources?artifact=decision-brief",
+        "/resources?artifact=external-test-plan",
+        "/resources?artifact=prompt-test-matrix",
+        "/resources?artifact=source-freshness-checklist",
+        "/resources?resourceType=workflow-kit",
+      ];
+      const missing = [
+        ...requiredGoalHrefs,
+        ...requiredArtifactHrefs,
+      ].filter((href) => !src.includes(href));
+      return missing.length
+        ? `lib/onboarding.ts missing filtered /resources hrefs: ${missing.join(", ")}`
+        : null;
+    },
+  },
+  {
+    name: "no quiz/scoring/personalization/account language on Sprint 38 surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/onboarding.ts",
+        "apps/models/app/start/page.tsx",
+        "apps/models/app/start/[slug]/page.tsx",
+        "apps/models/components/onboarding/StartRoleCard.tsx",
+        "apps/models/components/onboarding/StartGoalGrid.tsx",
+        "apps/models/components/onboarding/StartArtifactGrid.tsx",
+        "apps/models/components/onboarding/StartPathSummary.tsx",
+        "apps/models/components/onboarding/StartPolicyNote.tsx",
+        "apps/models/components/onboarding/StartRouteList.tsx",
+      ];
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\btake\s+(?:the\s+)?quiz\b/i,
+          label: "take the quiz",
+        },
+        {
+          pattern: /\byour\s+quiz\s+score\b/i,
+          label: "your quiz score",
+        },
+        {
+          pattern: /\bsign\s+(?:in|up)\b/i,
+          label: "sign in/up",
+        },
+        {
+          pattern: /\bcreate\s+(?:an\s+)?account\b/i,
+          label: "create account",
+        },
+        {
+          pattern: /\bbased\s+on\s+your\s+answers\b/i,
+          label: "based on your answers",
+        },
+        {
+          pattern: /\b(?:personalized|personalised|tailored\s+for\s+you)\b/i,
+          label: "personalized/tailored for you",
+        },
+        {
+          pattern: /\btrack\s+your\s+progress\b/i,
+          label: "track your progress",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const raw = readRel(rel);
+        // Strip the policy negation arrays + comment blocks so phrases
+        // the page declares it does NOT do don't trigger the guard.
+        const stripped = raw
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1")
+          .replace(/doesNotPromise:\s*\[[\s\S]*?\],?/g, "");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "no ranking / recommendation / guarantee language on Sprint 38 onboarding surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/onboarding.ts",
+        "apps/models/app/start/page.tsx",
+        "apps/models/app/start/[slug]/page.tsx",
+        "apps/models/components/onboarding/StartRoleCard.tsx",
+        "apps/models/components/onboarding/StartGoalGrid.tsx",
+        "apps/models/components/onboarding/StartArtifactGrid.tsx",
+        "apps/models/components/onboarding/StartPathSummary.tsx",
+        "apps/models/components/onboarding/StartPolicyNote.tsx",
+        "apps/models/components/onboarding/StartRouteList.tsx",
+      ];
+      const banned: { pattern: RegExp; label: string }[] = [
+        {
+          pattern: /\bis\s+(?:the\s+)?best\s+(?:model|ai|provider)\b/i,
+          label: "is the best model/ai/provider",
+        },
+        {
+          pattern: /\bour\s+recommended\s+model\b/i,
+          label: "our recommended model",
+        },
+        {
+          pattern: /\brecommended\s+model\b/i,
+          label: "recommended model",
+        },
+        {
+          pattern: /(?:is|are)\s+(?:the\s+)?winner\b/i,
+          label: "is the winner",
+        },
+        {
+          pattern: /\bcheapest\s+(?:ai\s+)?(?:model|provider|platform)\b/i,
+          label: "cheapest <noun>",
+        },
+        {
+          pattern: /\bfastest\s+(?:ai\s+)?(?:model|provider)\b/i,
+          label: "fastest <noun>",
+        },
+        {
+          pattern: /\bguaranteed\s+to\s+(?:work|meet|pass|satisfy)\b/i,
+          label: "guaranteed to <verb>",
+        },
+        {
+          pattern: /\bis\s+production[\s-]ready\b/i,
+          label: "is production ready",
+        },
+        {
+          pattern: /\bcertified\s+(?:for|compliant|by)\b/i,
+          label: "certified for/compliant/by",
+        },
+        {
+          pattern: /\bguarantee(?:s|d)?\s+(?:seo|search|ranking|traffic)\b/i,
+          label: "guaranteed seo/search/ranking/traffic",
+        },
+      ];
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const raw = readRel(rel);
+        const stripped = raw
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1")
+          .replace(/doesNotPromise:\s*\[[\s\S]*?\],?/g, "");
+        for (const b of banned) {
+          if (b.pattern.test(stripped)) {
+            failures.push(
+              `${rel} contains banned phrase "${b.label}".`
+            );
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "homepage + /learn + /for + /resources + /lab + /kits + /demos + /briefs/build + footer link to /start (Sprint 38)",
+    run: () => {
+      const surfaces: { rel: string; mustMention: string[] }[] = [
+        {
+          rel: "apps/models/components/Hero.tsx",
+          mustMention: ["/start"],
+        },
+        {
+          rel: "apps/models/app/learn/page.tsx",
+          mustMention: ["/start"],
+        },
+        {
+          rel: "apps/models/app/for/page.tsx",
+          mustMention: ["/start"],
+        },
+        {
+          rel: "apps/models/app/resources/page.tsx",
+          mustMention: ["/start"],
+        },
+        {
+          rel: "apps/models/app/lab/page.tsx",
+          mustMention: ["/start"],
+        },
+        {
+          rel: "apps/models/app/kits/page.tsx",
+          mustMention: ["/start"],
+        },
+        {
+          rel: "apps/models/app/demos/page.tsx",
+          mustMention: ["/start"],
+        },
+        {
+          rel: "apps/models/app/briefs/build/page.tsx",
+          mustMention: ["/start"],
+        },
+        {
+          rel: "apps/models/components/SiteFooter.tsx",
+          mustMention: ["/start", "/start/beginner", "/start/developer"],
+        },
+      ];
+      const failures: string[] = [];
+      for (const s of surfaces) {
+        if (!fileExists(s.rel)) {
+          failures.push(`${s.rel} missing.`);
+          continue;
+        }
+        const src = readRel(s.rel);
+        for (const m of s.mustMention) {
+          if (!src.includes(m)) {
+            failures.push(`${s.rel} must reference "${m}".`);
+          }
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "primary nav includes Start (Sprint 38)",
+    run: () => {
+      const src = readRel("apps/models/lib/site-config.ts");
+      if (!/href:\s*"\/start"/.test(src)) {
+        return 'site-config.ts primaryNav must include a /start entry.';
+      }
+      return null;
+    },
+  },
+  {
+    name: "no OpenAI numeric metric appears on Sprint 38 onboarding surfaces",
+    run: () => {
+      const targets = [
+        "apps/models/lib/onboarding.ts",
+        "apps/models/app/start/page.tsx",
+        "apps/models/app/start/[slug]/page.tsx",
+        "apps/models/components/onboarding/StartRoleCard.tsx",
+        "apps/models/components/onboarding/StartGoalGrid.tsx",
+        "apps/models/components/onboarding/StartArtifactGrid.tsx",
+        "apps/models/components/onboarding/StartPathSummary.tsx",
+        "apps/models/components/onboarding/StartPolicyNote.tsx",
+        "apps/models/components/onboarding/StartRouteList.tsx",
+      ];
+      const banned = /"[^"]*\bgpt-5\b[^"]*"/i;
+      const failures: string[] = [];
+      for (const rel of targets) {
+        if (!fileExists(rel)) continue;
+        const src = readRel(rel);
+        if (banned.test(src)) {
+          failures.push(
+            `${rel} references GPT-5 — no OpenAI metrics are verified yet.`
+          );
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
+  {
+    name: "route contract + sitemap + llms.txt + smoke + indexing advertise Sprint 38 onboarding routes",
+    run: () => {
+      const contract = readRel("apps/models/lib/route-contract.ts");
+      const sitemap = readRel("apps/models/app/sitemap.ts");
+      const llms = readRel("apps/models/app/llms.txt/route.ts");
+      const smoke = readRel("scripts/lib/smoke.mjs");
+      const indexing = readRel("scripts/indexing-qa.mjs");
+      const failures: string[] = [];
+
+      const versionMatch = contract.match(
+        /ROUTE_SET_VERSION\s*=\s*"content-v(\d+)"/
+      );
+      if (!versionMatch || Number(versionMatch[1]) < 19) {
+        failures.push(
+          'ROUTE_SET_VERSION must be "content-v19" or later for Sprint 38.'
+        );
+      }
+
+      const startRoutes = [
+        "/start",
+        "/start/beginner",
+        "/start/developer",
+        "/start/product",
+        "/start/automation",
+        "/start/governance",
+      ];
+      for (const path of startRoutes) {
+        const quoted = `"${path}"`;
+        if (!contract.includes(quoted)) {
+          failures.push(`route-contract must include ${quoted}.`);
+        }
+        if (!sitemap.includes(quoted)) {
+          failures.push(`sitemap must include ${quoted}.`);
+        }
+        if (!smoke.includes(quoted)) {
+          failures.push(`scripts/lib/smoke.mjs must include ${quoted}.`);
+        }
+        if (!indexing.includes(quoted)) {
+          failures.push(`scripts/indexing-qa.mjs must include ${quoted}.`);
+        }
+        if (!llms.includes(quoted)) {
+          failures.push(`llms.txt must list ${quoted}.`);
+        }
+      }
+      return failures.length ? failures.join("\n") : null;
+    },
+  },
 ];
 
 function main(): void {

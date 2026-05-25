@@ -316,6 +316,12 @@ const INDEXABLE_PAGES = [
   },
   { path: "/resources", expectJsonLd: true, kind: "hub" },
   { path: "/docs/resource-map", expectJsonLd: true, kind: "detail" },
+  { path: "/start", expectJsonLd: true, kind: "hub" },
+  { path: "/start/beginner", expectJsonLd: true, kind: "detail" },
+  { path: "/start/developer", expectJsonLd: true, kind: "detail" },
+  { path: "/start/product", expectJsonLd: true, kind: "detail" },
+  { path: "/start/automation", expectJsonLd: true, kind: "detail" },
+  { path: "/start/governance", expectJsonLd: true, kind: "detail" },
 ];
 
 const FILTERED_NOINDEX_PAGES = [

@@ -20,6 +20,7 @@ import {
 } from "@/lib/route-contract";
 import { contentPages } from "@/lib/content";
 import { getOutcomeUseCaseRoutes } from "@/lib/outcome-use-cases";
+import { getOnboardingRoutes } from "@/lib/onboarding";
 
 export const dynamic = "force-static";
 
@@ -111,6 +112,8 @@ export function GET() {
       outcomeUseCases: getOutcomeUseCaseRoutes().map(absolute),
       resourceFinder: absolute("/resources"),
       resourceMap: absolute("/docs/resource-map"),
+      startHub: absolute("/start"),
+      startPaths: getOnboardingRoutes().map(absolute),
     },
     {
       status: 200,

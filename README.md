@@ -474,6 +474,50 @@ These rules are non-negotiable. The full workflow lives in
     for creator-vs-hosted-platform filtering. Filtered URLs across
     `/reverification` and `/models?role=...` are `noindex, follow`.
     `ROUTE_SET_VERSION` bumped to `content-v5`.
+28. **Guided onboarding + Start Here experience (Sprint 38).** The
+    platform now ships a first-run "Start Here" entry point for cold
+    visitors. A new
+    [`lib/onboarding.ts`](apps/models/lib/onboarding.ts) registry
+    defines 5 role paths (`beginner`, `developer`, `product`,
+    `automation`, `governance`), 6 goal cards (each routing to a
+    filtered `/resources` view), and 7 artifact cards (each routing
+    to the matching `/resources?artifact=` filter). Six new server
+    components in
+    [`components/onboarding/`](apps/models/components/onboarding/)
+    (`StartRoleCard`, `StartGoalGrid`, `StartArtifactGrid`,
+    `StartPathSummary`, `StartPolicyNote`, `StartRouteList`) drive
+    the surfaces — no client JS. A new
+    [`/start`](apps/models/app/start/page.tsx) hub presents three
+    entry shapes (by role, by goal, by artifact) plus a policy
+    callout. A new
+    [`/start/[slug]`](apps/models/app/start/%5Bslug%5D/page.tsx)
+    dynamic route prerenders all five role start pages, each with a
+    three-minute orientation (learn / practise / test / produce),
+    a numbered first-route list, an artifact grid, a
+    `doesNotPromise` list, and primary + secondary next-step CTAs.
+    JSON-LD: BreadcrumbList + CollectionPage on the hub;
+    BreadcrumbList + TechArticle on detail pages. Hero now leads
+    with "New here? Start here" as the primary CTA, demoting the
+    audience hub to secondary. The primary nav adds `Start` at the
+    front; `Select`, `Compare`, and `Briefs` move into the
+    `/resources` finder's reach since the finder routes there
+    directly. SiteFooter gains a new `Start` column above `For`
+    (footer grid grows 7 → 8 columns at lg). `/learn`, `/for`,
+    `/resources`, `/lab`, `/kits`, `/demos`, and `/briefs/build`
+    each add a Start Here link to their related-routes asides.
+    `/api/site` exposes `startHub` + `startPaths[]`.
+    `ROUTE_SET_VERSION` bumps to `content-v19`. Eleven new
+    integrity guards enforce: registry has the 6 required exports,
+    all 5 role slugs registered, 6 onboarding components exist,
+    `/start` hub + dynamic `/start/[slug]` exist with the right
+    wiring, registry uses every filtered `/resources?goal=` and
+    `/resources?artifact=` href, no quiz / scoring / personalization
+    / account language on onboarding surfaces, no
+    ranking/recommendation/guarantee phrasing, homepage + 7 surfaces
+    + footer link to `/start`, primary nav includes `/start`, no
+    OpenAI metrics, and route contract + sitemap + llms.txt +
+    smoke + indexing advertise all six onboarding routes.
+
 27. **Resource finder + learning graph navigation (Sprint 37).** The
     platform now ships a single navigation index across every product
     surface. A new

@@ -48,11 +48,17 @@ export function Hero() {
 
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
-              href="/for"
+              href="/start"
               className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-foreground px-5 text-sm font-semibold text-background shadow-elevated transition hover:bg-foreground/90"
             >
-              Choose your learning path
+              New here? Start here
               <span aria-hidden="true">→</span>
+            </Link>
+            <Link
+              href="/for"
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:bg-card hover:text-primary"
+            >
+              Choose your learning path
             </Link>
             <Link
               href="/learn/path/beginner"

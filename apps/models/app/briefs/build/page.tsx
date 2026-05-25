@@ -757,6 +757,13 @@ export default async function BriefsBuildPage({
         </p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>
+            <Link href="/start" className="text-primary hover:underline">
+              /start
+            </Link>{" "}
+            — first-run onboarding; each role start page ends here
+            with a brief artifact.
+          </li>
+          <li>
             <Link
               href="/docs/decision-briefs"
               className="text-primary hover:underline"

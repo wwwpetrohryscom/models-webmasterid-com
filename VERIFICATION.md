@@ -1672,6 +1672,138 @@ never imply that following them produces a "correct"
 model choice — they describe the shape of the
 evidence, not its conclusion.
 
+**Sprint 38 — guided onboarding + Start Here
+experience.** Sprint 38 adds a first-run entry
+point for cold visitors. The /start hub presents
+three independent entry shapes — by role, by
+goal, and by artifact — and every choice opens an
+existing surface. No accounts, no quiz scoring,
+no personalization, no client-side state, no
+progress tracking, no model recommendations.
+
+[`lib/onboarding.ts`](apps/models/lib/onboarding.ts)
+is the registry. Public API: `onboardingPaths`,
+`onboardingGoals`, `onboardingArtifacts`,
+`getOnboardingPath`, `getOnboardingPaths`,
+`getOnboardingRoutes`.
+
+Five role paths ship:
+
+- `beginner` (no prerequisites, ~90 min, lands on
+  `/learn/path/beginner`).
+- `developer` (~180 min, ends at the developer
+  evaluation kit).
+- `product` (~150 min, ends at the product
+  selection kit).
+- `automation` (~200 min, ends at the automation
+  workflow testing kit).
+- `governance` (~200 min, ends at the governance
+  review kit).
+
+Each `OnboardingPath` carries: `slug`, `title`,
+`summary`, `audienceLabel`, `firstStep`,
+`estimatedMinutes`, an `orientation` block with
+four lines (learn / practise / test / produce),
+a `startRoutes` block (learning path + first
+lesson + first exercise + optional lab playbook
++ optional kit + a filtered resource-finder
+view), an `artifacts[]` list, and an explicit
+`doesNotPromise[]` list.
+
+The goal cards route at the resource-finder
+goal filters: `learn-basics`,
+`choose-model-candidates`,
+`test-model-behaviour`,
+`test-automation-workflow`,
+`prepare-governance-review`, `document-evidence`.
+The artifact cards route at the resource-finder
+artifact filters: `shortlist-url`,
+`comparison-url`, `decision-brief`,
+`external-test-plan`, `prompt-test-matrix`,
+`source-freshness-checklist`, and a kit
+shortcut at `resourceType=workflow-kit`.
+
+Six new server-rendered components in
+`apps/models/components/onboarding/`:
+
+- `StartRoleCard` — role card on the hub.
+- `StartGoalGrid` — "What are you trying to do?"
+  cards that each open a filtered finder view.
+- `StartArtifactGrid` — "What do you want to
+  produce?" cards.
+- `StartPathSummary` — three-minute orientation
+  block on each role detail page.
+- `StartRouteList` — numbered first-route list
+  with lesson + exercise + (optional) lab + kit
+  + resource finder.
+- `StartPolicyNote` — shared "How Start Here
+  works" callout (no accounts, no quiz, no
+  tracking, no personalization, no model
+  recommendations).
+
+[`/start`](apps/models/app/start/page.tsx) is the
+hub. Sections: three primary entry tiles
+(role / finder / beginner path), the role grid,
+the goal grid, the artifact grid, the policy
+note, and a related-routes aside. JSON-LD:
+`BreadcrumbList` + `CollectionPage`.
+
+[`/start/[slug]`](apps/models/app/start/%5Bslug%5D/page.tsx)
+prerenders the five role detail pages.
+`generateStaticParams()` pulls from
+`getOnboardingPaths()`. Each page renders: at-a-
+glance card, three-minute orientation, first-
+route list, artifact grid, `doesNotPromise`
+list, the shared policy note, primary +
+secondary next-step CTAs, and a back-to-Start
+aside. JSON-LD: `BreadcrumbList` +
+`TechArticle`.
+
+Hero now leads with "New here? Start here" as
+the primary CTA. "Choose your learning path"
+moves to secondary; "Start beginner path" stays
+tertiary. The Sprint 26 Hero-CTA guard still
+passes because the page retains the "Choose
+your learning path" string.
+
+Primary nav adds `Start` at the front.
+`Select`, `Compare`, and `Briefs` are removed
+from the nav — they are now reachable through
+the Start Here flow + the resource finder.
+`Resources` and `Kits` move into the nav.
+SiteFooter gains a new `Start` column above
+`For`; footer grid grows from 7 → 8 columns at
+lg.
+
+`/learn`, `/for`, `/resources`, `/lab`,
+`/kits`, `/demos`, and `/briefs/build` each
+gain a Start Here link in their
+related-routes asides.
+
+`/api/site` exposes `startHub` (the canonical
+URL) and `startPaths[]` (the five role detail
+URLs).
+
+`ROUTE_SET_VERSION` bumps to `content-v19`.
+Eleven new integrity guards enforce: registry
+has the 6 required exports, all five role slugs
+registered, 6 components exist, hub + dynamic
+detail page exist with the right component
+wiring, registry uses every filtered
+`/resources?goal=` + `/resources?artifact=`
+href, no quiz/scoring/personalization/account
+language, no ranking/recommendation/guarantee
+phrasing, homepage + 7 surfaces + footer link to
+`/start`, primary nav includes `/start`, no
+OpenAI metrics, and route contract + sitemap +
+llms.txt + smoke + indexing advertise all six
+onboarding routes.
+
+Sprint 38 ships no new mutable data and no new
+verified-field claims. The verified-data
+backbone established in Sprint 35 remains the
+truth.
+
 **Sprint 37 — resource finder + learning graph
 navigation.** Sprint 37 makes the platform easier
 to navigate by adding a single resource finder

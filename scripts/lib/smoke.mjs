@@ -105,6 +105,12 @@ const PAGE_ROUTES = [
   "/use-cases/structured-output-testing",
   "/resources",
   "/docs/resource-map",
+  "/start",
+  "/start/beginner",
+  "/start/developer",
+  "/start/product",
+  "/start/automation",
+  "/start/governance",
 ];
 
 const API_ROUTES = [

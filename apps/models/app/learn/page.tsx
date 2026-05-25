@@ -236,6 +236,26 @@ export default function LearnHubPage() {
 
       <aside
         role="note"
+        aria-label="Start here shortcut"
+        className="card-surface space-y-2 p-5 text-sm text-muted-foreground"
+      >
+        <p className="font-medium text-foreground">
+          New here?{" "}
+          <Link href="/start" className="text-primary hover:underline">
+            Start here
+          </Link>
+          .
+        </p>
+        <p>
+          The Start Here pages walk you through choosing a role, a
+          goal, or an artifact — and route you into the right
+          learning path, lab playbook, or workflow kit. No accounts,
+          no quiz scoring.
+        </p>
+      </aside>
+
+      <aside
+        role="note"
         aria-label="Resource finder shortcut"
         className="card-surface space-y-2 p-5 text-sm text-muted-foreground"
       >

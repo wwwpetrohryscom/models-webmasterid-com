@@ -302,6 +302,12 @@ export default async function ResourcesPage({ searchParams }: PageProps) {
         </p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>
+            <Link href="/start" className="text-primary hover:underline">
+              /start
+            </Link>{" "}
+            — first-run onboarding (role / goal / artifact entry).
+          </li>
+          <li>
             <Link
               href="/docs/resource-map"
               className="text-primary hover:underline"

@@ -264,6 +264,12 @@ export default function LabHubPage() {
         </p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>
+            <Link href="/start" className="text-primary hover:underline">
+              /start
+            </Link>{" "}
+            — first-run onboarding for cold visitors.
+          </li>
+          <li>
             <Link
               href="/resources?stage=test"
               className="text-primary hover:underline"

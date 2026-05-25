@@ -321,6 +321,12 @@ export function GET() {
     },
     { label: "Resource finder", path: "/resources" },
     { label: "Resource map (docs)", path: "/docs/resource-map" },
+    { label: "Start here", path: "/start" },
+    { label: "Start — beginner", path: "/start/beginner" },
+    { label: "Start — developer", path: "/start/developer" },
+    { label: "Start — product", path: "/start/product" },
+    { label: "Start — automation", path: "/start/automation" },
+    { label: "Start — governance", path: "/start/governance" },
     { label: "Decision brief builder", path: "/briefs/build" },
     { label: "Docs", path: "/docs" },
   ]) {

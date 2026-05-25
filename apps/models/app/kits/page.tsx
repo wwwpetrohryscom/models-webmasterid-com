@@ -191,6 +191,13 @@ export default function KitsHubPage() {
         </p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>
+            <Link href="/start" className="text-primary hover:underline">
+              /start
+            </Link>{" "}
+            — first-run onboarding; each role start page links
+            straight to the matching kit.
+          </li>
+          <li>
             <Link
               href="/resources?resourceType=workflow-kit"
               className="text-primary hover:underline"
